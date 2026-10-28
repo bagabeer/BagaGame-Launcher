@@ -14,6 +14,8 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.
 * **🗂 Automatic Series Grouping:** Keeps your library tidy by automatically bundling franchises (*The Witcher*, *Assassin's Creed*, *Resident Evil*, etc.) using a curated database and smart first-word title heuristics.
 * **⏱ Built-in Playtime Tracker:** Tracks every minute you spend playing. The tracker pings active game processes every 20 seconds and counts time only when the game is launched through BagaGame.
 * **🎨 UI & Customization:** Instantly switch between light and dark themes with full native Mica effect support on Windows 11, rounded poster cards, and a convenient context menu (RMB) for quick library management.
+<img width="1320" height="880" alt="{D9E367FC-22AA-41E6-A2D4-5B326AAE6C35}" src="https://github.com/user-attachments/assets/e7d44801-4bb9-4094-9e41-e3e042f2dbc1" />
+<img width="660" height="441" alt="{A30DFEBD-A7EB-4EC4-8729-DD8B3C421BA9}" src="https://github.com/user-attachments/assets/4ff93b7c-46b8-4696-8866-2a4ead680c3f" />
 
 ---
 
@@ -25,12 +27,14 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.
 * **System Tray Integration:** BagaGame now automatically minimizes to the Windows system tray when a game starts.
 * **Quick Library Management:** Added a "Delete from library" option to the card context menu (RMB).
 * **Startup Auto-Scan:** The launcher now automatically scans game directories on boot to immediately pull new games and artworks.
+<img width="751" height="563" alt="{B5DFEC93-8C65-47FD-80AA-4DDBA2656794}" src="https://github.com/user-attachments/assets/835b71ec-c830-4c5f-8e57-b64fc45ed656" />
 
 ### Version 0.5.3
 * First public release and setup installer compilation.
 * Basic Steam and Epic Games Launcher import integration.
 * Implemented the franchise/series grouping mechanic.
 * Added manual shortcut and folder addition buttons on the main screen.
+<img width="751" height="563" alt="{5B108D01-5C00-43F8-AE19-1F3B6D5D4270}" src="https://github.com/user-attachments/assets/03876a89-b602-4390-96e6-a3e2e784ce44" />
 
 ---
 
