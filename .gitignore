@@ -1,0 +1,15 @@
+## Build results
+bin/
+obj/
+.vs/
+
+## Installer output
+dist/
+
+## Local tooling / screenshots
+.artifacts/
+.dotnet/
+
+## IDE
+*.user
+*.suo

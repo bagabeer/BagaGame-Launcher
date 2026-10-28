@@ -1,0 +1,1788 @@
+﻿<ui:FluentWindow
+    x:Class="BagaGame.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="BagaGame"
+    Width="1320"
+    Height="880"
+    MinWidth="1040"
+    MinHeight="660"
+    WindowStartupLocation="CenterScreen"
+    WindowBackdropType="Mica"
+    WindowCornerPreference="Round"
+    ExtendsContentIntoTitleBar="True"
+    Icon="pack://application:,,,/Assets/bagagame.ico"
+    FontFamily="Segoe UI Variable Text, Segoe UI"
+    FontSize="13"
+    TextOptions.TextFormattingMode="Ideal"
+    UseLayoutRounding="True"
+    SnapsToDevicePixels="True">
+
+    <ui:FluentWindow.Resources>
+
+        <!-- Shown only for settings rows that have a non-default value. -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <!-- ============================== Styles =============================== -->
+
+        <Style x:Key="EyebrowStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+        </Style>
+
+        <Style x:Key="PanelCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+
+        <!-- Sidebar navigation item: hover pill + accent rail + checked state. -->
+        <Style x:Key="NavItemStyle" TargetType="RadioButton">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <Border x:Name="Hover"
+                                    Background="Transparent"
+                                    CornerRadius="8" />
+                            <Border x:Name="Active"
+                                    Background="{DynamicResource NavActiveBrush}"
+                                    CornerRadius="8"
+                                    Opacity="0" />
+                            <Border x:Name="Rail"
+                                    Width="3"
+                                    Height="18"
+                                    Margin="1,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="2"
+                                    Opacity="0" />
+                            <Border x:Name="FocusRing"
+                                    Margin="1"
+                                    BorderBrush="{DynamicResource AccentStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Opacity="0" />
+                            <ContentPresenter Margin="14,0,12,0" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Hover" Property="Background" Value="{DynamicResource NavHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Active" Property="Opacity" Value="1" />
+                                <Setter TargetName="Rail" Property="Opacity" Value="1" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Grid / list toggle. -->
+        <Style x:Key="ViewToggleStyle" TargetType="RadioButton">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="Bg" Background="Transparent" CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Border x:Name="FocusRing"
+                                    BorderBrush="{DynamicResource AccentStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Opacity="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Library grouping pill ("Все / А–Я / Жанры / Серии"). -->
+        <Style x:Key="GroupToggleStyle" TargetType="RadioButton">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="11,0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="Bg"
+                                    Padding="{TemplateBinding Padding}"
+                                    Background="Transparent"
+                                    CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Border x:Name="FocusRing"
+                                    BorderBrush="{DynamicResource AccentStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Opacity="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Lime call-to-action (used on the scanning page). -->
+        <Style x:Key="AccentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="16,9" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentBrightBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Status indicator: green when idle, amber while scanning. -->
+        <Style x:Key="StatusHaloStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+            <Setter Property="Opacity" Value="0.18" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsScanning}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatusDotStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="7"
+                                      Direction="270"
+                                      Opacity="0.9"
+                                      ShadowDepth="0"
+                                      Color="#63DE7C" />
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsScanning}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="7"
+                                              Direction="270"
+                                              Opacity="0.9"
+                                              ShadowDepth="0"
+                                              Color="#E8C15A" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ========================= Game card (grid) ========================= -->
+
+        <DataTemplate x:Key="GameCardTemplate">
+            <Grid x:Name="Card"
+                  Width="200"
+                  Margin="0,0,0,22"
+                  Background="Transparent"
+                  ToolTip="{Binding Title}">
+                <Grid.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Click="LaunchGame_Click"
+                                  FontWeight="SemiBold"
+                                  Header="Запустить"
+                                  IsEnabled="{Binding CanLaunch}" />
+                        <MenuItem Click="OpenFolder_Click" Header="Открыть папку" />
+                        <Separator />
+                        <MenuItem Click="RenameGame_Click" Header="Переименовать" />
+                        <MenuItem Click="RemoveGame_Click"
+                                  Header="Скрыть из библиотеки"
+                                  ToolTip="Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»" />
+                        <MenuItem Click="DeleteGame_Click"
+                                  Header="Удалить"
+                                  ToolTip="Удалить запись об игре — повторное сканирование найдёт игру снова" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="260" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Width="180"
+                      Height="260"
+                      HorizontalAlignment="Left"
+                      Cursor="Hand"
+                      MouseLeftButtonUp="GameCard_MouseLeftButtonUp"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <TranslateTransform x:Name="PosterLift" Y="0" />
+                    </Grid.RenderTransform>
+
+                    <Border x:Name="Poster"
+                            Background="{DynamicResource CoverPlaceholderBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <Border.Effect>
+                            <DropShadowEffect x:Name="PosterShadow"
+                                              BlurRadius="22"
+                                              Direction="270"
+                                              Opacity="0"
+                                              ShadowDepth="5"
+                                              Color="#000000" />
+                        </Border.Effect>
+
+                        <Grid>
+                            <!-- Visible until the real cover arrives / when offline. -->
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock HorizontalAlignment="Center"
+                                           FontFamily="Segoe UI Variable Display, Segoe UI"
+                                           FontSize="34"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource IconMutedBrush}"
+                                           Text="{Binding Initials}" />
+                                <ui:SymbolIcon Margin="0,6,0,0"
+                                               Symbol="Games24"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource IconSoftBrush}"
+                                               HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- ImageBrush is clipped by CornerRadius automatically. -->
+                            <Border x:Name="CoverLayer" CornerRadius="8">
+                                <Border.Background>
+                                    <ImageBrush AlignmentX="Center"
+                                                AlignmentY="Center"
+                                                ImageSource="{Binding Cover}"
+                                                Stretch="UniformToFill">
+                                        <ImageBrush.RelativeTransform>
+                                            <ScaleTransform CenterX="0.5"
+                                                            CenterY="0.5"
+                                                            ScaleX="1"
+                                                            ScaleY="1" />
+                                        </ImageBrush.RelativeTransform>
+                                    </ImageBrush>
+                                </Border.Background>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource PosterStrokeBrush}" BorderThickness="1" CornerRadius="8" />
+
+                            <!-- Small play hint that appears on hover. -->
+                            <Border x:Name="PlayBadge"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,10,10"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="#B3000000"
+                                    CornerRadius="18"
+                                    IsHitTestVisible="False"
+                                    Opacity="0">
+                                <ui:SymbolIcon Symbol="Play24"
+                                               FontSize="15"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                            </Border>
+
+                            <!-- Played time: terse hours on the poster, exact in the tooltip. -->
+                            <Border Margin="10,0,0,10"
+                                    Padding="6,2"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Background="#B3000000"
+                                    CornerRadius="6"
+                                    ToolTip="{Binding PlaytimeTooltip}"
+                                    Visibility="{Binding HasPlaytime, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="White"
+                                           Text="{Binding PlaytimeText}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock Grid.Row="1"
+                           Width="180"
+                           Margin="0,10,0,0"
+                           HorizontalAlignment="Left"
+                           FontSize="13"
+                           FontWeight="Normal"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           LineHeight="17"
+                           MaxHeight="36"
+                           Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="Wrap" />
+            </Grid>
+
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Poster" Property="BorderBrush" Value="{DynamicResource CardStrokeHoverBrush}" />
+
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="PosterLift"
+                                                 Storyboard.TargetProperty="Y"
+                                                 To="-4"
+                                                 Duration="0:0:0.16">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="Poster"
+                                                 Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                 To="0.55"
+                                                 Duration="0:0:0.16" />
+                                <DoubleAnimation Storyboard.TargetName="PlayBadge"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 To="1"
+                                                 Duration="0:0:0.12" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="PosterLift"
+                                                 Storyboard.TargetProperty="Y"
+                                                 To="0"
+                                                 Duration="0:0:0.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="Poster"
+                                                 Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                 To="0"
+                                                 Duration="0:0:0.2" />
+                                <DoubleAnimation Storyboard.TargetName="PlayBadge"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 To="0"
+                                                 Duration="0:0:0.15" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- ========================= Game row (list) ========================== -->
+
+        <DataTemplate x:Key="GameRowTemplate">
+            <Border x:Name="Row"
+                    Height="88"
+                    Margin="0,0,8,8"
+                    Padding="10"
+                    Background="{DynamicResource CardFillBrush}"
+                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Cursor="Hand"
+                    MouseLeftButtonUp="GameCard_MouseLeftButtonUp"
+                    ToolTip="{Binding Title}">
+                <Border.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Click="LaunchGame_Click"
+                                  FontWeight="SemiBold"
+                                  Header="Запустить"
+                                  IsEnabled="{Binding CanLaunch}" />
+                        <MenuItem Click="OpenFolder_Click" Header="Открыть папку" />
+                        <Separator />
+                        <MenuItem Click="RenameGame_Click" Header="Переименовать" />
+                        <MenuItem Click="RemoveGame_Click"
+                                  Header="Скрыть из библиотеки"
+                                  ToolTip="Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»" />
+                        <MenuItem Click="DeleteGame_Click"
+                                  Header="Удалить"
+                                  ToolTip="Удалить запись об игре — повторное сканирование найдёт игру снова" />
+                    </ContextMenu>
+                </Border.ContextMenu>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Width="48" Height="68">
+                        <Border Background="{DynamicResource CoverPlaceholderBrush}" CornerRadius="6" />
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock HorizontalAlignment="Center"
+                                       FontFamily="Segoe UI Variable Display, Segoe UI"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IconSoftBrush}"
+                                       Text="{Binding Initials}" />
+                            <ui:SymbolIcon Margin="0,3,0,0"
+                                           Symbol="Games24"
+                                           FontSize="9"
+                                           Foreground="{DynamicResource IconSoftBrush}"
+                                           HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <Border CornerRadius="6">
+                            <Border.Background>
+                                <ImageBrush AlignmentX="Center"
+                                            AlignmentY="Center"
+                                            ImageSource="{Binding Cover}"
+                                            Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="14,0,12,0"
+                                VerticalAlignment="Center">
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="{Binding Title}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="{Binding Details}"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <Border Margin="0,0,10,0"
+                                Padding="7,2"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                ToolTip="{Binding PlaytimeTooltip}"
+                                Visibility="{Binding HasPlaytime, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock FontSize="11"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Text="{Binding PlaytimeText}" />
+                        </Border>
+                        <ui:SymbolIcon Margin="0,0,6,0"
+                                       Symbol="ChevronRight24"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Row" Property="Background" Value="{DynamicResource CardFillHoverBrush}" />
+                    <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource CardStrokeHoverBrush}" />
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- Header of a library group (letter / genre / series + count). -->
+        <DataTemplate x:Key="GroupHeaderTemplate">
+            <Grid Margin="0,2,0,14">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="{Binding Name}" />
+                    <Border Margin="9,1,0,0"
+                            Padding="7,1"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource ChipFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <TextBlock FontSize="10"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{Binding ItemCount}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <!-- ============================ Panels ================================ -->
+
+        <ItemsPanelTemplate x:Key="GamesGridPanel">
+            <WrapPanel ItemWidth="200" ItemHeight="332" Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+
+        <ItemsPanelTemplate x:Key="GamesListPanel">
+            <StackPanel Orientation="Vertical" />
+        </ItemsPanelTemplate>
+
+    </ui:FluentWindow.Resources>
+
+    <Grid x:Name="Root" Background="{DynamicResource WindowTintBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="252" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Draggable caption area; window buttons are rendered by WPF-UI. -->
+        <ui:TitleBar x:Name="AppTitleBar"
+                     Grid.Row="0"
+                     Grid.ColumnSpan="2"
+                     Title=""
+                     Height="48"
+                     Background="Transparent"
+                     ShowHelp="False" />
+
+        <!-- ============================ Sidebar ============================== -->
+
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                Background="Transparent"
+                BorderBrush="{DynamicResource DividerBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid Margin="18,2,18,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <StackPanel Margin="4,2,0,0" Orientation="Horizontal">
+                    <Border Width="42"
+                            Height="42"
+                            Background="{DynamicResource LogoBrush}"
+                            CornerRadius="11">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="18"
+                                              Direction="270"
+                                              Opacity="0.32"
+                                              ShadowDepth="0"
+                                              Color="#8CE85B" />
+                        </Border.Effect>
+                        <ui:SymbolIcon Symbol="Games24"
+                                       FontSize="22"
+                                       Foreground="#13200C"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   FontSize="19"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="BagaGame" />
+                        <TextBlock Margin="1,3,0,0"
+                                   FontSize="8.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="GAME LAUNCHER" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1" Margin="0,30,0,0">
+                    <TextBlock Margin="12,0,0,8"
+                               Style="{StaticResource EyebrowStyle}"
+                               Text="НАВИГАЦИЯ" />
+
+                    <RadioButton x:Name="LibraryNav"
+                                 AutomationProperties.Name="Библиотека"
+                                 Checked="Nav_Checked"
+                                 GroupName="Navigation"
+                                 IsChecked="True"
+                                 Style="{StaticResource NavItemStyle}"
+                                 Tag="Library">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon FontSize="18"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                           Symbol="Library24" />
+                            <TextBlock Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="13.5"
+                                       Text="Библиотека" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="ScanNav"
+                                 AutomationProperties.Name="Сканирование"
+                                 Checked="Nav_Checked"
+                                 GroupName="Navigation"
+                                 Style="{StaticResource NavItemStyle}"
+                                 Tag="Scan">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon FontSize="18"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                           Symbol="Search24" />
+                            <TextBlock Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="13.5"
+                                       Text="Сканирование" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="SettingsNav"
+                                 AutomationProperties.Name="Настройки"
+                                 Checked="Nav_Checked"
+                                 GroupName="Navigation"
+                                 Style="{StaticResource NavItemStyle}"
+                                 Tag="Settings">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon FontSize="18"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                           Symbol="Settings24" />
+                            <TextBlock Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="13.5"
+                                       Text="Настройки" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+
+                <!-- Status -->
+                <Border Grid.Row="2"
+                        Padding="12,11"
+                        Background="{DynamicResource CardFillBrush}"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Grid Width="10"
+                                  Height="10"
+                                  Margin="0,3,0,0"
+                                  VerticalAlignment="Top">
+                                <Ellipse Width="10"
+                                         Height="10"
+                                         Style="{StaticResource StatusHaloStyle}" />
+                                <Ellipse Width="6"
+                                         Height="6"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         Style="{StaticResource StatusDotStyle}" />
+                            </Grid>
+
+                            <TextBlock Margin="9,0,0,0"
+                                       FontSize="11.5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Text="{Binding StatusText}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <TextBlock Margin="19,4,0,0"
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="{Binding GamesCount, StringFormat='Найдено игр: {0}'}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- =========================== Main area ============================= -->
+
+        <Grid Grid.Row="1" Grid.Column="1">
+
+            <!-- Library page -->
+            <Grid x:Name="LibraryPage">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="36,26,32,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   FontSize="30"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="Библиотека" />
+                        <TextBlock Margin="1,6,0,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{Binding LibrarySummary}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                        <Button AutomationProperties.Name="Добавить игру"
+                                Click="AddGame_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                ToolTip="Добавить одну игру, не пересканируя всё">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="14"
+                                               Foreground="{DynamicResource AccentForegroundBrush}"
+                                               Symbol="Add24" />
+                                <TextBlock Margin="7,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="Добавить игру" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border Margin="10,0,0,0"
+                                Padding="3"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="GridViewButton"
+                                             AutomationProperties.Name="Сетка"
+                                             Checked="ViewMode_Checked"
+                                             GroupName="ViewMode"
+                                             IsChecked="True"
+                                             Style="{StaticResource ViewToggleStyle}"
+                                             ToolTip="Сетка">
+                                    <ui:SymbolIcon FontSize="15"
+                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                   Symbol="Grid24" />
+                                </RadioButton>
+                                <RadioButton x:Name="ListViewButton"
+                                             AutomationProperties.Name="Список"
+                                             Checked="ViewMode_Checked"
+                                             GroupName="ViewMode"
+                                             Style="{StaticResource ViewToggleStyle}"
+                                             ToolTip="Список">
+                                    <ui:SymbolIcon FontSize="15"
+                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                   Symbol="List24" />
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Search and grouping -->
+                <Grid Grid.Row="1" Margin="36,0,20,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="270"
+                            Height="34"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource FieldFillBrush}"
+                            BorderBrush="{DynamicResource FieldStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ui:SymbolIcon Margin="10,0,0,0"
+                                           VerticalAlignment="Center"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource TextTertiaryBrush}"
+                                           Symbol="Search24" />
+
+                            <TextBox x:Name="SearchBox"
+                                     Grid.Column="1"
+                                     Margin="3,0,0,0"
+                                     Padding="5,0,4,0"
+                                     VerticalContentAlignment="Center"
+                                     AutomationProperties.Name="Поиск по играм"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     CaretBrush="{DynamicResource AccentBrush}"
+                                     FocusVisualStyle="{x:Null}"
+                                     FontSize="12.5"
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     Style="{x:Null}"
+                                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Column="1"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       IsHitTestVisible="False"
+                                       Text="Поиск по библиотеке">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <ui:Button Grid.Column="2"
+                                       Width="22"
+                                       Height="22"
+                                       Margin="0,0,6,0"
+                                       Padding="0"
+                                       Appearance="Secondary"
+                                       AutomationProperties.Name="Очистить поиск"
+                                       Click="ClearSearch_Click"
+                                       CornerRadius="6"
+                                       ToolTip="Очистить поиск"
+                                       Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}">
+                                <ui:SymbolIcon FontSize="10" Symbol="Dismiss24" />
+                            </ui:Button>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                        <TextBlock Margin="0,0,10,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="{Binding VisibleCount, StringFormat='Показано: {0}'}"
+                                   Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}" />
+
+                        <Border Padding="3"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="GroupAllButton"
+                                             AutomationProperties.Name="Без группировки"
+                                             Checked="GroupMode_Checked"
+                                             Content="Все"
+                                             GroupName="Grouping"
+                                             IsChecked="True"
+                                             Style="{StaticResource GroupToggleStyle}"
+                                             Tag="None"
+                                             ToolTip="Одна общая сетка" />
+                                <RadioButton x:Name="GroupAlphaButton"
+                                             AutomationProperties.Name="По алфавиту"
+                                             Checked="GroupMode_Checked"
+                                             Content="А–Я"
+                                             GroupName="Grouping"
+                                             Style="{StaticResource GroupToggleStyle}"
+                                             Tag="Alphabet"
+                                             ToolTip="Группы по первой букве названия" />
+                                <RadioButton x:Name="GroupGenreButton"
+                                             AutomationProperties.Name="По жанрам"
+                                             Checked="GroupMode_Checked"
+                                             Content="Жанры"
+                                             GroupName="Grouping"
+                                             Style="{StaticResource GroupToggleStyle}"
+                                             Tag="Genre"
+                                             ToolTip="Группы по жанрам Steam" />
+                                <RadioButton x:Name="GroupSeriesButton"
+                                             AutomationProperties.Name="По сериям"
+                                             Checked="GroupMode_Checked"
+                                             Content="Серии"
+                                             GroupName="Grouping"
+                                             Style="{StaticResource GroupToggleStyle}"
+                                             Tag="Series"
+                                             ToolTip="Группы по сериям игр" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="2">
+                    <ScrollViewer x:Name="ScrollHost"
+                                  Padding="36,0,20,12"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="GamesItems"
+                                      ItemsSource="{Binding GamesView}"
+                                      ItemTemplate="{StaticResource GameCardTemplate}"
+                                      ItemsPanel="{StaticResource GamesGridPanel}">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle HeaderTemplate="{StaticResource GroupHeaderTemplate}" />
+                            </ItemsControl.GroupStyle>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Empty state -->
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="False">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasVisibleGames}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <Border Width="64"
+                                Height="64"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource AccentSoftBrush}"
+                                CornerRadius="18">
+                            <ui:SymbolIcon Symbol="Games24"
+                                           FontSize="28"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Margin="0,18,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="{Binding EmptyTitle}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{Binding EmptyText}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Bottom action bar -->
+                <Grid Grid.Row="3" Height="84">
+                    <Border Background="{DynamicResource FooterFadeBrush}" IsHitTestVisible="False" />
+                    <ui:Button x:Name="RescanButton"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Padding="18,9"
+                               Appearance="Secondary"
+                               AutomationProperties.Name="Пересканировать"
+                               Click="Rescan_Click"
+                               CornerRadius="8"
+                               FontSize="12.5"
+                               IsEnabled="{Binding CanRescan}"
+                               ToolTip="Пересканировать (F5)">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon x:Name="RefreshIcon"
+                                           Width="16"
+                                           Height="16"
+                                           FontSize="16"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           RenderTransformOrigin="0.5,0.5"
+                                           Symbol="ArrowClockwise24">
+                                <ui:SymbolIcon.RenderTransform>
+                                    <RotateTransform x:Name="RefreshRotation" Angle="0" />
+                                </ui:SymbolIcon.RenderTransform>
+                            </ui:SymbolIcon>
+                            <TextBlock Margin="9,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="Пересканировать" />
+                        </StackPanel>
+                    </ui:Button>
+                </Grid>
+            </Grid>
+
+            <!-- Scanning page -->
+            <Grid x:Name="ScanPage" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="36,26,32,18">
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="30"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="Сканирование" />
+                    <TextBlock Margin="1,6,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Text="Поиск игр, установленных на этом компьютере" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1"
+                              Padding="36,0,32,24"
+                              HorizontalContentAlignment="Stretch"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Width="720" HorizontalAlignment="Left">
+
+                        <Border Padding="26"
+                                Background="{DynamicResource CardFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Width="58"
+                                        Height="58"
+                                        Background="{DynamicResource AccentSoftBrush}"
+                                        CornerRadius="15">
+                                    <ui:SymbolIcon Symbol="Search24"
+                                                   FontSize="25"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="17"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Text="Найти установленные игры" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Text="BagaGame проверит Steam, Epic Games, GOG Galaxy и добавленные папки, а затем подтянет обложки для игр Steam."
+                                               TextWrapping="Wrap" />
+
+                                    <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
+                                        <Button Padding="16,9"
+                                                Click="ScanNow_Click"
+                                                Content="Сканировать сейчас"
+                                                IsEnabled="{Binding CanRescan}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                        <TextBlock Margin="14,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Обычно занимает несколько секунд" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Margin="2,12,0,0"
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="{Binding ScanInfo}"
+                                   TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasScanInfo}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <TextBlock Margin="2,24,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
+                                   Text="ИСТОЧНИКИ" />
+
+                        <Border Style="{StaticResource PanelCardStyle}" Padding="18,6">
+                            <StackPanel>
+                                <Grid Height="58">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Games24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Steam" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Все локальные библиотеки Steam" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2"
+                                            Padding="8,3"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource AccentSoftBrush}"
+                                            CornerRadius="10">
+                                        <TextBlock FontSize="10"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="Поддерживается" />
+                                    </Border>
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="58">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Globe24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Epic Games" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Игры, установленные Epic Games Launcher" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2"
+                                            Padding="8,3"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource AccentSoftBrush}"
+                                            CornerRadius="10">
+                                        <TextBlock FontSize="10"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="Поддерживается" />
+                                    </Border>
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="58">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Globe24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="GOG Galaxy" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Игры из локальной библиотеки GOG" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2"
+                                            Padding="8,3"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource AccentSoftBrush}"
+                                            CornerRadius="10">
+                                        <TextBlock FontSize="10"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="Поддерживается" />
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Margin="2,24,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
+                                   Text="ПАПКИ" />
+
+                        <Border Style="{StaticResource PanelCardStyle}" Padding="18,14">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:SymbolIcon Symbol="Folder24"
+                                                   FontSize="18"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="12.5"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Пользовательские папки" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{Binding FoldersSummary, Mode=OneWay}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ui:Button Grid.Column="2"
+                                               Padding="12,6"
+                                               Appearance="Secondary"
+                                               Click="AddFolder_Click"
+                                               Content="Добавить"
+                                               CornerRadius="7"
+                                               IsEnabled="{Binding CanRescan}" />
+                                </Grid>
+
+                                <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding Folders}">
+                                    <ItemsControl.Style>
+                                        <Style TargetType="ItemsControl">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasFolders}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ItemsControl.Style>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Height="40" Margin="0,2,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock VerticalAlignment="Center"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding}" />
+                                                <ui:Button Grid.Column="1"
+                                                           Padding="10,4"
+                                                           Appearance="Secondary"
+                                                           Click="RemoveFolder_Click"
+                                                           Content="Убрать"
+                                                           CornerRadius="6"
+                                                           FontSize="11"
+                                                           Tag="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- Settings page -->
+            <Grid x:Name="SettingsPage" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="36,26,32,18">
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="30"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="Настройки" />
+                    <TextBlock Margin="1,6,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Text="Персонализация BagaGame" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1"
+                              Padding="36,0,32,24"
+                              HorizontalContentAlignment="Stretch"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Width="720" HorizontalAlignment="Left">
+
+                        <TextBlock Margin="2,0,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
+                                   Text="ОФОРМЛЕНИЕ" />
+
+                        <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">
+                            <StackPanel>
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="WeatherSunny24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Светлая тема" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Переключается мгновенно и сохраняется" />
+                                    </StackPanel>
+                                    <ui:ToggleSwitch x:Name="ThemeToggle"
+                                                     Grid.Column="2"
+                                                     VerticalAlignment="Center"
+                                                     AutomationProperties.Name="Светлая тема"
+                                                     Checked="ThemeToggle_Toggled"
+                                                     Unchecked="ThemeToggle_Toggled" />
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="ArrowDownload24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Загружать обложки" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="Постеры сохраняются в локальный кэш" />
+                                    </StackPanel>
+                                    <ui:ToggleSwitch Grid.Column="2"
+                                                     VerticalAlignment="Center"
+                                                     IsChecked="{Binding DownloadCovers}" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Margin="2,24,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
+                                   Text="БИБЛИОТЕКА" />
+
+                        <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">
+                            <StackPanel>
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Folder24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Кэш обложек" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{Binding CoverCacheDirectory}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTip="{Binding CoverCacheDirectory}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <ui:Button Padding="12,6"
+                                                   Appearance="Secondary"
+                                                   Click="OpenCacheFolder_Click"
+                                                   Content="Открыть"
+                                                   CornerRadius="7" />
+                                        <ui:Button Margin="8,0,0,0"
+                                                   Padding="12,6"
+                                                   Appearance="Secondary"
+                                                   Click="ChangeCacheFolder_Click"
+                                                   Content="Изменить…"
+                                                   CornerRadius="7" />
+                                        <ui:Button Margin="8,0,0,0"
+                                                   Padding="12,6"
+                                                   Appearance="Secondary"
+                                                   Click="ResetCacheFolder_Click"
+                                                   Content="Сбросить"
+                                                   CornerRadius="7"
+                                                   ToolTip="Вернуть папку по умолчанию"
+                                                   Visibility="{Binding IsCustomCoverCache, Converter={StaticResource BoolToVisibility}}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="EyeOff24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="Скрытые игры" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{Binding HiddenSummary}" />
+                                    </StackPanel>
+                                    <ui:Button Grid.Column="2"
+                                               Padding="12,6"
+                                               Appearance="Secondary"
+                                               Click="RestoreHidden_Click"
+                                               Content="Восстановить"
+                                               CornerRadius="7"
+                                               IsEnabled="{Binding HasHidden}" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Margin="2,24,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
+                                   Text="О ПРОГРАММЕ" />
+
+                        <Border Style="{StaticResource PanelCardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Width="42"
+                                        Height="42"
+                                        Background="{DynamicResource LogoBrush}"
+                                        CornerRadius="11">
+                                    <ui:SymbolIcon Symbol="Games24"
+                                                   FontSize="21"
+                                                   Foreground="#13200C"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Text="BagaGame" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                               Text="Версия 0.6.0 · WPF-UI 4.3.0 · .NET 8" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- Add-game overlay (folder or .exe) -->
+        <Grid x:Name="AddGameOverlay"
+              Grid.RowSpan="2"
+              Grid.ColumnSpan="2"
+              Panel.ZIndex="101"
+              Background="{DynamicResource OverlayBrush}"
+              MouseLeftButtonDown="AddGameOverlay_MouseLeftButtonDown"
+              Visibility="Collapsed">
+            <Border Width="500"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource DialogFillBrush}"
+                    BorderBrush="{DynamicResource DialogStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="40"
+                                      Direction="270"
+                                      Opacity="0.5"
+                                      ShadowDepth="10"
+                                      Color="#000000" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="Добавить игру" />
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Text="Выберите папку игры или её .exe — обложка и жанр подтянутся автоматически."
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Margin="0,18,0,0" Orientation="Horizontal">
+                        <ui:Button Width="212"
+                                   Height="72"
+                                   Padding="14,10"
+                                   Appearance="Secondary"
+                                   AutomationProperties.Name="Папка игры"
+                                   Click="AddGameFolder_Click"
+                                   CornerRadius="9"
+                                   ToolTip="Выбрать папку, .exe найдётся автоматически">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="20"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="Folder24" />
+                                <StackPanel Grid.Column="1"
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock FontSize="12.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Text="Папка игры" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                               Text="Найти .exe автоматически"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </ui:Button>
+
+                        <ui:Button Width="212"
+                                   Height="72"
+                                   Margin="10,0,0,0"
+                                   Padding="14,10"
+                                   Appearance="Secondary"
+                                   AutomationProperties.Name="Файл .exe"
+                                   Click="AddGameExe_Click"
+                                   CornerRadius="9"
+                                   ToolTip="Указать исполняемый файл вручную">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ui:SymbolIcon VerticalAlignment="Center"
+                                               FontSize="20"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="Games24" />
+                                <StackPanel Grid.Column="1"
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock FontSize="12.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Text="Файл .exe" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                               Text="Указать запуск вручную"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </ui:Button>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,20,0,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <ui:Button Padding="14,7"
+                                   Appearance="Secondary"
+                                   Click="AddGameCancel_Click"
+                                   Content="Отмена"
+                                   CornerRadius="7" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Rename overlay (modal, keeps the window chrome and theme) -->
+        <Grid x:Name="RenameOverlay"
+              Grid.RowSpan="2"
+              Grid.ColumnSpan="2"
+              Panel.ZIndex="100"
+              Background="{DynamicResource OverlayBrush}"
+              MouseLeftButtonDown="RenameOverlay_MouseLeftButtonDown"
+              Visibility="Collapsed">
+            <Border Width="440"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource DialogFillBrush}"
+                    BorderBrush="{DynamicResource DialogStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="40"
+                                      Direction="270"
+                                      Opacity="0.5"
+                                      ShadowDepth="10"
+                                      Color="#000000" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="Переименовать игру" />
+                    <TextBlock x:Name="RenameSubtitle"
+                               Margin="0,6,0,0"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBox x:Name="RenameBox"
+                             Height="38"
+                             Margin="0,18,0,0"
+                             Padding="10,0"
+                             VerticalContentAlignment="Center"
+                             AutomationProperties.Name="Название игры"
+                             Background="{DynamicResource FieldFillBrush}"
+                             BorderBrush="{DynamicResource FieldStrokeBrush}"
+                             BorderThickness="1"
+                             CaretBrush="{DynamicResource AccentBrush}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             KeyDown="RenameBox_KeyDown"
+                             MaxLength="120"
+                             SelectionBrush="{DynamicResource AccentBrush}" />
+                    <StackPanel Margin="0,20,0,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <ui:Button Margin="0,0,8,0"
+                                   Padding="14,7"
+                                   Appearance="Secondary"
+                                   Click="RenameCancel_Click"
+                                   Content="Отмена"
+                                   CornerRadius="7" />
+                        <ui:Button Padding="14,7"
+                                   Appearance="Primary"
+                                   Click="RenameSave_Click"
+                                   Content="Сохранить"
+                                   CornerRadius="7" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <ui:FluentWindow.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="Root"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="0"
+                                     To="1"
+                                     Duration="0:0:0.28">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </ui:FluentWindow.Triggers>
+
+</ui:FluentWindow>

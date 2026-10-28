@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- The tray icon is WinForms; it needs the desktop framework. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- WFAC010 asks to move DPI setup into ApplicationConfiguration, but this is
+         a WPF app that only borrows NotifyIcon, so app.manifest stays in charge. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+
+    <AssemblyName>BagaGame</AssemblyName>
+    <RootNamespace>BagaGame</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\bagagame.ico</ApplicationIcon>
+    <Version>0.6.0</Version>
+    <Authors>BagaGame</Authors>
+    <Product>BagaGame</Product>
+
+    <!-- WPF-UI ships many localizations; we only need English + neutral. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\bagagame.ico" />
+  </ItemGroup>
+
+  <!-- WinForms ships implicit usings that collide with the WPF ones
+       (Application, MessageBox, Point, Size ...). Only the tray icon needs
+       WinForms, so those two are used with explicit names instead. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>
