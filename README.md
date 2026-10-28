@@ -3,7 +3,8 @@
 **BagaGame Launcher** is a lightweight, fast, and smart game library organizer designed in the Windows 11 Fluent style. It is built for those who are tired of cluttering their desktops with hundreds of game shortcuts and want a beautiful, clean, and well-structured collection reminiscent of console interfaces.
 
 Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.3.0**. The installed application takes up only **13.5 MB**, consumes minimal system resources, and consolidates all your games (Steam, Epic Games, GOG, and DRM-free/pirated titles) into one cozy place.
-<img width="660" height="441" alt="{417BF5AB-C209-4457-8629-68CECF4F516F}" src="https://github.com/user-attachments/assets/23d57242-8619-44d2-85a0-2bb165fbf373" />
+<img width="680" height="468" alt="{FF5A92BC-4488-4B6B-AD4C-7C7FF03E6490}" src="https://github.com/user-attachments/assets/0512c231-8f05-41ba-aef7-d948dc1ba780" />
+
 
 ---
 
@@ -14,8 +15,10 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.
 * **🗂 Automatic Series Grouping:** Keeps your library tidy by automatically bundling franchises (*The Witcher*, *Assassin's Creed*, *Resident Evil*, etc.) using a curated database and smart first-word title heuristics.
 * **⏱ Built-in Playtime Tracker:** Tracks every minute you spend playing. The tracker pings active game processes every 20 seconds and counts time only when the game is launched through BagaGame.
 * **🎨 UI & Customization:** Instantly switch between light and dark themes with full native Mica effect support on Windows 11, rounded poster cards, and a convenient context menu (RMB) for quick library management.
-<img width="1320" height="880" alt="{D9E367FC-22AA-41E6-A2D4-5B326AAE6C35}" src="https://github.com/user-attachments/assets/e7d44801-4bb9-4094-9e41-e3e042f2dbc1" />
-<img width="660" height="441" alt="{A30DFEBD-A7EB-4EC4-8729-DD8B3C421BA9}" src="https://github.com/user-attachments/assets/4ff93b7c-46b8-4696-8866-2a4ead680c3f" />
+<img width="680" height="468" alt="{A700B357-0FC4-4553-A920-CB0769FCEDFE}" src="https://github.com/user-attachments/assets/37e1cd48-57df-4ca7-9083-24de1bc4d9ef" />
+
+<img width="680" height="468" alt="{9183B428-EC59-44C7-B3D5-F6C5032A028C}" src="https://github.com/user-attachments/assets/cf7fae7a-6187-4599-b988-5b02397df2de" />
+
 
 ---
 
@@ -27,14 +30,16 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.
 * **System Tray Integration:** BagaGame now automatically minimizes to the Windows system tray when a game starts.
 * **Quick Library Management:** Added a "Delete from library" option to the card context menu (RMB).
 * **Startup Auto-Scan:** The launcher now automatically scans game directories on boot to immediately pull new games and artworks.
-<img width="751" height="563" alt="{B5DFEC93-8C65-47FD-80AA-4DDBA2656794}" src="https://github.com/user-attachments/assets/835b71ec-c830-4c5f-8e57-b64fc45ed656" />
+<img width="680" height="468" alt="{38A2F913-1AE4-4499-A504-403A250FBB2E}" src="https://github.com/user-attachments/assets/0a2e1484-692b-42cd-a70a-f235936470d9" />
+
 
 ### Version 0.5.3
 * First public release and setup installer compilation.
 * Basic Steam and Epic Games Launcher import integration.
 * Implemented the franchise/series grouping mechanic.
 * Added manual shortcut and folder addition buttons on the main screen.
-<img width="751" height="563" alt="{5B108D01-5C00-43F8-AE19-1F3B6D5D4270}" src="https://github.com/user-attachments/assets/03876a89-b602-4390-96e6-a3e2e784ce44" />
+<img width="680" height="468" alt="{A23B65F4-D0AE-4739-AB13-0C3F6317456A}" src="https://github.com/user-attachments/assets/ccea0f1d-7638-47eb-b1de-ae03291c8fde" />
+
 
 ---
 
