@@ -3,9 +3,7 @@
 **BagaGame Launcher** is a lightweight, fast, and smart game library organizer designed in the Windows 11 Fluent style. It is built for those who are tired of cluttering their desktops with hundreds of game shortcuts and want a beautiful, clean, and well-structured collection reminiscent of console interfaces.
 
 Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.3.0**. The installed application takes up only **13.5 MB**, consumes minimal system resources, and consolidates all your games (Steam, Epic Games, GOG, and DRM-free/pirated titles) into one cozy place.
-<p align="center">
-  <img src="https://github.com" width="750" style="border-radius: 12px;" alt="BagaGame Launcher Screenshot">
-</p>
+![BagaGame Launcher Screenshot](https://github.com)
 ---
 
 ## 🛠 Key Features
