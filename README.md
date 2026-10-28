@@ -1,258 +1,127 @@
-[README.md](https://github.com/user-attachments/files/34101495/README.md)
-# BagaGame 0.6.0
+# 🎮 BagaGame Launcher [v0.6.0]
 
-Игровой лаунчер в стиле Windows 11 на **C# / WPF** и **WPF-UI 4.3.0**.
-BagaGame сканирует компьютер, показывает только реально установленные игры,
-подтягивает обложки и жанры, запускает игры по клику, считает наигранные часы
-и позволяет переключать тёмную и светлую тему.
+**BagaGame Launcher** is a lightweight, fast, and smart game library organizer designed in the Windows 11 Fluent style. It is built for those who are tired of cluttering their desktops with hundreds of game shortcuts and want a beautiful, clean, and well-structured collection reminiscent of console interfaces.
 
-## Требования
+Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.3.0**. The installed application takes up only **13.5 MB**, consumes minimal system resources, and consolidates all your games (Steam, Epic Games, GOG, and DRM-free/pirated titles) into one cozy place.
 
-- Windows 10 (1809+) или Windows 11
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Visual Studio 2022 (не обязательно)
+---
 
-## Запуск
+## 🛠 Key Features
 
+* **🔍 All-Devouring Scanner (Deep Scan):** Automatically scans designated directories upon launch. It accurately detects executable files even within hidden or non-standard structures (up to 8 folders deep) and pulls high-quality cover art and genres from the web.
+* **🔌 Store Integration:** Seamlessly imports licensed titles directly from **Steam**, **Epic Games Launcher**, and **GOG Galaxy**.
+* **🗂 Automatic Series Grouping:** Keeps your library tidy by automatically bundling franchises (*The Witcher*, *Assassin's Creed*, *Resident Evil*, etc.) using a curated database and smart first-word title heuristics.
+* **⏱ Built-in Playtime Tracker:** Tracks every minute you spend playing. The tracker pings active game processes every 20 seconds and counts time only when the game is launched through BagaGame.
+* **🎨 UI & Customization:** Instantly switch between light and dark themes with full native Mica effect support on Windows 11, rounded poster cards, and a convenient context menu (RMB) for quick library management.
+
+---
+
+## 🚀 Changelog
+
+### Version 0.6.0 (Current)
+* **Time Tracking:** Added a built-in game playtime counter.
+* **Deep Scan:** Enhanced search algorithms to locate hidden `.exe` files and obscure file structures.
+* **System Tray Integration:** BagaGame now automatically minimizes to the Windows system tray when a game starts.
+* **Quick Library Management:** Added a "Delete from library" option to the card context menu (RMB).
+* **Startup Auto-Scan:** The launcher now automatically scans game directories on boot to immediately pull new games and artworks.
+
+### Version 0.5.3
+* First public release and setup installer compilation.
+* Basic Steam and Epic Games Launcher import integration.
+* Implemented the franchise/series grouping mechanic.
+* Added manual shortcut and folder addition buttons on the main screen.
+
+---
+
+## 📥 Requirements & Setup
+
+### For Users:
+1. Navigate to the **[Releases](https://github.com)** section of this repository.
+2. Download the latest `.exe` installer for version `v0.6.0`.
+3. Run the installer and follow the prompt instructions.
+* *Supported OS:* Windows 10 (1809+) or Windows 11.
+
+### For Developers (Building from Source):
+* Requires **.NET 8 SDK** and **Visual Studio 2022** (optional).
 ```powershell
 dotnet restore
 dotnet run
 ```
+Alternatively, open `BagaGame.csproj` in Visual Studio and press **F5**.
 
-Или откройте `BagaGame.csproj` в Visual Studio и нажмите **F5**.
+---
 
-При первом запуске библиотека сканируется автоматически — демо-игр нет.
+## ⚙️ Technical Documentation (For Contributors)
 
-## Возможности
+### Component Behavior & Specifications
 
-| Элемент | Поведение |
+| Feature | Behavior |
 |---|---|
-| Сканирование | **Steam**, **Epic Games**, **GOG Galaxy** и добавленные вручную папки |
-| Автосканирование | Выполняется при каждом запуске приложения |
-| Добавить игру | Кнопка в шапке библиотеки: папка игры или конкретный `.exe`, без полного пересканирования |
-| Библиотека | Постеры 180×260 со скруглениями; сетка или список |
-| Сетка / список | Переключатель вида запоминается в `library.json` |
-| Группировка | **Все**, **А–Я**, **Жанры**, **Серии** — с заголовками и счётчиком игр |
-| Поиск | Живой фильтр по названию, источнику, жанру/серии и пути |
-| Горячие клавиши | **Ctrl+F** — поиск, **Esc** — очистить/закрыть, **F5** — пересканировать |
-| Запуск игры | Клик по постеру или строке; Steam-игры стартуют через `steam://rungameid` |
-| Контекстное меню | ПКМ по игре → **Запустить**, **Открыть папку**, **Переименовать**, **Скрыть из библиотеки**, **Удалить** |
-| Наигранное время | Часы (`12 ч`) прямо на карточке, точное время — в подсказке; счётчик растёт, пока игра запущена из лаунчера |
-| Сворачивание в трей | После запуска игры окно уходит в область уведомлений, а счётчик времени продолжает работать; значок в трее возвращает окно |
-| Переименование | Собственное имя сохраняется и применяется после повторных сканов |
-| Скрытие | **Скрыть из библиотеки** убирает игру, сохраняя её имя и жанр; возврат — в Настройках, кнопкой «Восстановить скрытые» |
-| Удаление | **Удалить** стирает имя, жанр, наигранное время, AppID и постер и убирает карточку; игра не попадает в скрытые, а повторный скан находит её заново |
-| Пользовательские папки | Кнопка «Добавить» на странице «Сканирование», список с удалением |
-| Статус-бар | Зелёный индикатор в покое, янтарный во время сканирования |
-| «Пересканировать» | Асинхронное сканирование со спиннером; горячая клавиша **F5** |
-| Обложки | Локальный арт из папки игры, иначе поиск AppID в Steam по названию; кеш + заглушка с инициалами |
-| Жанры | Steam `appdetails`, русские подписи; кешируются в `library.json` |
-| Папка кеша | Кнопка «Изменить…» в Настройках, постеры переносятся без повторной загрузки |
-| Светлая тема | Переключатель в Настройках, применяется мгновенно и сохраняется |
-| Настройки | Сохраняются в `library.json` (тема, обложки, папка кеша, скрытые игры, папки, переименования, жанры, наигранное время, вид и группировка). Кнопка «Восстановить скрытые» возвращает скрытые игры |
-| Оформление | Тёмная и светлая темы, Mica на Windows 11, лаймовый акцент, Segoe UI |
+| **Scanning** | Targets Steam, Epic Games, GOG Galaxy, and user-defined directories. |
+| **Manual Add** | Individual `.exe` files or whole game folders can be added instantly without running a full library re-scan. |
+| **Library View** | Displays 180×260 rounded posters; switches between grid or list view (saved in json). |
+| **Grouping Modes** | Categories: All, A–Z, Genres, and Series (includes custom headers and game counters). |
+| **Search & Shortcuts** | Real-time live filtering. **Ctrl+F** to focus search, **Esc** to clear, **F5** to force re-scan. |
+| **Context Menu** | Right-click options: Play, Open Folder, Rename, Hide from Library, Delete. |
+| **Tray Behavior** | Minimizes to system tray on game launch to keep the playtime tracker thread alive. |
+| **Covers & Genres** | Looks for local assets, then falls back to Steam Store scraping. Fully cached. |
 
-## Добавление одной игры
+### Manual Add Mechanics
+The **"Add Game"** tool processes directories in two ways:
+1. **Game Folder:** Automatically identifies the core executable while stripping away utility files like `unins`, `vcredist`, or `crashhandler`. Internal build directories (`bin`, `x64`, `ph`, `work`) are skipped when generating game names. Unreal Engine structures (e.g., *Days Gone*) are parsed correctly to map the true root directory.
+2. **Direct .exe:** Hard-links the selected executable. 
 
-Кнопка **«Добавить игру»** в шапке библиотеки открывает окно с двумя вариантами:
-
-- **Папка игры** — BagaGame ищет подходящий `.exe` в папке и вложенных
-  каталогах (служебные файлы вроде `unins`, `vcredist`, `crashhandler`
-  отбрасываются).
-- **Файл .exe** — если нужно указать конкретный исполняемый файл.
-
-Новая игра появляется сразу, без пересканирования всей библиотеки: для неё
-подтягиваются обложка и жанр, а запись сохраняется в `library.json`
-(`ManualGames`) с источником «Вручную». Название берётся из метаданных `.exe`
-(например, «Dying Light 2 Stay Human»), а если их нет — из понятной папки:
-служебные каталоги вроде `bin`, `x64`, `ph`, `ph_ft`, `work` пропускаются,
-поэтому выбор `...\ph\work\bin\x64` не превращается в игру с названием «x64».
-Отдельно распознаётся раскладка Unreal Engine: папка проекта (например,
-`BendGame` с `Binaries\Win64` и `Content`) — часть установки, а не её корень,
-поэтому `...\Days Gone\BendGame\Binaries\Win64` даёт игру «Days Gone» с
-папкой `...\Days Gone`. Суффиксы изданий («Reloaded Edition», «Deluxe Edition»
-и т. п.) отбрасываются, чтобы поиск обложки в Steam находил игру.
-Если папка или `.exe` исчезли, запись удаляется при следующем сканировании.
-ПКМ → **Удалить** стирает саму ручную запись вместе с именем, жанром и
-наигранным временем, поэтому «Восстановить скрытые» её не возвращает, а игра
-не остаётся в скрытых.
-
-## Поиск и группировка
-
-- **Все** — одна общая сетка/список.
-- **А–Я** — группы по первой букве названия; цифры попадают в `0–9`.
-- **Жанры** — основной жанр из Steam. Так как почти у всех игр в Steam есть
-  тег «Action», выбирается наиболее информативный жанр по приоритету:
-  RPG → Симуляторы → Стратегии → Гонки → Спорт → Инди → Приключения → MMO →
-  Казуальные → Экшн. Неизвестные игры попадают в «Другие».
-- **Серии** — курируемый список франшиз (Resident Evil, Silent Hill, The
-  Witcher, GTA и др.) плюс эвристика по общему первому слову названия. Группа
-  создаётся, только если в ней минимум 2 игры; одиночные игры уходят в
-  «Без серии» в конце списка.
-
-Жанры загружаются один раз и кешируются в `library.json` (`Genres`), поэтому
-повторное переключение группировки не требует сети. Выбранные вид и
-группировка сохраняются между запусками (`GridView`, `Grouping`).
-
-Поиск работает по названию, источнику («Steam», «Вручную»), группе и пути
-установки. Счётчик «Показано: N» появляется только при активном фильтре;
-пустой экран различает «Игры не найдены» и «Ничего не найдено».
-
-## Наигранное время
-
-Время считается, пока игра запущена **из лаунчера**. После запуска BagaGame
-запоминает игру и каждые 20 секунд проверяет, жив ли её процесс: для `.exe` —
-по точному пути, для Steam, Epic и GOG — по папке установки (исполняемый файл
-ищется тем же алгоритмом, что у «Добавить игру»).
-
-На карточке видны только часы (`12 ч`, до часа — `45 мин`), точное значение
-вроде `12 ч 34 мин` — в подсказке при наведении. Время хранится в
-`library.json` (`Playtime`) и переживает перезапуск и повторное сканирование.
-Игры, запущенные напрямую из Steam, счётчик не учитывает.
-
-## Запуск игры и трей
-
-После успешного запуска игры окно BagaGame **скрывается в область
-уведомлений**, а не закрывается: счётчик времени живёт в процессе лаунчера, и
-полный выход остановил бы подсчёт. При выходе из приложения текущий интервал
-дописывается в `library.json`, так что последние секунды не теряются.
-
-Значок **«BagaGame — игра запущена»** возвращает окно двойным щелчком; ПКМ по
-значку → **Открыть BagaGame** или **Выйти** (полное закрытие). В Windows 11
-новый значок может попасть в «переполнение» области уведомлений — туда же, где
-скрыты остальные фоновые программы.
-
-## Источники сканирования
-
-- **Steam** — читает `libraryfolders.vdf`, разбирает `appmanifest_*.acf`
-  во всех библиотеках и проверяет наличие папки игры. Служебные пакеты
-  (Steamworks, Proton, SteamVR) отфильтровываются.
-- **Epic Games** — читает манифесты
-  `C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests\*.item`.
-- **GOG Galaxy** — читает установленные игры из реестра
-  `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`.
-- **Папки** — пользователь добавляет корневую папку; BagaGame считает играми
-  вложенные каталоги с `.exe` (или саму папку, если вложенных игр нет).
-  Папка считается игрой, если `.exe` лежит прямо в ней; иначе запускается
-  глубокий поиск (до 8 уровней) тем же алгоритмом, что у «Добавить игру»:
-  корень установки поднимается до папки игры, а название берётся из метаданных
-  `.exe` или понятного имени папки. Поэтому
-  `Days Gone\BendGame\Binaries\Win64\DaysGone.exe`,
-  `DL2\Dying Light 2 Stay Human Reloaded Edition\ph\work\bin\x64` и
-  `Dying Light The Beast\ph_ft\work\bin\x64` находятся автоматически.
-  Если лаунчер лежит в подпапке (например, `DL2` — это лишь обёртка), такая
-  папка считается контейнером и просматривается рекурсивно (до 4 уровней),
-  поэтому одна обёртка может содержать несколько игр — каждая станет отдельной
-  карточкой. Служебные каталоги (`bin`, `x64`, `ph`, `ph_ft`, `work`, `Engine`,
-  `steamapps` и т. п.) пропускаются.
-- **Вручную** — отдельные папки и `.exe`, добавленные кнопкой «Добавить игру».
-
-Сводка после сканирования показывается под кнопкой:
-`Steam: 4 · Epic Games: 0 · GOG Galaxy: 0 · Папки: 18`.
-
-## Обложки
-
-Порядок поиска постера для каждой игры:
-
-1. Локальный арт в папке игры (`cover`, `poster`, `boxart`, `folder`,
-   `header`, `thumbnail`; `.jpg`, `.jpeg`, `.png`, `.bmp`).
-2. Для Steam-игр — портрет `library_600x900.jpg` с CDN по AppID.
-3. Для остальных — поиск AppID через Steam Store Search по названию
-   (совпадение по словам, без года, `remake`/`remastered`, версий вида
-   `v3.1.0.2`; DLC, саундтреки и паки отбрасываются).
-4. Если стандартные пути CDN отдают 404 (новые страницы Steam), портрет
-   `library_capsule` (600×900 или 1200×1800) берётся из `IStoreBrowseService`.
-5. Последний вариант — `appdetails` API, если store API недоступен.
-
-Кеш проверяется на пропорции: горизонтальный заголовок 460×215, сохранённый
-старой версией, автоматически заменяется нормальным постером. Для игр без
-обложки карточка показывает монограмму из названия.
-
-Запросы к Steam повторяются при таймауте, обрыве связи, ответах 429 и 5xx,
-а картинки скачиваются не более шести одновременно — на медленном или
-нестабильном интернете обложки не теряются, а библиотека с сотнями игр не
-упирается в лимиты CDN. Если Steam установлен без записи в реестре
-(портативная сборка, другой профиль), BagaGame дополнительно проверяет
-`Program Files`, `Program Files (x86)` и типовые пути `Steam`/`SteamLibrary`
-на дисках.
-
-Найденные AppID кешируются в `covers\storeids.json`, поэтому повторный поиск
-не выполняется. Папку кеша можно сменить в Настройках — постеры и
-`storeids.json` переносятся в новое место, повторная загрузка не нужна.
-
-## Данные приложения
-
-```
-%LocalAppData%\BagaGame\library.json   — тема, кеш, правки, ручные игры, жанры, вид, группировка
-%LocalAppData%\BagaGame\covers\        — кеш постеров (<AppID>.jpg) и storeids.json
-```
-
-Ключи `library.json`:
-
-| Ключ | Назначение |
-|---|---|
-| `Hidden` | Скрытые игры |
-| `CustomTitles` | Переименования |
-| `Folders` | Добавленные папки для сканирования |
-| `ManualGames` | Игры, добавленные кнопкой «Добавить игру» |
-| `Genres` | Кеш жанров (русские подписи) |
-| `Playtime` | Наигранное время в секундах (по `Id` игры) |
-| `Theme`, `DownloadCovers`, `CacheDirectory` | Оформление и кеш |
-| `GridView`, `Grouping` | Последний вид и группировка |
-
-Папку `covers` можно перенести на другой диск: **Настройки → Кэш обложек →
-Изменить…**. Выбранный путь сохраняется в `library.json` (`CacheDirectory`),
-кнопка «Сбросить» возвращает `%LocalAppData%\BagaGame\covers`.
-
-Удалите `library.json`, чтобы сбросить все правки библиотеки.
-
-## Структура
-
-```
+### Architecture & Project Structure
+```text
 BagaGame.csproj
-App.xaml / App.xaml.cs              — старт приложения, тема WPF-UI и палитра
-Themes/Dark.xaml                    — палитра тёмной темы
-Themes/Light.xaml                   — палитра светлой темы
-MainWindow.xaml                     — дизайн окна, карточки, поиск, группировка, оверлеи
-MainWindow.xaml.cs                  — навигация, виды, добавление игры, поиск, горячие клавиши
-Models/Game.cs                      — модель игры (+ группа для заголовков)
-Models/ManualGameEntry.cs           — запись игры, добавленной вручную
-ViewModels/MainViewModel.cs         — библиотека, фильтр, группы, жанры, статус, обложки
-Services/GameLibraryService.cs      — сканер Steam / Epic / GOG / папок, обложки и жанры
-Services/PlaytimeTracker.cs         — счётчик наигранного времени (опрос процесса)
-Services/TrayIcon.cs                — значок в трее после запуска игры
-Services/LibraryGrouping.cs         — алфавит, серии и эвристика франшиз
-Services/LibraryStore.cs            — сохранение настроек, правок и ручных игр
-Services/ThemeService.cs            — переключение темы WPF-UI и палитры
-Assets/bagagame.ico                 — иконка приложения
+App.xaml / App.xaml.cs              — Application startup, WPF-UI theme handling, and palettes
+Themes/Dark.xaml / Light.xaml       — Theme resource dictionaries (AccentBrush, CardFillBrush, etc.)
+MainWindow.xaml / MainWindow.xaml.cs— Main window design, card grids, search bar, and hotkeys
+Models/Game.cs                      — Game data model (+ header group parameters)
+Models/ManualGameEntry.cs           — Data model for manually indexed games
+ViewModels/MainViewModel.cs         — Manages library filtering, groups, status bar, and cover arts
+Services/GameLibraryService.cs      — Main scanner for Steam/Epic/GOG/custom paths and CDN scraping
+Services/PlaytimeTracker.cs         — Manages playtime logic (process polling every 20 seconds)
+Services/TrayIcon.cs                — Handles system tray behavior and notifications
+Services/LibraryGrouping.cs         — Dictionary clustering for alphabet, genres, and KnownSeries
+Services/LibraryStore.cs            — Handles JSON state serialization
+Services/ThemeService.cs            — Intermediary for WPF-UI accent switches
+Assets/bagagame.ico                 — Native application icon
 ```
 
-## Кастомизация
+### Application Data & Configuration (`library.json`)
+Local configuration and cache files are stored at:
+```text
+%LocalAppData%\BagaGame\library.json   — Themes, overrides, manual titles, tracked playtime, layouts
+%LocalAppData%\BagaGame\covers\        — Local cover art cache (<AppID>.jpg) and storeids.json
+```
 
-- **Палитра** — `Themes/Dark.xaml` и `Themes/Light.xaml`:
-  `AccentBrush`, `WindowTintBrush`, `CardFillBrush`, `TextPrimaryBrush` и т. д.
-  В `MainWindow.xaml` они подключены через `DynamicResource`, поэтому смена
-  словаря применяется мгновенно.
-- **Акцент WPF-UI** (переключатели, фокус) — `ThemeService.Apply(...)`:
-  `#A5F26B` для тёмной темы и `#3F7A16` для светлой.
-- **Размер постеров** — `Width="180" Height="260"` в `GameCardTemplate` и
-  `ItemWidth/ItemHeight` у `GamesGridPanel`.
-- **Скругления** — `CornerRadius="8"` у карточек и кнопок, `10–12` у панелей.
-- **Список серий** — `KnownSeries` в `Services/LibraryGrouping.cs`.
+| JSON Key | Purpose |
+|---|---|
+| `Hidden` | Array of hidden game IDs |
+| `CustomTitles` | User-defined custom game names |
+| `Folders` | User-defined root directories for manual scanning |
+| `ManualGames` | Array of individually added games |
+| `Genres` | Cached genres mapped with localized descriptors |
+| `Playtime` | Total accumulated playtime in seconds mapped by game ID |
+| `Theme`, `DownloadCovers`, `CacheDirectory` | Preferences for UI styling and local cache positioning |
 
-## Ограничения
+---
 
-- Клик по карточке запускает игру; если `.exe` не найден и AppID отсутствует,
-  в статусе появится «Не найден файл запуска».
-- Определение игр в пользовательских папках основано на наличии `.exe`,
-  поэтому в список может попасть утилита. Лишнее можно удалить через ПКМ.
-- Жанры доступны только для игр, найденных в Steam Store; остальные попадают
-  в группу «Другие».
-- Определение источника Epic/GOG проверено на структуре их манифестов/реестра;
-  на машинах без этих лаунчеров источники просто возвращают 0 игр.
-- Mica требует Windows 11 (build 22000+). На Windows 10 остаётся
-  непрозрачный фон выбранной темы.
-- При запуске игры лаунчер виден только в области уведомлений (в Windows 11 —
-  обычно в «переполнении») и не возвращается автоматически после выхода из
-  игры: открой окно значком в трее. Счётчик времени при этом продолжает
-  работать — в этом и смысл сворачивания вместо закрытия.
+## ⚠️ Known Limitations
+
+* **Genres:** Genre categories are exclusively parsed via the Steam Store API; unsupported or unidentified titles default to the "Other" group.
+* **Custom Folders:** Custom path scanning relies entirely on detecting `.exe` files; structural utility tools may occasionally appear in your library (can be hidden or removed via RMB).
+* **Mica Effect:** The Fluent Mica background requires Windows 11 (build 22000+). On Windows 10, the UI renders as a solid, opaque theme color.
+* **Tray Behavior:** The window will minimize to the notification tray on launch (and may hide inside the Windows 11 taskbar overflow arrow). It does not automatically restore to the foreground when a game exits—you must double-click the tray icon to restore the window.
+
+---
+
+## 🐛 Bug Reporting & Contributions
+
+This launcher is actively maintained, and your feedback is highly appreciated! If you encounter layout issues, visual bugs, or have feature requests:
+1. Navigate to the **[Issues](https://github.com)** tab.
+2. Open a **New Issue** with a clear description and steps to reproduce.
+
+---
+Built with ❤️ for gamers. Enjoy!
