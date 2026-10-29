@@ -52,15 +52,17 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** on **.NET Framewo
 ## 📥 Requirements & Setup
 
 ### For Users:
-1. Navigate to the **[Releases](https://github.com)** section of this repository.
-2. Download the latest `.exe` installer for version `v0.6.0`.
+1. Navigate to the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** section of this repository.
+2. Download the latest `.exe` installer for version `v0.7.0`.
 3. Run the installer and follow the prompt instructions.
 * *Supported OS:* Windows 10 (1809+) or Windows 11.
+* *No prerequisites:* .NET Framework 4.7.2 is already part of Windows, nothing to install.
 
 ### For Developers (Building from Source):
-* Requires **.NET 8 SDK** and **Visual Studio 2022** (optional).
-```powershell
-dotnet restore
+* Requires the **.NET SDK** (any recent version — it can target .NET Framework 4.7.2) and optionally **Visual Studio 2022**.
+* No PowerShell, no scripts: two commands.
+```text
+dotnet build
 dotnet run
 ```
 Alternatively, open `BagaGame.csproj` in Visual Studio and press **F5**.
@@ -89,9 +91,15 @@ The **"Add Game"** tool processes directories in two ways:
 
 ### Architecture & Project Structure
 ```text
-BagaGame.csproj
-App.xaml / App.xaml.cs              — Application startup, WPF-UI theme handling, and palettes
-Themes/Dark.xaml / Light.xaml       — Theme resource dictionaries (AccentBrush, CardFillBrush, etc.)
+BagaGame.csproj                     — .NET Framework 4.7.2, WPF + WinForms (tray only), zero UI packages
+App.xaml / App.xaml.cs              — Application startup, theme application, palette dictionaries
+Themes/Controls.xaml                — Every control style: buttons, toggle switch, title bar, scroll bars, menus
+Themes/Dark.xaml / Light.xaml       — Colour palettes (AccentBrush, CardFillBrush, etc.)
+Controls/BagaWindow.cs              — Borderless window, Mica backdrop, taskbar-aware maximize
+Controls/TitleBar.cs                — Draggable caption bar with the three window buttons
+Controls/SymbolIcon.cs              — Segoe icon by name (Windows 11 Fluent Icons, MDL2 fallback)
+Controls/BagaButton.cs              — Button with Primary/Secondary appearance
+Controls/ToggleSwitch.cs            — Fluent switch on top of ToggleButton
 MainWindow.xaml / MainWindow.xaml.cs— Main window design, card grids, search bar, and hotkeys
 Models/Game.cs                      — Game data model (+ header group parameters)
 Models/ManualGameEntry.cs           — Data model for manually indexed games
@@ -101,7 +109,11 @@ Services/PlaytimeTracker.cs         — Manages playtime logic (process polling 
 Services/TrayIcon.cs                — Handles system tray behavior and notifications
 Services/LibraryGrouping.cs         — Dictionary clustering for alphabet, genres, and KnownSeries
 Services/LibraryStore.cs            — Handles JSON state serialization
-Services/ThemeService.cs            — Intermediary for WPF-UI accent switches
+Services/ThemeService.cs            — Swaps the palette and repaints the native window chrome
+Services/WindowEffects.cs           — DWM attributes: Mica, rounded corners, dark title bar
+Services/FolderPicker.cs            — Native IFileOpenDialog folder picker (no WinForms tree)
+Compat/Polyfills.cs                 — IsExternalInit/required markers for modern C# on net472
+Compat/FileEx.cs                    — File.Move(overwrite) and WriteAllBytesAsync equivalents
 Assets/bagagame.ico                 — Native application icon
 ```
 
@@ -136,7 +148,7 @@ Local configuration and cache files are stored at:
 ## 🐛 Bug Reporting & Contributions
 
 This launcher is actively maintained, and your feedback is highly appreciated! If you encounter layout issues, visual bugs, or have feature requests:
-1. Navigate to the **[Issues](https://github.com)** tab.
+1. Navigate to the **[Issues](https://github.com/bagabeer/BagaGame-Launcher/issues)** tab.
 2. Open a **New Issue** with a clear description and steps to reproduce.
 
 ---
