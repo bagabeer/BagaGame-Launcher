@@ -2,7 +2,7 @@
 
 **BagaGame Launcher** is a lightweight, fast, and smart game library organizer designed in the Windows 11 Fluent style. It is built for those who are tired of cluttering their desktops with hundreds of game shortcuts and want a beautiful, clean, and well-structured collection reminiscent of console interfaces.
 
-Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.3.0**. The installed application takes up only **13.5 MB**, consumes minimal system resources, and consolidates all your games (Steam, Epic Games, GOG, and DRM-free/pirated titles) into one cozy place.
+Unlike heavy alternatives, BagaGame is written in **C# / WPF** on **.NET Framework 4.7.2** with no third-party UI framework — every control is styled by hand in about 400 lines of XAML. That framework ships with Windows 10 and 11, so there is no runtime to install: the whole app is **2 MB** and starts from a clean Windows out of the box.
 <img width="680" height="468" alt="{FF5A92BC-4488-4B6B-AD4C-7C7FF03E6490}" src="https://github.com/user-attachments/assets/0512c231-8f05-41ba-aef7-d948dc1ba780" />
 
 
@@ -23,6 +23,12 @@ Unlike heavy alternatives, BagaGame is written in **C# / WPF** using **WPF-UI 4.
 ---
 
 ## 🚀 Changelog
+
+### Version 0.7.0 (Current)
+* **No runtime required:** retargeted from .NET 8 to **.NET Framework 4.7.2**, which is part of Windows 10 1803+ and Windows 11. Setup no longer checks for or downloads anything.
+* **WPF-UI removed:** the launcher now draws its own Fluent controls — buttons, toggle switches, title bar, scroll bars, context menus and tooltips. No third-party UI package is referenced.
+* **2 MB payload:** the published folder dropped from a full WPF-UI dependency tree to 11 assemblies totalling 2 MB.
+* **PowerShell removed:** the screenshot/automation scripts that lived in the repository are gone; nothing outside the app is needed to build it.
 
 ### Version 0.6.0 (Current)
 * **Time Tracking:** Added a built-in game playtime counter.
