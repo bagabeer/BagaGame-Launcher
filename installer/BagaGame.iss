@@ -1,14 +1,13 @@
-﻿; BagaGame — Inno Setup script.
+; BagaGame — Inno Setup script.
 ; Build:  publish the app first, then compile this script with ISCC:
 ;   dotnet publish BagaGame.csproj -c Release -o .artifacts\publish
 ;   iscc installer\BagaGame.iss
 ;
-; The payload is framework-dependent (net8.0-windows), so the target machine
-; needs the .NET 8 Desktop Runtime; Setup offers the download page when it is
-; missing.
+; The payload targets .NET Framework 4.7.2, which ships with Windows 10 1803+
+; and Windows 11, so Setup has no runtime prerequisite to check or install.
 
 #define AppName "BagaGame"
-#define AppVersion "0.6.0"
+#define AppVersion "0.7.0"
 #define AppPublisher "BagaGame"
 #define AppExeName "BagaGame.exe"
 #define PublishDir "..\.artifacts\publish"
@@ -65,55 +64,3 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: deskto
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-// BagaGame is published framework-dependent, so the .NET 8 Desktop Runtime
-// (Microsoft.WindowsDesktop.App 8.x) has to be present before Setup copies the
-// files; otherwise the installed app would not start at all.
-function HasDotNet8DesktopRuntime: Boolean;
-var
-  FindRec: TFindRec;
-  SearchPath: String;
-begin
-  Result := False;
-  SearchPath := ExpandConstant('{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App\8.*');
-
-  if FindFirst(SearchPath, FindRec) then
-  begin
-    try
-      repeat
-        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
-        begin
-          Result := True;
-          Break;
-        end;
-      until not FindNext(FindRec);
-    finally
-      FindClose(FindRec);
-    end;
-  end;
-end;
-
-function InitializeSetup(): Boolean;
-var
-  ErrorCode: Integer;
-begin
-  Result := True;
-
-  if HasDotNet8DesktopRuntime then
-  begin
-    Exit;
-  end;
-
-  if MsgBox(
-       'Для работы BagaGame нужен .NET 8 Desktop Runtime, но он не найден на этом компьютере.'
-       + #13#10 + #13#10
-       + 'Открыть страницу загрузки? После установки запустите Setup снова.',
-       mbConfirmation, MB_YESNO) = IDYES then
-  begin
-    ShellExec('open', 'https://dotnet.microsoft.com/download/dotnet/8.0',
-              '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-  end;
-
-  Result := False;
-end;

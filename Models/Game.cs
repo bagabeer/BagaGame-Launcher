@@ -165,7 +165,7 @@ public sealed class Game : INotifyPropertyChanged
             {
                 var letters = new string(words[0].Where(char.IsLetterOrDigit).ToArray());
                 return letters.Length >= 2
-                    ? letters[..2].ToUpperInvariant()
+                    ? letters.Substring(0, 2).ToUpperInvariant()
                     : letters.ToUpperInvariant();
             }
 

@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 namespace BagaGame;
 
-public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
+public partial class MainWindow : BagaGame.Controls.BagaWindow
 {
     private readonly MainViewModel _viewModel;
     private readonly LibraryStore _store;
@@ -105,18 +105,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private async void AddFolder_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "Выберите папку с играми",
-            Multiselect = false,
-        };
-
-        if (dialog.ShowDialog(this) != true)
+        var folder = FolderPicker.Pick(this, "Выберите папку с играми");
+        if (folder is null)
         {
             return;
         }
 
-        await _viewModel.AddFolderAsync(dialog.FolderName);
+        await _viewModel.AddFolderAsync(folder);
         LibraryNav.IsChecked = true;
     }
 
@@ -148,18 +143,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         CloseAddGameOverlay();
 
-        var dialog = new OpenFolderDialog
-        {
-            Title = "Выберите папку с игрой",
-            Multiselect = false,
-        };
-
-        if (dialog.ShowDialog(this) != true)
+        var folder = FolderPicker.Pick(this, "Выберите папку с игрой");
+        if (folder is null)
         {
             return;
         }
 
-        await AddGameAsync(dialog.FolderName);
+        await AddGameAsync(folder);
     }
 
     private async void AddGameExe_Click(object sender, RoutedEventArgs e)
@@ -544,23 +534,17 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private async void ChangeCacheFolder_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "Папка для кеша обложек",
-            Multiselect = false,
-        };
+        var folder = FolderPicker.Pick(
+            this,
+            "Папка для кеша обложек",
+            _viewModel.CoverCacheDirectory);
 
-        if (Directory.Exists(_viewModel.CoverCacheDirectory))
-        {
-            dialog.InitialDirectory = _viewModel.CoverCacheDirectory;
-        }
-
-        if (dialog.ShowDialog(this) != true)
+        if (folder is null)
         {
             return;
         }
 
-        await _viewModel.ChangeCoverCacheDirectoryAsync(dialog.FolderName);
+        await _viewModel.ChangeCoverCacheDirectoryAsync(folder);
     }
 
     private async void ResetCacheFolder_Click(object sender, RoutedEventArgs e)

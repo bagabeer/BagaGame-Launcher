@@ -2,30 +2,44 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- .NET Framework 4.7.2 ships with Windows 10 1803+ / Windows 11, so the
+         launcher needs no runtime installation and no download page. -->
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <!-- The tray icon is WinForms; it needs the desktop framework. -->
+    <!-- The tray icon and the folder picker are WinForms; both ship with Windows. -->
     <UseWindowsForms>true</UseWindowsForms>
     <!-- WFAC010 asks to move DPI setup into ApplicationConfiguration, but this is
          a WPF app that only borrows NotifyIcon, so app.manifest stays in charge. -->
-    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <!-- CS8601..CS8604: .NET Framework's reference assemblies carry no nullable
+         annotations, so string.IsNullOrWhiteSpace/IsNullOrEmpty do not narrow the
+         null-state and the compiler reports ~30 false positives. The same sources
+         compile warning-free against the annotated .NET 8 reference assemblies. -->
+    <NoWarn>$(NoWarn);WFAC010;CS8601;CS8602;CS8603;CS8604</NoWarn>
 
     <AssemblyName>BagaGame</AssemblyName>
     <RootNamespace>BagaGame</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\bagagame.ico</ApplicationIcon>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <Authors>BagaGame</Authors>
     <Product>BagaGame</Product>
 
-    <!-- WPF-UI ships many localizations; we only need English + neutral. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <!-- Builds net472 without a Visual Studio installation. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- The in-box framework has no JSON serializer for this API surface. -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Not referenced implicitly on .NET Framework. -->
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>

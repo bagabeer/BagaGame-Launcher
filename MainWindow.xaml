@@ -1,17 +1,15 @@
-﻿<ui:FluentWindow
+<ui:BagaWindow
     x:Class="BagaGame.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:ui="clr-namespace:BagaGame.Controls"
+    xmlns:app="clr-namespace:BagaGame"
     Title="BagaGame"
     Width="1320"
     Height="880"
     MinWidth="1040"
     MinHeight="660"
     WindowStartupLocation="CenterScreen"
-    WindowBackdropType="Mica"
-    WindowCornerPreference="Round"
-    ExtendsContentIntoTitleBar="True"
     Icon="pack://application:,,,/Assets/bagagame.ico"
     FontFamily="Segoe UI Variable Text, Segoe UI"
     FontSize="13"
@@ -19,7 +17,7 @@
     UseLayoutRounding="True"
     SnapsToDevicePixels="True">
 
-    <ui:FluentWindow.Resources>
+    <ui:BagaWindow.Resources>
 
         <!-- Shown only for settings rows that have a non-default value. -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
@@ -581,7 +579,7 @@
             <StackPanel Orientation="Vertical" />
         </ItemsPanelTemplate>
 
-    </ui:FluentWindow.Resources>
+    </ui:BagaWindow.Resources>
 
     <Grid x:Name="Root" Background="{DynamicResource WindowTintBrush}">
         <Grid.RowDefinitions>
@@ -593,14 +591,12 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Draggable caption area; window buttons are rendered by WPF-UI. -->
+        <!-- Draggable caption area; the window buttons live in TitleBar.xaml. -->
         <ui:TitleBar x:Name="AppTitleBar"
                      Grid.Row="0"
                      Grid.ColumnSpan="2"
-                     Title=""
                      Height="48"
-                     Background="Transparent"
-                     ShowHelp="False" />
+                     Background="Transparent" />
 
         <!-- ============================ Sidebar ============================== -->
 
@@ -892,7 +888,7 @@
                                 </TextBlock.Style>
                             </TextBlock>
 
-                            <ui:Button Grid.Column="2"
+                            <ui:BagaButton Grid.Column="2"
                                        Width="22"
                                        Height="22"
                                        Margin="0,0,6,0"
@@ -904,7 +900,7 @@
                                        ToolTip="Очистить поиск"
                                        Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}">
                                 <ui:SymbolIcon FontSize="10" Symbol="Dismiss24" />
-                            </ui:Button>
+                            </ui:BagaButton>
                         </Grid>
                     </Border>
 
@@ -964,6 +960,7 @@
 
                 <Grid Grid.Row="2">
                     <ScrollViewer x:Name="ScrollHost"
+                                  Style="{StaticResource OverlayScrollViewer}"
                                   Padding="36,0,20,12"
                                   HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto">
@@ -1022,7 +1019,7 @@
                 <!-- Bottom action bar -->
                 <Grid Grid.Row="3" Height="84">
                     <Border Background="{DynamicResource FooterFadeBrush}" IsHitTestVisible="False" />
-                    <ui:Button x:Name="RescanButton"
+                    <ui:BagaButton x:Name="RescanButton"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Padding="18,9"
@@ -1049,7 +1046,7 @@
                                        VerticalAlignment="Center"
                                        Text="Пересканировать" />
                         </StackPanel>
-                    </ui:Button>
+                    </ui:BagaButton>
                 </Grid>
             </Grid>
 
@@ -1073,6 +1070,7 @@
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1"
+                              Style="{StaticResource OverlayScrollViewer}"
                               Padding="36,0,32,24"
                               HorizontalContentAlignment="Stretch"
                               VerticalScrollBarVisibility="Auto">
@@ -1292,7 +1290,7 @@
                                                    Text="{Binding FoldersSummary, Mode=OneWay}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
-                                    <ui:Button Grid.Column="2"
+                                    <ui:BagaButton Grid.Column="2"
                                                Padding="12,6"
                                                Appearance="Secondary"
                                                Click="AddFolder_Click"
@@ -1324,7 +1322,7 @@
                                                            Text="{Binding}"
                                                            TextTrimming="CharacterEllipsis"
                                                            ToolTip="{Binding}" />
-                                                <ui:Button Grid.Column="1"
+                                                <ui:BagaButton Grid.Column="1"
                                                            Padding="10,4"
                                                            Appearance="Secondary"
                                                            Click="RemoveFolder_Click"
@@ -1363,6 +1361,7 @@
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1"
+                              Style="{StaticResource OverlayScrollViewer}"
                               Padding="36,0,32,24"
                               HorizontalContentAlignment="Stretch"
                               VerticalScrollBarVisibility="Auto">
@@ -1480,18 +1479,18 @@
                                     <StackPanel Grid.Column="2"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center">
-                                        <ui:Button Padding="12,6"
+                                        <ui:BagaButton Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="OpenCacheFolder_Click"
                                                    Content="Открыть"
                                                    CornerRadius="7" />
-                                        <ui:Button Margin="8,0,0,0"
+                                        <ui:BagaButton Margin="8,0,0,0"
                                                    Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="ChangeCacheFolder_Click"
                                                    Content="Изменить…"
                                                    CornerRadius="7" />
-                                        <ui:Button Margin="8,0,0,0"
+                                        <ui:BagaButton Margin="8,0,0,0"
                                                    Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="ResetCacheFolder_Click"
@@ -1530,7 +1529,7 @@
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
                                                    Text="{Binding HiddenSummary}" />
                                     </StackPanel>
-                                    <ui:Button Grid.Column="2"
+                                    <ui:BagaButton Grid.Column="2"
                                                Padding="12,6"
                                                Appearance="Secondary"
                                                Click="RestoreHidden_Click"
@@ -1572,7 +1571,7 @@
                                     <TextBlock Margin="0,3,0,0"
                                                FontSize="11"
                                                Foreground="{DynamicResource TextTertiaryBrush}"
-                                               Text="Версия 0.6.0 · WPF-UI 4.3.0 · .NET 8" />
+                                               Text="{x:Static app:AppInfo.Summary}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -1618,7 +1617,7 @@
                                TextWrapping="Wrap" />
 
                     <StackPanel Margin="0,18,0,0" Orientation="Horizontal">
-                        <ui:Button Width="212"
+                        <ui:BagaButton Width="212"
                                    Height="72"
                                    Padding="14,10"
                                    Appearance="Secondary"
@@ -1649,9 +1648,9 @@
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
-                        </ui:Button>
+                        </ui:BagaButton>
 
-                        <ui:Button Width="212"
+                        <ui:BagaButton Width="212"
                                    Height="72"
                                    Margin="10,0,0,0"
                                    Padding="14,10"
@@ -1683,13 +1682,13 @@
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
-                        </ui:Button>
+                        </ui:BagaButton>
                     </StackPanel>
 
                     <StackPanel Margin="0,20,0,0"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal">
-                        <ui:Button Padding="14,7"
+                        <ui:BagaButton Padding="14,7"
                                    Appearance="Secondary"
                                    Click="AddGameCancel_Click"
                                    Content="Отмена"
@@ -1750,13 +1749,13 @@
                     <StackPanel Margin="0,20,0,0"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal">
-                        <ui:Button Margin="0,0,8,0"
+                        <ui:BagaButton Margin="0,0,8,0"
                                    Padding="14,7"
                                    Appearance="Secondary"
                                    Click="RenameCancel_Click"
                                    Content="Отмена"
                                    CornerRadius="7" />
-                        <ui:Button Padding="14,7"
+                        <ui:BagaButton Padding="14,7"
                                    Appearance="Primary"
                                    Click="RenameSave_Click"
                                    Content="Сохранить"
@@ -1767,7 +1766,7 @@
         </Grid>
     </Grid>
 
-    <ui:FluentWindow.Triggers>
+    <ui:BagaWindow.Triggers>
         <EventTrigger RoutedEvent="FrameworkElement.Loaded">
             <BeginStoryboard>
                 <Storyboard>
@@ -1783,6 +1782,6 @@
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
-    </ui:FluentWindow.Triggers>
+    </ui:BagaWindow.Triggers>
 
-</ui:FluentWindow>
+</ui:BagaWindow>
