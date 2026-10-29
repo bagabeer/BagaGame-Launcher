@@ -1,7 +1,4 @@
 using System.Windows;
-using System.Windows.Media;
-using Wpf.Ui.Appearance;
-using Wpf.Ui.Controls;
 
 namespace BagaGame.Services;
 
@@ -12,39 +9,26 @@ public enum AppTheme
 }
 
 /// <summary>
-/// Applies the WPF-UI theme together with the BagaGame palette dictionary.
-/// The palette is a merged dictionary, so swapping it updates every
+/// Swaps the BagaGame palette dictionary and repaints the native window chrome.
+/// The palette is a merged dictionary, so replacing it updates every
 /// <c>DynamicResource</c> in the window immediately.
 /// </summary>
 public static class ThemeService
 {
+    private static readonly string[] PaletteFiles = { "Dark.xaml", "Light.xaml" };
+
     public static AppTheme Current { get; private set; } = AppTheme.Dark;
 
     public static void Apply(AppTheme theme)
     {
-        var uiTheme = theme == AppTheme.Light
-            ? ApplicationTheme.Light
-            : ApplicationTheme.Dark;
-
-        // The accent must be written *before* the theme dictionary is swapped:
-        // WPF-UI brushes like ToggleSwitchFillOn bind to SystemAccentColorPrimary
-        // and freeze at dictionary load, so the reverse order keeps stale colours.
-        var accent = theme == AppTheme.Light
-            ? Color.FromRgb(0x3F, 0x7A, 0x16)
-            : Color.FromRgb(0xA5, 0xF2, 0x6B);
-
-        ApplicationAccentColorManager.Apply(accent, uiTheme);
-
-        // WPF-UI control colours (toggle switches, buttons, context menus).
-        // updateAccent must be false: otherwise WPF-UI resets the accent to the
-        // Windows system colour while loading the theme dictionary.
-        ApplicationThemeManager.Apply(
-            uiTheme,
-            WindowBackdropType.Mica,
-            updateAccent: false);
-
         SwapPalette(theme);
         Current = theme;
+
+        // The title bar is drawn by DWM, not by WPF, so it needs its own nudge.
+        foreach (Window window in Application.Current.Windows)
+        {
+            WindowEffects.SetDarkTitleBar(window, theme == AppTheme.Dark);
+        }
     }
 
     private static void SwapPalette(AppTheme theme)
@@ -65,9 +49,8 @@ public static class ThemeService
 
         for (var index = 0; index < dictionaries.Count; index++)
         {
-            var source = dictionaries[index].Source;
-            if (source is null ||
-                !source.OriginalString.Contains("Themes/", StringComparison.OrdinalIgnoreCase))
+            var source = dictionaries[index].Source?.OriginalString;
+            if (source is null || !PaletteFiles.Any(name => source.EndsWith(name, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }

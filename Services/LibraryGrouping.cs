@@ -227,7 +227,7 @@ public static class LibraryGroupingHelper
             return false;
         }
 
-        if (key.EndsWith(' ') || normalizedTitle.Length == key.Length)
+        if (key.EndsWith(" ", StringComparison.Ordinal) || normalizedTitle.Length == key.Length)
         {
             return true;
         }

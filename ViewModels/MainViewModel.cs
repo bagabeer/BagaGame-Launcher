@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -749,7 +749,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         bool Matches(string? value)
             => !string.IsNullOrWhiteSpace(value) &&
-               value.Contains(query, StringComparison.CurrentCultureIgnoreCase);
+               value.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) >= 0;
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using BagaGame.Compat;
 using BagaGame.Models;
 
 namespace BagaGame.Services;
@@ -444,7 +445,7 @@ public sealed class LibraryStore
 
             var tempPath = _filePath + ".tmp";
             File.WriteAllText(tempPath, json);
-            File.Move(tempPath, _filePath, overwrite: true);
+            FileEx.MoveOverwrite(tempPath, _filePath);
         }
         catch
         {

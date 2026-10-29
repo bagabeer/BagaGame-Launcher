@@ -1,9 +1,10 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
+using BagaGame.Compat;
 using BagaGame.Models;
 using Microsoft.Win32;
 
@@ -338,7 +339,7 @@ public sealed class GameLibraryService : IDisposable
 
     private static bool IsTransientStatus(System.Net.HttpStatusCode status)
         => status == System.Net.HttpStatusCode.RequestTimeout ||
-           status == System.Net.HttpStatusCode.TooManyRequests ||
+           status == (System.Net.HttpStatusCode)429 ||
            (int)status >= 500;
 
     /// <summary>
@@ -362,7 +363,7 @@ public sealed class GameLibraryService : IDisposable
             }
 
             var bytes = await response.Content
-                .ReadAsByteArrayAsync(cancellationToken)
+                .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
             return bytes.Length >= 512 ? bytes : null;
@@ -479,7 +480,7 @@ public sealed class GameLibraryService : IDisposable
                     }
 
                     if (NonGameSteamApps.Contains(appId) ||
-                        NonGameSteamNames.Any(name => title.Contains(name, StringComparison.OrdinalIgnoreCase)))
+                        NonGameSteamNames.Any(name => title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0))
                     {
                         continue;
                     }
@@ -1092,7 +1093,7 @@ public sealed class GameLibraryService : IDisposable
         }
 
         return !ExecutableBlacklist.Any(
-            blocked => name.Contains(blocked, StringComparison.OrdinalIgnoreCase));
+            blocked => name.IndexOf(blocked, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private static int ScoreExecutable(string path, string folderName)
@@ -1341,7 +1342,7 @@ public sealed class GameLibraryService : IDisposable
 
         var lower = trimmed.ToLowerInvariant();
         return !UnusableProductFragments.Any(
-            fragment => lower.Contains(fragment, StringComparison.Ordinal));
+            fragment => lower.IndexOf(fragment, StringComparison.Ordinal) >= 0);
     }
 
     // ---------------------------------------------------------------------
@@ -1531,8 +1532,8 @@ public sealed class GameLibraryService : IDisposable
                 return null;
             }
 
-            await using var stream = await response.Content
-                .ReadAsStreamAsync(cancellationToken)
+            using var stream = await response.Content
+                .ReadAsStreamAsync()
                 .ConfigureAwait(false);
 
             using var document = await JsonDocument.ParseAsync(
@@ -1747,9 +1748,9 @@ public sealed class GameLibraryService : IDisposable
                 var tempPath = $"{cachePath}.{Guid.NewGuid():N}.tmp";
                 try
                 {
-                    await File.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
+                    await FileEx.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
                         .ConfigureAwait(false);
-                    File.Move(tempPath, cachePath, overwrite: true);
+                    FileEx.MoveOverwrite(tempPath, cachePath);
                     return true;
                 }
                 finally
@@ -1807,8 +1808,8 @@ public sealed class GameLibraryService : IDisposable
                 return false;
             }
 
-            await using var stream = await response.Content
-                .ReadAsStreamAsync(cancellationToken)
+            using var stream = await response.Content
+                .ReadAsStreamAsync()
                 .ConfigureAwait(false);
 
             using var document = await JsonDocument.ParseAsync(
@@ -1851,7 +1852,7 @@ public sealed class GameLibraryService : IDisposable
                 }
 
                 var imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/"
-                               + assetFormat.Replace("${FILENAME}", fileName, StringComparison.Ordinal);
+                               + assetFormat.Replace("${FILENAME}", fileName);
 
                 if (await TryDownloadPortraitAsync(imageUrl, cachePath, cancellationToken)
                     .ConfigureAwait(false))
@@ -1889,7 +1890,7 @@ public sealed class GameLibraryService : IDisposable
             }
 
             var bytes = await response.Content
-                .ReadAsByteArrayAsync(cancellationToken)
+                .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
             if (bytes.Length < 512)
@@ -1900,7 +1901,7 @@ public sealed class GameLibraryService : IDisposable
             var tempPath = $"{cachePath}.{Guid.NewGuid():N}.tmp";
             try
             {
-                await File.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
+                await FileEx.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (!IsPortraitCover(tempPath))
@@ -1908,7 +1909,7 @@ public sealed class GameLibraryService : IDisposable
                     return false;
                 }
 
-                File.Move(tempPath, cachePath, overwrite: true);
+                FileEx.MoveOverwrite(tempPath, cachePath);
                 return true;
             }
             finally
@@ -1991,8 +1992,8 @@ public sealed class GameLibraryService : IDisposable
                 return false;
             }
 
-            await using var stream = await response.Content
-                .ReadAsStreamAsync(cancellationToken)
+            using var stream = await response.Content
+                .ReadAsStreamAsync()
                 .ConfigureAwait(false);
 
             using var document = await JsonDocument.ParseAsync(
@@ -2024,7 +2025,7 @@ public sealed class GameLibraryService : IDisposable
             }
 
             var bytes = await imageResponse.Content
-                .ReadAsByteArrayAsync(cancellationToken)
+                .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
             if (bytes.Length < 512)
@@ -2035,9 +2036,9 @@ public sealed class GameLibraryService : IDisposable
             var tempPath = $"{cachePath}.{Guid.NewGuid():N}.tmp";
             try
             {
-                await File.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
+                await FileEx.WriteAllBytesAsync(tempPath, bytes, cancellationToken)
                     .ConfigureAwait(false);
-                File.Move(tempPath, cachePath, overwrite: true);
+                FileEx.MoveOverwrite(tempPath, cachePath);
                 return true;
             }
             finally
@@ -2119,9 +2120,9 @@ public sealed class GameLibraryService : IDisposable
                 }
 
                 var stem = Path.GetFileNameWithoutExtension(file);
-                if (stem.Contains("cover", StringComparison.OrdinalIgnoreCase) ||
-                    stem.Contains("poster", StringComparison.OrdinalIgnoreCase) ||
-                    stem.Contains("boxart", StringComparison.OrdinalIgnoreCase))
+                if (stem.IndexOf("cover", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    stem.IndexOf("poster", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    stem.IndexOf("boxart", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     var info = new FileInfo(file);
                     if (info.Length > 2048)
@@ -2188,8 +2189,8 @@ public sealed class GameLibraryService : IDisposable
                 return 0;
             }
 
-            await using var stream = await response.Content
-                .ReadAsStreamAsync(cancellationToken)
+            using var stream = await response.Content
+                .ReadAsStreamAsync()
                 .ConfigureAwait(false);
 
             using var document = await JsonDocument.ParseAsync(
@@ -2338,8 +2339,8 @@ public sealed class GameLibraryService : IDisposable
             {
                 score = 1.0;
             }
-            else if (candidateText.Contains(queryText, StringComparison.Ordinal) ||
-                     queryText.Contains(candidateText, StringComparison.Ordinal))
+            else if (candidateText.IndexOf(queryText, StringComparison.Ordinal) >= 0 ||
+                     queryText.IndexOf(candidateText, StringComparison.Ordinal) >= 0)
             {
                 var shorter = Math.Min(queryText.Length, candidateText.Length);
                 var longer = Math.Max(queryText.Length, candidateText.Length);
@@ -2379,7 +2380,7 @@ public sealed class GameLibraryService : IDisposable
     }
 
     private static string BuildSearchQuery(string title)
-        => string.Join(' ', TokenizeTitle(title));
+        => string.Join(" ", TokenizeTitle(title));
 
     private static List<string> TokenizeTitle(string value)
     {
@@ -2471,7 +2472,7 @@ public sealed class GameLibraryService : IDisposable
             var path = StoreIdsPath;
             var tempPath = path + ".tmp";
             File.WriteAllText(tempPath, json);
-            File.Move(tempPath, path, overwrite: true);
+            FileEx.MoveOverwrite(tempPath, path);
         }
         catch
         {

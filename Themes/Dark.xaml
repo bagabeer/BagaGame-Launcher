@@ -42,6 +42,18 @@
     <SolidColorBrush x:Key="FieldFillBrush" Color="#14FFFFFF" />
     <SolidColorBrush x:Key="FieldStrokeBrush" Color="#26FFFFFF" />
 
+    <!-- ============================== Controls ============================ -->
+
+    <SolidColorBrush x:Key="ControlFillBrush" Color="#0FFFFFFF" />
+    <SolidColorBrush x:Key="ControlFillHoverBrush" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="ControlFillPressedBrush" Color="#0AFFFFFF" />
+    <SolidColorBrush x:Key="PopupFillBrush" Color="#FF2A2A2A" />
+    <SolidColorBrush x:Key="PopupStrokeBrush" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="MenuHoverBrush" Color="#14FFFFFF" />
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#40FFFFFF" />
+    <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#66FFFFFF" />
+    <SolidColorBrush x:Key="CaptionCloseHoverBrush" Color="#C42B1C" />
+
     <!-- ============================= Gradients ============================ -->
 
     <LinearGradientBrush x:Key="LogoBrush" StartPoint="0,0" EndPoint="1,1">

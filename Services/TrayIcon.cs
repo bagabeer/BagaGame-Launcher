@@ -52,7 +52,7 @@ public sealed class TrayIcon : IDisposable
     {
         try
         {
-            var executable = Environment.ProcessPath;
+            var executable = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
             if (!string.IsNullOrWhiteSpace(executable))
             {
                 var extracted = System.Drawing.Icon.ExtractAssociatedIcon(executable);
@@ -72,7 +72,7 @@ public sealed class TrayIcon : IDisposable
 
     /// <summary>NotifyIcon.Text is limited to 63 characters.</summary>
     private static string Shorten(string value)
-        => string.IsNullOrWhiteSpace(value) ? "BagaGame" : value.Length <= 63 ? value : value[..63];
+        => string.IsNullOrWhiteSpace(value) ? "BagaGame" : value.Length <= 63 ? value : value.Substring(0, 63);
 
     public void Dispose()
     {
