@@ -1,4 +1,4 @@
-# 🎮 BagaGame Launcher [v0.7.0]
+# 🎮 BagaGame Launcher
 
 **BagaGame Launcher** is a lightweight, fast, and smart game library organizer designed in the Windows 11 Fluent style. It is built for those who are tired of cluttering their desktops with hundreds of game shortcuts and want a beautiful, clean, and well-structured collection reminiscent of console interfaces.
 
