@@ -434,7 +434,19 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// </summary>
     public async Task<bool> AddSingleGameAsync(string path)
     {
-        var game = GameLibraryService.CreateManualGame(path);
+        Game? game;
+        try
+        {
+            // Folder probing walks the disk and must not freeze the UI on slow
+            // or temporarily unavailable drives.
+            game = await Task.Run(
+                () => GameLibraryService.CreateManualGame(path),
+                _lifetime.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
 
         if (game is null)
         {
@@ -601,9 +613,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     }
 
     /// <summary>
-    /// Manual entries are added on top of the scanned games. Missing paths are
-    /// dropped, and an entry that is already covered by a scanned folder is
-    /// merged instead of shown twice.
+    /// Manual entries are added on top of the scanned games. Missing paths stay
+    /// in the library because a removable or network drive may be offline; an
+    /// entry covered by a scanned folder is merged instead of shown twice.
     /// </summary>
     private List<Game> MergeManualGames(IEnumerable<Game> scannedGames)
     {
@@ -633,7 +645,20 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 !Directory.Exists(entry.InstallPath) ||
                 !File.Exists(entry.ExecutablePath))
             {
-                _store.RemoveManualGame(entry.Id);
+                // Do not destroy the user's record when a drive is unplugged.
+                // LaunchGame already handles an unavailable executable safely.
+                if (ids.Add(entry.Id))
+                {
+                    result.Add(new Game
+                    {
+                        Id = entry.Id,
+                        Source = GameLibraryService.ManualSource,
+                        Title = entry.Title,
+                        InstallPath = entry.InstallPath,
+                        ExecutablePath = entry.ExecutablePath,
+                    });
+                }
+
                 continue;
             }
 

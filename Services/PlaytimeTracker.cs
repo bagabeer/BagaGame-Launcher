@@ -28,7 +28,8 @@ public sealed class PlaytimeTracker : IDisposable
     private readonly object _lock = new();
     private readonly Dictionary<string, Session> _sessions = new(StringComparer.OrdinalIgnoreCase);
 
-    private bool _disposed;
+    private int _tickRunning;
+    private volatile bool _disposed;
 
     private sealed class Session
     {
@@ -87,6 +88,25 @@ public sealed class PlaytimeTracker : IDisposable
     }
 
     private void Tick()
+    {
+        // System.Threading.Timer overlaps callbacks when a tick takes longer
+        // than the interval. Never let two ticks count the same session.
+        if (Interlocked.Exchange(ref _tickRunning, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            TickCore();
+        }
+        finally
+        {
+            Volatile.Write(ref _tickRunning, 0);
+        }
+    }
+
+    private void TickCore()
     {
         if (_disposed)
         {
@@ -228,20 +248,20 @@ public sealed class PlaytimeTracker : IDisposable
                     }
                     catch
                     {
-                        // Elevated or protected process: fall back to the name.
+                        // An inaccessible process cannot be matched reliably by
+                        // its name alone: another game may use the same name.
                     }
 
-                    if (string.IsNullOrWhiteSpace(path) ||
-                        string.Equals(path, executable, StringComparison.OrdinalIgnoreCase) ||
-                        (!string.IsNullOrWhiteSpace(installPath) &&
-                         path.StartsWith(installPath, StringComparison.OrdinalIgnoreCase)))
+                    if (!string.IsNullOrWhiteSpace(path) &&
+                        MatchesGameProcess(path, executable, installPath))
                     {
                         return true;
                     }
                 }
                 catch
                 {
-                    return true;
+                    // The process may exit during inspection. Keep checking
+                    // the remaining candidates instead of assuming a match.
                 }
             }
         }
@@ -254,6 +274,35 @@ public sealed class PlaytimeTracker : IDisposable
         }
 
         return false;
+    }
+
+    private static bool MatchesGameProcess(string path, string executable, string? installPath)
+    {
+        try
+        {
+            path = Path.GetFullPath(path);
+            if (string.Equals(path, Path.GetFullPath(executable), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(installPath))
+            {
+                return false;
+            }
+
+            // A prefix such as C:\Games\Foo must not match C:\Games\Foobar.
+            var root = Path.GetFullPath(installPath).TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+            return path.StartsWith(
+                root + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public void Dispose()
