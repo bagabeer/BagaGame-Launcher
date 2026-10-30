@@ -33,6 +33,7 @@ public sealed class SymbolIcon : TextBlock
         ["EyeOff24"] = "\uED1A",
         ["Library24"] = "\uE8F1",
         ["ChevronRight24"] = "\uE76C",
+        ["ChevronDown24"] = "\uE70D",
         ["Settings24"] = "\uE713",
         ["List24"] = "\uEA37",
         ["Grid24"] = "\uE80A",

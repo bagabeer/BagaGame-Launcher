@@ -1073,11 +1073,16 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         var separator = gameId.IndexOf(':');
         var kind = separator < 0 ? gameId : gameId.Substring(0, separator);
+        var value = separator < 0 ? string.Empty : gameId.Substring(separator + 1).Trim();
 
         return kind.ToLowerInvariant() switch
         {
-            "folder" => Loc.SourceName(GameLibraryService.FolderSource),
-            "manual" => Loc.SourceName(GameLibraryService.ManualSource),
+            "folder" => string.IsNullOrWhiteSpace(value)
+                ? Loc.SourceName(GameLibraryService.FolderSource)
+                : $"{Loc.SourceName(GameLibraryService.FolderSource)} · {value}",
+            "manual" => string.IsNullOrWhiteSpace(value)
+                ? Loc.SourceName(GameLibraryService.ManualSource)
+                : $"{Loc.SourceName(GameLibraryService.ManualSource)} · {value}",
             "steam" => GameLibraryService.SteamSource,
             "epic" => GameLibraryService.EpicSource,
             "gog" => GameLibraryService.GogSource,

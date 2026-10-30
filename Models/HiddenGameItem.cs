@@ -3,16 +3,17 @@ namespace BagaGame.Models;
 /// <summary>One row in the "Hidden games" list on the Settings page.</summary>
 public sealed class HiddenGameItem
 {
-    public HiddenGameItem(string id, string title, string source)
+    public HiddenGameItem(string id, string title, string details)
     {
         Id = id;
         Title = title;
-        Source = source;
+        Details = details;
     }
 
     public string Id { get; }
 
     public string Title { get; }
 
-    public string Source { get; }
+    /// <summary>Source and path, formatted like the list view on the library page.</summary>
+    public string Details { get; }
 }
