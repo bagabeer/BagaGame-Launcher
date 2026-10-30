@@ -3,17 +3,16 @@ using System.Reflection;
 namespace BagaGame;
 
 /// <summary>
-/// Strings shown in "About". Derived from the assembly so a version bump in the
-/// project file cannot leave the window lying.
+/// Data shown in "About". The version comes from the assembly so a bump in the
+/// project file cannot leave the window lying; the label itself is localized by
+/// <see cref="ViewModels.MainViewModel.VersionSummary"/>.
 /// </summary>
 public static class AppInfo
 {
-    public static string Version { get; } =
+    public static string VersionNumber { get; } =
         Assembly.GetExecutingAssembly().GetName().Version is { } version
-            ? $"Версия {version.Major}.{version.Minor}.{version.Build}"
-            : "Версия 0.0.0";
+            ? $"{version.Major}.{version.Minor}.{version.Build}"
+            : "0.0.0";
 
     public static string Runtime => ".NET Framework 4.7.2 · WPF";
-
-    public static string Summary => $"{Version} · {Runtime}";
 }

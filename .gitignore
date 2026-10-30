@@ -6,6 +6,9 @@ obj/
 ## Installer output
 dist/
 
+## Portable data written next to the executable
+BagaGameData/
+
 ## Local tooling / screenshots
 .artifacts/
 .dotnet/

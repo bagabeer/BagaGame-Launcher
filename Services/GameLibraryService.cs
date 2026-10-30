@@ -23,8 +23,10 @@ public sealed class GameLibraryService : IDisposable
     public const string SteamSource = "Steam";
     public const string EpicSource = "Epic Games";
     public const string GogSource = "GOG Galaxy";
-    public const string FolderSource = "Папка";
-    public const string ManualSource = "Вручную";
+    // Stable source ids: they are stored in ScanOutcome counts and must not
+    // change with the interface language. Loc.SourceName() translates them.
+    public const string FolderSource = "Folder";
+    public const string ManualSource = "Manual";
 
     private static readonly string[] CoverUrls =
     {
@@ -32,6 +34,29 @@ public sealed class GameLibraryService : IDisposable
         "https://cdn.cloudflare.steamstatic.com/steam/apps/{0}/library_600x900_2x.jpg",
         "https://cdn.cloudflare.steamstatic.com/steam/apps/{0}/header.jpg",
     };
+
+    // Posters are decorative: a broken or hostile response must not fill the
+    // disk or exhaust memory. Steam's largest capsules stay well below these.
+    private const long MaxCoverBytes = 12L * 1024 * 1024;
+    private const int MaxCoverDimension = 8000;
+    private const long MaxCoverPixels = 40_000_000L;
+
+    // Image URLs come from a Steam API response, so only the Steam CDN may be
+    // contacted even if the answer is tampered with.
+    private static readonly HashSet<string> AllowedImageHosts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "shared.akamai.steamstatic.com",
+        "cdn.akamai.steamstatic.com",
+        "cdn.cloudflare.steamstatic.com",
+        "shared.cloudflare.steamstatic.com",
+        "store.steampowered.com",
+        "steamcdn-a.akamaihd.net",
+    };
+
+    private static bool IsAllowedImageUrl(string? url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+           uri.Scheme == Uri.UriSchemeHttps &&
+           AllowedImageHosts.Contains(uri.Host);
 
     // Steam tools/runtimes that are not games.
     private static readonly HashSet<int> NonGameSteamApps = new()
@@ -54,24 +79,24 @@ public sealed class GameLibraryService : IDisposable
         "Proton",
     };
 
-    private static readonly string[] ExecutableBlacklist =
+    // Exact names only: a substring rule used to hide real games such as
+    // CrashBandicoot.exe or UpdateMe.exe. Prefixes are reserved for files that
+    // always carry a version suffix (unins000.exe, vcredist_x64.exe).
+    private static readonly HashSet<string> IgnoredExecutableNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "unins",
-        "setup",
-        "install",
-        "redist",
-        "dxsetup",
-        "dxwebsetup",
-        "vcredist",
-        "dotnet",
-        "crash",
-        "report",
-        "helper",
-        "update",
-        "repair",
-        "cleanup",
-        "editor",
-        "devtools",
+        "uninstall", "uninst", "setup", "install", "installer",
+        "dxsetup", "dxwebsetup", "oalinst", "physx",
+        "crashreportclient", "crashpad_handler",
+        "unitycrashhandler32", "unitycrashhandler64",
+        "update", "updater", "repair", "cleanup", "editor", "devtools",
+        "activation", "activate", "register", "benchmark",
+    };
+
+    private static readonly string[] IgnoredExecutablePrefixes =
+    {
+        "unins", "uninstall", "vcredist", "dxsetup", "dxwebsetup",
+        "ue4prereqsetup", "ue5prereqsetup", "dotnetfx", "ndp", "physx",
+        "crashreport", "unitycrashhandler", "crashpad",
     };
 
     // Technical folders are skipped when looking for a human-readable game
@@ -176,11 +201,11 @@ public sealed class GameLibraryService : IDisposable
         }
     }
 
-    /// <summary>%LocalAppData%\BagaGame\covers unless the user picked another folder.</summary>
-    public static string DefaultCoverCacheDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "BagaGame",
-        "covers");
+    /// <summary>
+    /// <c>BagaGameData\covers</c> next to the executable (portable mode) or the
+    /// per-user folder when the launcher cannot write there.
+    /// </summary>
+    public static string DefaultCoverCacheDirectory { get; } = AppPaths.DefaultCoverCacheDirectory;
 
     public string CoverCacheDirectory => _coverCacheDirectory;
 
@@ -362,11 +387,17 @@ public sealed class GameLibraryService : IDisposable
                 return null;
             }
 
+            var declaredLength = response.Content.Headers.ContentLength;
+            if (declaredLength.HasValue && declaredLength.Value > MaxCoverBytes)
+            {
+                return null;
+            }
+
             var bytes = await response.Content
                 .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
-            return bytes.Length >= 512 ? bytes : null;
+            return bytes.Length >= 512 && bytes.Length <= MaxCoverBytes ? bytes : null;
         }
         catch (OperationCanceledException)
         {
@@ -397,7 +428,7 @@ public sealed class GameLibraryService : IDisposable
         Collect(games, "Steam", () => ScanSteam(cancellationToken), cancellationToken);
         Collect(games, "Epic Games", () => ScanEpic(cancellationToken), cancellationToken);
         Collect(games, "GOG Galaxy", () => ScanGog(cancellationToken), cancellationToken);
-        Collect(games, "Папки", () => ScanFolders(extraFolders, cancellationToken), cancellationToken);
+        Collect(games, FolderSource, () => ScanFolders(extraFolders, cancellationToken), cancellationToken);
 
         var unique = games
             .Where(game => !string.IsNullOrWhiteSpace(game.Id))
@@ -656,7 +687,7 @@ public sealed class GameLibraryService : IDisposable
                     Source = EpicSource,
                     Title = title,
                     InstallPath = installPath,
-                    ExecutablePath = FindBestExecutable(installPath),
+                    ExecutablePath = FindBestExecutable(installPath, cancellationToken: cancellationToken),
                 });
             }
             catch
@@ -732,7 +763,7 @@ public sealed class GameLibraryService : IDisposable
                         InstallPath = installPath,
                         ExecutablePath = !string.IsNullOrWhiteSpace(executable) && File.Exists(executable)
                             ? executable
-                            : FindBestExecutable(installPath),
+                            : FindBestExecutable(installPath, cancellationToken: cancellationToken),
                     });
                 }
             }
@@ -795,7 +826,7 @@ public sealed class GameLibraryService : IDisposable
             // itself may be one game (or hold exactly one game).
             if (found.Count == 0)
             {
-                var probe = ProbeFolder(root);
+                var probe = ProbeFolder(root, cancellationToken);
                 if (probe.Kind == FolderKind.Game)
                 {
                     AddFolderGame(found, knownPaths, probe.Game);
@@ -845,7 +876,7 @@ public sealed class GameLibraryService : IDisposable
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var probe = ProbeFolder(child);
+            var probe = ProbeFolder(child, cancellationToken);
 
             if (probe.Kind == FolderKind.Game)
             {
@@ -885,12 +916,14 @@ public sealed class GameLibraryService : IDisposable
     /// directly in the folder makes it a game here; an executable one level
     /// down may belong to a child folder that is a game of its own.
     /// </summary>
-    private static FolderProbe ProbeFolder(string folder)
+    private static FolderProbe ProbeFolder(string folder, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         string? shallow;
         try
         {
-            shallow = FindBestExecutable(folder, 0);
+            shallow = FindBestExecutable(folder, 0, cancellationToken);
         }
         catch
         {
@@ -916,7 +949,7 @@ public sealed class GameLibraryService : IDisposable
         Game? deep;
         try
         {
-            deep = CreateManualGame(folder);
+            deep = CreateManualGame(folder, cancellationToken);
         }
         catch
         {
@@ -1017,9 +1050,28 @@ public sealed class GameLibraryService : IDisposable
             return folder;
         }
 
-        return resolved.StartsWith(folder, StringComparison.OrdinalIgnoreCase)
-            ? resolved
-            : folder;
+        try
+        {
+            var root = Path.GetFullPath(folder).TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+            var candidate = Path.GetFullPath(resolved).TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+
+            // A plain prefix check would accept C:\Games\Foobar for C:\Games\Foo.
+            if (string.Equals(candidate, root, StringComparison.OrdinalIgnoreCase) ||
+                IsInside(root, candidate))
+            {
+                return resolved;
+            }
+        }
+        catch
+        {
+            // An invalid path is clamped to the scanned folder below.
+        }
+
+        return folder;
     }
 
     /// <summary>
@@ -1028,7 +1080,10 @@ public sealed class GameLibraryService : IDisposable
     /// <see cref="ScanFolders"/>), while adding a game by hand may look six
     /// levels down — many games keep the launcher in "bin\x64".
     /// </summary>
-    private static string? FindBestExecutable(string folder, int maxDepth = 1)
+    private static string? FindBestExecutable(
+        string folder,
+        int maxDepth = 1,
+        CancellationToken cancellationToken = default)
     {
         var candidates = new List<string>();
         var queue = new Queue<(string Path, int Depth)>();
@@ -1037,6 +1092,8 @@ public sealed class GameLibraryService : IDisposable
 
         while (queue.Count > 0 && visited < 8000 && candidates.Count < 800)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (current, depth) = queue.Dequeue();
             visited++;
 
@@ -1092,8 +1149,13 @@ public sealed class GameLibraryService : IDisposable
             return false;
         }
 
-        return !ExecutableBlacklist.Any(
-            blocked => name.IndexOf(blocked, StringComparison.OrdinalIgnoreCase) >= 0);
+        if (IgnoredExecutableNames.Contains(name))
+        {
+            return false;
+        }
+
+        return !IgnoredExecutablePrefixes.Any(
+            prefix => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     private static int ScoreExecutable(string path, string folderName)
@@ -1356,12 +1418,14 @@ public sealed class GameLibraryService : IDisposable
     /// Returns <c>null</c> when the path is unusable or the folder has no
     /// executable that looks like a game.
     /// </summary>
-    public static Game? CreateManualGame(string path)
+    public static Game? CreateManualGame(string path, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
             return null;
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
@@ -1397,7 +1461,7 @@ public sealed class GameLibraryService : IDisposable
 
             var selectedPath = Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var foundExecutable = FindBestExecutable(selectedPath, 8);
+            var foundExecutable = FindBestExecutable(selectedPath, 8, cancellationToken);
             if (string.IsNullOrWhiteSpace(foundExecutable))
             {
                 return null;
@@ -1500,9 +1564,10 @@ public sealed class GameLibraryService : IDisposable
     }
 
     /// <summary>
-    /// Returns the game's primary Steam genre translated to Russian, or
-    /// <c>null</c> when the game is not on Steam / the machine is offline.
-    /// Used by the "by genre" library grouping.
+    /// Returns the game's primary Steam genre as a canonical English name
+    /// ("Action", "RPG", ...), or <c>null</c> when the game is not on Steam or
+    /// the machine is offline. The interface translates it for display, so the
+    /// stored value survives a language switch.
     /// </summary>
     public async Task<string?> GetGenreAsync(Game game, CancellationToken cancellationToken)
     {
@@ -1560,7 +1625,7 @@ public sealed class GameLibraryService : IDisposable
                 }
             }
 
-            return TranslateGenre(SelectPrimaryGenre(values));
+            return SelectPrimaryGenre(values);
         }
         catch (OperationCanceledException)
         {
@@ -1618,43 +1683,6 @@ public sealed class GameLibraryService : IDisposable
     {
         "Free To Play", "Early Access",
     };
-
-    /// <summary>Steam genres are English; the interface is Russian.</summary>
-    private static string? TranslateGenre(string? genre)
-    {
-        if (string.IsNullOrWhiteSpace(genre))
-        {
-            return null;
-        }
-
-        return genre.Trim() switch
-        {
-            "Action" => "Экшн",
-            "Adventure" => "Приключения",
-            "Indie" => "Инди",
-            "RPG" => "RPG",
-            "Strategy" => "Стратегии",
-            "Simulation" => "Симуляторы",
-            "Casual" => "Казуальные",
-            "Racing" => "Гонки",
-            "Sports" => "Спорт",
-            "Massively Multiplayer" => "MMO",
-            "Free to Play" => "Бесплатные",
-            "Early Access" => "Ранний доступ",
-            "Animation & Modeling" => "Анимация",
-            "Audio Production" => "Аудио",
-            "Design & Illustration" => "Дизайн",
-            "Education" => "Обучение",
-            "Game Development" => "Разработка игр",
-            "Photo Editing" => "Фото",
-            "Software Training" => "Обучение",
-            "Utilities" => "Утилиты",
-            "Video Production" => "Видео",
-            "Web Publishing" => "Веб",
-            "Accounting" => "Бухгалтерия",
-            _ => genre.Trim(),
-        };
-    }
 
     /// <summary>
     /// Downloads (once) and decodes a Steam portrait cover. Returns <c>null</c>
@@ -1879,6 +1907,11 @@ public sealed class GameLibraryService : IDisposable
         string cachePath,
         CancellationToken cancellationToken)
     {
+        if (!IsAllowedImageUrl(url))
+        {
+            return false;
+        }
+
         try
         {
             using var response = await GetWithRetryAsync(url, cancellationToken)
@@ -1889,11 +1922,17 @@ public sealed class GameLibraryService : IDisposable
                 return false;
             }
 
+            var declaredLength = response.Content.Headers.ContentLength;
+            if (declaredLength.HasValue && declaredLength.Value > MaxCoverBytes)
+            {
+                return false;
+            }
+
             var bytes = await response.Content
                 .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
-            if (bytes.Length < 512)
+            if (bytes.Length < 512 || bytes.Length > MaxCoverBytes)
             {
                 return false;
             }
@@ -1949,6 +1988,16 @@ public sealed class GameLibraryService : IDisposable
                 BitmapCacheOption.OnLoad);
 
             var frame = decoder.Frames[0];
+
+            // A decompression bomb is rejected before the image is rendered.
+            if (frame.PixelWidth <= 0 || frame.PixelHeight <= 0 ||
+                frame.PixelWidth > MaxCoverDimension ||
+                frame.PixelHeight > MaxCoverDimension ||
+                (long)frame.PixelWidth * frame.PixelHeight > MaxCoverPixels)
+            {
+                return false;
+            }
+
             return frame.PixelHeight > frame.PixelWidth;
         }
         catch
@@ -2010,16 +2059,21 @@ public sealed class GameLibraryService : IDisposable
             var imageUrl = GetJsonString(data, "header_image")
                            ?? GetJsonString(data, "capsule_image");
 
-            if (string.IsNullOrWhiteSpace(imageUrl) ||
-                !Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+            if (string.IsNullOrWhiteSpace(imageUrl) || !IsAllowedImageUrl(imageUrl))
             {
                 return false;
             }
 
-            using var imageResponse = await GetWithRetryAsync(uri.ToString(), cancellationToken)
+            using var imageResponse = await GetWithRetryAsync(imageUrl, cancellationToken)
                 .ConfigureAwait(false);
 
             if (imageResponse is null || !imageResponse.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            var declaredLength = imageResponse.Content.Headers.ContentLength;
+            if (declaredLength.HasValue && declaredLength.Value > MaxCoverBytes)
             {
                 return false;
             }
@@ -2028,7 +2082,7 @@ public sealed class GameLibraryService : IDisposable
                 .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
 
-            if (bytes.Length < 512)
+            if (bytes.Length < 512 || bytes.Length > MaxCoverBytes)
             {
                 return false;
             }

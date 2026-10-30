@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using BagaGame.Services;
 
 namespace BagaGame.Models;
 
@@ -81,6 +83,48 @@ public sealed class Game : INotifyPropertyChanged
     /// <summary>True when the card can start the game (exe on disk or Steam AppID).</summary>
     public bool CanLaunch => !string.IsNullOrWhiteSpace(ExecutablePath) || AppId > 0;
 
+    /// <summary>True for an entry the user added by hand; only those can be repaired.</summary>
+    public bool IsManual => string.Equals(
+        Source,
+        GameLibraryService.ManualSource,
+        StringComparison.Ordinal);
+
+    /// <summary>
+    /// False when a manual entry points at an unplugged USB drive or an offline
+    /// network share. Such a card is kept instead of being deleted.
+    /// </summary>
+    public bool IsPathAvailable
+    {
+        get
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(ExecutablePath))
+                {
+                    return File.Exists(ExecutablePath);
+                }
+
+                if (!string.IsNullOrWhiteSpace(InstallPath))
+                {
+                    return Directory.Exists(InstallPath);
+                }
+
+                // A store entry without a local folder is still launchable.
+                return AppId > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    public bool IsPathUnavailable => !IsPathAvailable;
+
+    public string PathUnavailableText => Loc.T("Loc.Game.PathUnavailable");
+
+    public string PathUnavailableTip => Loc.T("Loc.Game.PathUnavailableTip");
+
     /// <summary>
     /// Seconds the game has been played since the launcher started tracking it.
     /// Grows while a matching process is alive (see PlaytimeTracker).
@@ -106,7 +150,7 @@ public sealed class Game : INotifyPropertyChanged
 
     public bool HasPlaytime => _playtimeSeconds > 0;
 
-    /// <summary>Terse playtime for the card: "12 ч", "45 мин" or empty at zero.</summary>
+    /// <summary>Terse playtime for the card: "12 h", "45 min" or empty at zero.</summary>
     public string PlaytimeText
     {
         get
@@ -119,15 +163,15 @@ public sealed class Game : INotifyPropertyChanged
             var hours = _playtimeSeconds / 3600;
             if (hours > 0)
             {
-                return $"{hours} ч";
+                return Loc.Format("Loc.Playtime.Hours", hours);
             }
 
             var minutes = Math.Max(1, _playtimeSeconds / 60);
-            return $"{minutes} мин";
+            return Loc.Format("Loc.Playtime.Minutes", minutes);
         }
     }
 
-    /// <summary>Exact playtime for the tooltip: "Наиграно: 12 ч 34 мин".</summary>
+    /// <summary>Exact playtime for the tooltip: "Played: 12 h 34 min".</summary>
     public string PlaytimeTooltip
     {
         get
@@ -141,8 +185,8 @@ public sealed class Game : INotifyPropertyChanged
             var minutes = _playtimeSeconds % 3600 / 60;
 
             return hours > 0
-                ? $"Наиграно: {hours} ч {minutes} мин"
-                : $"Наиграно: {Math.Max(1, minutes)} мин";
+                ? Loc.Format("Loc.Playtime.TooltipHours", hours, minutes)
+                : Loc.Format("Loc.Playtime.TooltipMinutes", Math.Max(1, minutes));
         }
     }
 
@@ -176,9 +220,26 @@ public sealed class Game : INotifyPropertyChanged
     }
 
     /// <summary>Secondary line used by the list layout.</summary>
-    public string Details => string.IsNullOrWhiteSpace(InstallPath)
-        ? Source
-        : $"{Source} · {InstallPath}";
+    public string Details
+    {
+        get
+        {
+            var source = Loc.SourceName(Source);
+            return string.IsNullOrWhiteSpace(InstallPath)
+                ? source
+                : $"{source} · {InstallPath}";
+        }
+    }
+
+    /// <summary>Re-reads every localized string after the language was switched.</summary>
+    public void RefreshLocalization()
+    {
+        OnPropertyChanged(nameof(PlaytimeText));
+        OnPropertyChanged(nameof(PlaytimeTooltip));
+        OnPropertyChanged(nameof(PathUnavailableText));
+        OnPropertyChanged(nameof(PathUnavailableTip));
+        OnPropertyChanged(nameof(Details));
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

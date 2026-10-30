@@ -1,13 +1,14 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
-using BagaGame.Compat;
 using BagaGame.Models;
 
 namespace BagaGame.Services;
 
 /// <summary>
 /// Persists user edits (custom titles, hidden games, extra scan folders and
-/// preferences) in %LocalAppData%\BagaGame\library.json.
+/// preferences) in <c>BagaGameData\library.json</c> next to the executable, or
+/// in <c>%LocalAppData%\BagaGame</c> when that folder is read-only.
 /// </summary>
 public sealed class LibraryStore
 {
@@ -15,15 +16,19 @@ public sealed class LibraryStore
     private readonly LibraryData _data;
 
     public LibraryStore()
+        : this(AppPaths.DataDirectory)
     {
-        var directory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "BagaGame");
+    }
 
+    public LibraryStore(string directory)
+    {
         Directory.CreateDirectory(directory);
         _filePath = Path.Combine(directory, "library.json");
         _data = Load(_filePath);
     }
+
+    /// <summary>Folder that holds library.json, covers and the backups.</summary>
+    public string DataDirectory => Path.GetDirectoryName(_filePath) ?? AppPaths.DataDirectory;
 
     public IReadOnlyList<string> Folders => _data.Folders;
 
@@ -118,10 +123,33 @@ public sealed class LibraryStore
         }
     }
 
-    /// <summary>Steam genre remembered for a game (Russian label), if any.</summary>
+    /// <summary>Interface language; <c>null</c> until the user picks one.</summary>
+    public AppLanguage? Language
+    {
+        get => Enum.TryParse<AppLanguage>(_data.Language, ignoreCase: true, out var language)
+            ? language
+            : null;
+        set
+        {
+            var stored = value?.ToString();
+
+            if (string.Equals(_data.Language, stored, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _data.Language = stored;
+            Save();
+        }
+    }
+
+    /// <summary>
+    /// Canonical Steam genre remembered for a game (for example "Action"), if
+    /// any. Older builds stored the Russian label; it is mapped back on read.
+    /// </summary>
     public string? GetGenre(string gameId)
         => _data.Genres.TryGetValue(gameId, out var genre) && !string.IsNullOrWhiteSpace(genre)
-            ? genre
+            ? Loc.NormalizeStoredGenre(genre)
             : null;
 
     /// <summary>Seconds played, remembered across launches. 0 when unknown.</summary>
@@ -414,42 +442,75 @@ public sealed class LibraryStore
     }
 
     private static LibraryData Load(string path)
+        => TryLoad(path) ?? TryLoad(path + ".bak") ?? new LibraryData();
+
+    private static LibraryData? TryLoad(string path)
     {
         try
         {
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                var json = File.ReadAllText(path);
-                var data = JsonSerializer.Deserialize<LibraryData>(json);
-                if (data is not null)
-                {
-                    return data;
-                }
+                return null;
             }
-        }
-        catch
-        {
-            // A broken settings file must never block the app.
-        }
 
-        return new LibraryData();
+            return JsonSerializer.Deserialize<LibraryData>(File.ReadAllText(path));
+        }
+        catch (Exception ex) when (ex is IOException
+                                       or UnauthorizedAccessException
+                                       or JsonException)
+        {
+            // A broken settings file must never block the app. The previous
+            // successful save is available in library.json.bak.
+            Trace.TraceWarning($"BagaGame: could not load settings from '{path}': {ex.Message}");
+            return null;
+        }
     }
 
     private void Save()
     {
+        // A unique name per save: two windows (or a crash during a save) can
+        // never write into the same temporary file.
+        var tempPath = $"{_filePath}.{Guid.NewGuid():N}.tmp";
+
         try
         {
             var json = JsonSerializer.Serialize(
                 _data,
                 new JsonSerializerOptions { WriteIndented = true });
 
-            var tempPath = _filePath + ".tmp";
             File.WriteAllText(tempPath, json);
-            FileEx.MoveOverwrite(tempPath, _filePath);
+
+            if (File.Exists(_filePath))
+            {
+                // Atomic replace that keeps the last valid version around.
+                File.Replace(tempPath, _filePath, _filePath + ".bak");
+            }
+            else
+            {
+                File.Move(tempPath, _filePath);
+            }
         }
-        catch
+        catch (Exception ex) when (ex is IOException
+                                       or UnauthorizedAccessException
+                                       or System.Security.SecurityException)
         {
-            // Preferences are best-effort; the current session keeps working.
+            // Keep the current session alive, but leave a trace instead of
+            // silently pretending that the settings were persisted.
+            Trace.TraceError($"BagaGame: could not save settings to '{_filePath}': {ex}");
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+            catch
+            {
+                // A leftover uniquely named temp file cannot corrupt the store.
+            }
         }
     }
 
@@ -470,6 +531,8 @@ public sealed class LibraryStore
         public bool DownloadCovers { get; set; } = true;
 
         public string Theme { get; set; } = "Dark";
+
+        public string? Language { get; set; }
 
         public string? CacheDirectory { get; set; }
 

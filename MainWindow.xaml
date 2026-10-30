@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="clr-namespace:BagaGame.Controls"
-    xmlns:app="clr-namespace:BagaGame"
     Title="BagaGame"
     Width="1320"
     Height="880"
@@ -254,17 +253,21 @@
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Click="LaunchGame_Click"
                                   FontWeight="SemiBold"
-                                  Header="Запустить"
+                                  Header="{DynamicResource Loc.Menu.Launch}"
                                   IsEnabled="{Binding CanLaunch}" />
-                        <MenuItem Click="OpenFolder_Click" Header="Открыть папку" />
+                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
+                        <MenuItem Click="ReassignGameFolder_Click"
+                                  Header="{DynamicResource Loc.Menu.ReassignFolder}"
+                                  ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
+                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}" />
                         <Separator />
-                        <MenuItem Click="RenameGame_Click" Header="Переименовать" />
+                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}" />
                         <MenuItem Click="RemoveGame_Click"
-                                  Header="Скрыть из библиотеки"
-                                  ToolTip="Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»" />
+                                  Header="{DynamicResource Loc.Menu.Hide}"
+                                  ToolTip="{DynamicResource Loc.Menu.HideTip}" />
                         <MenuItem Click="DeleteGame_Click"
-                                  Header="Удалить"
-                                  ToolTip="Удалить запись об игре — повторное сканирование найдёт игру снова" />
+                                  Header="{DynamicResource Loc.Menu.Delete}"
+                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}" />
                     </ContextMenu>
                 </Grid.ContextMenu>
                 <Grid.RowDefinitions>
@@ -330,6 +333,22 @@
                             </Border>
 
                             <Border BorderBrush="{DynamicResource PosterStrokeBrush}" BorderThickness="1" CornerRadius="8" />
+
+                            <!-- The drive is offline: the record is kept, the
+                                 card explains why it cannot be started. -->
+                            <Border Margin="8"
+                                    Padding="7,3"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="#D9B45309"
+                                    CornerRadius="6"
+                                    ToolTip="{Binding PathUnavailableTip}"
+                                    Visibility="{Binding IsPathUnavailable, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock FontSize="10.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="White"
+                                           Text="{Binding PathUnavailableText}" />
+                            </Border>
 
                             <!-- Small play hint that appears on hover. -->
                             <Border x:Name="PlayBadge"
@@ -452,17 +471,21 @@
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Click="LaunchGame_Click"
                                   FontWeight="SemiBold"
-                                  Header="Запустить"
+                                  Header="{DynamicResource Loc.Menu.Launch}"
                                   IsEnabled="{Binding CanLaunch}" />
-                        <MenuItem Click="OpenFolder_Click" Header="Открыть папку" />
+                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
+                        <MenuItem Click="ReassignGameFolder_Click"
+                                  Header="{DynamicResource Loc.Menu.ReassignFolder}"
+                                  ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
+                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}" />
                         <Separator />
-                        <MenuItem Click="RenameGame_Click" Header="Переименовать" />
+                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}" />
                         <MenuItem Click="RemoveGame_Click"
-                                  Header="Скрыть из библиотеки"
-                                  ToolTip="Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»" />
+                                  Header="{DynamicResource Loc.Menu.Hide}"
+                                  ToolTip="{DynamicResource Loc.Menu.HideTip}" />
                         <MenuItem Click="DeleteGame_Click"
-                                  Header="Удалить"
-                                  ToolTip="Удалить запись об игре — повторное сканирование найдёт игру снова" />
+                                  Header="{DynamicResource Loc.Menu.Delete}"
+                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}" />
                     </ContextMenu>
                 </Border.ContextMenu>
                 <Grid>
@@ -650,10 +673,10 @@
                 <StackPanel Grid.Row="1" Margin="0,30,0,0">
                     <TextBlock Margin="12,0,0,8"
                                Style="{StaticResource EyebrowStyle}"
-                               Text="НАВИГАЦИЯ" />
+                               Text="{DynamicResource Loc.Nav.Header}" />
 
                     <RadioButton x:Name="LibraryNav"
-                                 AutomationProperties.Name="Библиотека"
+                                 AutomationProperties.Name="{DynamicResource Loc.Settings.Library}"
                                  Checked="Nav_Checked"
                                  GroupName="Navigation"
                                  IsChecked="True"
@@ -666,12 +689,12 @@
                             <TextBlock Margin="12,0,0,0"
                                        VerticalAlignment="Center"
                                        FontSize="13.5"
-                                       Text="Библиотека" />
+                                       Text="{DynamicResource Loc.Settings.Library}" />
                         </StackPanel>
                     </RadioButton>
 
                     <RadioButton x:Name="ScanNav"
-                                 AutomationProperties.Name="Сканирование"
+                                 AutomationProperties.Name="{DynamicResource Loc.Nav.Scan}"
                                  Checked="Nav_Checked"
                                  GroupName="Navigation"
                                  Style="{StaticResource NavItemStyle}"
@@ -683,12 +706,12 @@
                             <TextBlock Margin="12,0,0,0"
                                        VerticalAlignment="Center"
                                        FontSize="13.5"
-                                       Text="Сканирование" />
+                                       Text="{DynamicResource Loc.Nav.Scan}" />
                         </StackPanel>
                     </RadioButton>
 
                     <RadioButton x:Name="SettingsNav"
-                                 AutomationProperties.Name="Настройки"
+                                 AutomationProperties.Name="{DynamicResource Loc.Nav.Settings}"
                                  Checked="Nav_Checked"
                                  GroupName="Navigation"
                                  Style="{StaticResource NavItemStyle}"
@@ -700,7 +723,7 @@
                             <TextBlock Margin="12,0,0,0"
                                        VerticalAlignment="Center"
                                        FontSize="13.5"
-                                       Text="Настройки" />
+                                       Text="{DynamicResource Loc.Nav.Settings}" />
                         </StackPanel>
                     </RadioButton>
                 </StackPanel>
@@ -738,7 +761,7 @@
                         <TextBlock Margin="19,4,0,0"
                                    FontSize="11.5"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                   Text="{Binding GamesCount, StringFormat='Найдено игр: {0}'}" />
+                                   Text="{Binding GamesCountText}" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -768,7 +791,7 @@
                                    FontSize="30"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                   Text="Библиотека" />
+                                   Text="{DynamicResource Loc.Settings.Library}" />
                         <TextBlock Margin="1,6,0,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
@@ -778,17 +801,18 @@
                     <StackPanel Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                        <Button AutomationProperties.Name="Добавить игру"
+                        <Button x:Name="AddGameButton"
+                                AutomationProperties.Name="{DynamicResource Loc.Library.AddGame}"
                                 Click="AddGame_Click"
                                 Style="{StaticResource AccentButtonStyle}"
-                                ToolTip="Добавить одну игру, не пересканируя всё">
+                                ToolTip="{DynamicResource Loc.Library.AddGameTip}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon FontSize="14"
                                                Foreground="{DynamicResource AccentForegroundBrush}"
                                                Symbol="Add24" />
                                 <TextBlock Margin="7,0,0,0"
                                            VerticalAlignment="Center"
-                                           Text="Добавить игру" />
+                                           Text="{DynamicResource Loc.Library.AddGame}" />
                             </StackPanel>
                         </Button>
 
@@ -800,22 +824,22 @@
                                 CornerRadius="9">
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton x:Name="GridViewButton"
-                                             AutomationProperties.Name="Сетка"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.Grid}"
                                              Checked="ViewMode_Checked"
                                              GroupName="ViewMode"
                                              IsChecked="True"
                                              Style="{StaticResource ViewToggleStyle}"
-                                             ToolTip="Сетка">
+                                             ToolTip="{DynamicResource Loc.Library.Grid}">
                                     <ui:SymbolIcon FontSize="15"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                                    Symbol="Grid24" />
                                 </RadioButton>
                                 <RadioButton x:Name="ListViewButton"
-                                             AutomationProperties.Name="Список"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.List}"
                                              Checked="ViewMode_Checked"
                                              GroupName="ViewMode"
                                              Style="{StaticResource ViewToggleStyle}"
-                                             ToolTip="Список">
+                                             ToolTip="{DynamicResource Loc.Library.List}">
                                     <ui:SymbolIcon FontSize="15"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                                    Symbol="List24" />
@@ -858,7 +882,7 @@
                                      Margin="3,0,0,0"
                                      Padding="5,0,4,0"
                                      VerticalContentAlignment="Center"
-                                     AutomationProperties.Name="Поиск по играм"
+                                     AutomationProperties.Name="{DynamicResource Loc.Library.SearchHint}"
                                      Background="Transparent"
                                      BorderThickness="0"
                                      CaretBrush="{DynamicResource AccentBrush}"
@@ -875,7 +899,7 @@
                                        FontSize="12"
                                        Foreground="{DynamicResource TextTertiaryBrush}"
                                        IsHitTestVisible="False"
-                                       Text="Поиск по библиотеке">
+                                       Text="{DynamicResource Loc.Library.SearchPlaceholder}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -894,10 +918,10 @@
                                        Margin="0,0,6,0"
                                        Padding="0"
                                        Appearance="Secondary"
-                                       AutomationProperties.Name="Очистить поиск"
+                                       AutomationProperties.Name="{DynamicResource Loc.Library.ClearSearch}"
                                        Click="ClearSearch_Click"
                                        CornerRadius="6"
-                                       ToolTip="Очистить поиск"
+                                       ToolTip="{DynamicResource Loc.Library.ClearSearch}"
                                        Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}">
                                 <ui:SymbolIcon FontSize="10" Symbol="Dismiss24" />
                             </ui:BagaButton>
@@ -911,7 +935,7 @@
                                    VerticalAlignment="Center"
                                    FontSize="11"
                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                   Text="{Binding VisibleCount, StringFormat='Показано: {0}'}"
+                                   Text="{Binding VisibleCountText}"
                                    Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}" />
 
                         <Border Padding="3"
@@ -921,38 +945,38 @@
                                 CornerRadius="9">
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton x:Name="GroupAllButton"
-                                             AutomationProperties.Name="Без группировки"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.GroupNone}"
                                              Checked="GroupMode_Checked"
-                                             Content="Все"
+                                             Content="{DynamicResource Loc.Library.GroupAll}"
                                              GroupName="Grouping"
                                              IsChecked="True"
                                              Style="{StaticResource GroupToggleStyle}"
                                              Tag="None"
-                                             ToolTip="Одна общая сетка" />
+                                             ToolTip="{DynamicResource Loc.Library.GroupNoneTip}" />
                                 <RadioButton x:Name="GroupAlphaButton"
-                                             AutomationProperties.Name="По алфавиту"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.GroupAlpha}"
                                              Checked="GroupMode_Checked"
-                                             Content="А–Я"
+                                             Content="{DynamicResource Loc.Library.GroupAlphaShort}"
                                              GroupName="Grouping"
                                              Style="{StaticResource GroupToggleStyle}"
                                              Tag="Alphabet"
-                                             ToolTip="Группы по первой букве названия" />
+                                             ToolTip="{DynamicResource Loc.Library.GroupAlphaTip}" />
                                 <RadioButton x:Name="GroupGenreButton"
-                                             AutomationProperties.Name="По жанрам"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.GroupGenre}"
                                              Checked="GroupMode_Checked"
-                                             Content="Жанры"
+                                             Content="{DynamicResource Loc.Library.GroupGenreShort}"
                                              GroupName="Grouping"
                                              Style="{StaticResource GroupToggleStyle}"
                                              Tag="Genre"
-                                             ToolTip="Группы по жанрам Steam" />
+                                             ToolTip="{DynamicResource Loc.Library.GroupGenreTip}" />
                                 <RadioButton x:Name="GroupSeriesButton"
-                                             AutomationProperties.Name="По сериям"
+                                             AutomationProperties.Name="{DynamicResource Loc.Library.GroupSeries}"
                                              Checked="GroupMode_Checked"
-                                             Content="Серии"
+                                             Content="{DynamicResource Loc.Library.GroupSeriesShort}"
                                              GroupName="Grouping"
                                              Style="{StaticResource GroupToggleStyle}"
                                              Tag="Series"
-                                             ToolTip="Группы по сериям игр" />
+                                             ToolTip="{DynamicResource Loc.Library.GroupSeriesTip}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -1024,12 +1048,12 @@
                                VerticalAlignment="Center"
                                Padding="18,9"
                                Appearance="Secondary"
-                               AutomationProperties.Name="Пересканировать"
+                               AutomationProperties.Name="{DynamicResource Loc.Library.Rescan}"
                                Click="Rescan_Click"
                                CornerRadius="8"
                                FontSize="12.5"
                                IsEnabled="{Binding CanRescan}"
-                               ToolTip="Пересканировать (F5)">
+                               ToolTip="{DynamicResource Loc.Library.RescanTip}">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon x:Name="RefreshIcon"
                                            Width="16"
@@ -1044,7 +1068,7 @@
                             </ui:SymbolIcon>
                             <TextBlock Margin="9,0,0,0"
                                        VerticalAlignment="Center"
-                                       Text="Пересканировать" />
+                                       Text="{DynamicResource Loc.Library.Rescan}" />
                         </StackPanel>
                     </ui:BagaButton>
                 </Grid>
@@ -1062,11 +1086,11 @@
                                FontSize="30"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Сканирование" />
+                               Text="{DynamicResource Loc.Nav.Scan}" />
                     <TextBlock Margin="1,6,0,0"
                                FontSize="12"
                                Foreground="{DynamicResource TextSecondaryBrush}"
-                               Text="Поиск игр, установленных на этом компьютере" />
+                               Text="{DynamicResource Loc.Scan.Subtitle}" />
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1"
@@ -1102,24 +1126,24 @@
                                     <TextBlock FontSize="17"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="Найти установленные игры" />
+                                               Text="{DynamicResource Loc.Scan.Find}" />
                                     <TextBlock Margin="0,6,0,0"
                                                FontSize="12"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                               Text="BagaGame проверит Steam, Epic Games, GOG Galaxy и добавленные папки, а затем подтянет обложки для игр Steam."
+                                               Text="{DynamicResource Loc.Scan.Description}"
                                                TextWrapping="Wrap" />
 
                                     <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
                                         <Button Padding="16,9"
                                                 Click="ScanNow_Click"
-                                                Content="Сканировать сейчас"
+                                                Content="{DynamicResource Loc.Scan.Now}"
                                                 IsEnabled="{Binding CanRescan}"
                                                 Style="{StaticResource AccentButtonStyle}" />
                                         <TextBlock Margin="14,0,0,0"
                                                    VerticalAlignment="Center"
                                                    FontSize="11"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Обычно занимает несколько секунд" />
+                                                   Text="{DynamicResource Loc.Scan.Duration}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>
@@ -1143,7 +1167,7 @@
 
                         <TextBlock Margin="2,24,0,10"
                                    Style="{StaticResource EyebrowStyle}"
-                                   Text="ИСТОЧНИКИ" />
+                                   Text="{DynamicResource Loc.Scan.Sources}" />
 
                         <Border Style="{StaticResource PanelCardStyle}" Padding="18,6">
                             <StackPanel>
@@ -1171,7 +1195,7 @@
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Все локальные библиотеки Steam" />
+                                                   Text="{DynamicResource Loc.Scan.SteamAll}" />
                                     </StackPanel>
                                     <Border Grid.Column="2"
                                             Padding="8,3"
@@ -1180,7 +1204,7 @@
                                             CornerRadius="10">
                                         <TextBlock FontSize="10"
                                                    Foreground="{DynamicResource AccentBrush}"
-                                                   Text="Поддерживается" />
+                                                   Text="{DynamicResource Loc.Scan.Supported}" />
                                     </Border>
                                 </Grid>
 
@@ -1210,7 +1234,7 @@
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Игры, установленные Epic Games Launcher" />
+                                                   Text="{DynamicResource Loc.Scan.EpicDesc}" />
                                     </StackPanel>
                                     <Border Grid.Column="2"
                                             Padding="8,3"
@@ -1219,7 +1243,7 @@
                                             CornerRadius="10">
                                         <TextBlock FontSize="10"
                                                    Foreground="{DynamicResource AccentBrush}"
-                                                   Text="Поддерживается" />
+                                                   Text="{DynamicResource Loc.Scan.Supported}" />
                                     </Border>
                                 </Grid>
 
@@ -1249,7 +1273,7 @@
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Игры из локальной библиотеки GOG" />
+                                                   Text="{DynamicResource Loc.Scan.GogDesc}" />
                                     </StackPanel>
                                     <Border Grid.Column="2"
                                             Padding="8,3"
@@ -1258,7 +1282,7 @@
                                             CornerRadius="10">
                                         <TextBlock FontSize="10"
                                                    Foreground="{DynamicResource AccentBrush}"
-                                                   Text="Поддерживается" />
+                                                   Text="{DynamicResource Loc.Scan.Supported}" />
                                     </Border>
                                 </Grid>
                             </StackPanel>
@@ -1266,7 +1290,7 @@
 
                         <TextBlock Margin="2,24,0,10"
                                    Style="{StaticResource EyebrowStyle}"
-                                   Text="ПАПКИ" />
+                                   Text="{DynamicResource Loc.Scan.Folders}" />
 
                         <Border Style="{StaticResource PanelCardStyle}" Padding="18,14">
                             <StackPanel>
@@ -1283,7 +1307,7 @@
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="12.5"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="Пользовательские папки" />
+                                                   Text="{DynamicResource Loc.Scan.CustomFolders}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
@@ -1294,7 +1318,7 @@
                                                Padding="12,6"
                                                Appearance="Secondary"
                                                Click="AddFolder_Click"
-                                               Content="Добавить"
+                                               Content="{DynamicResource Loc.Common.Add}"
                                                CornerRadius="7"
                                                IsEnabled="{Binding CanRescan}" />
                                 </Grid>
@@ -1326,7 +1350,7 @@
                                                            Padding="10,4"
                                                            Appearance="Secondary"
                                                            Click="RemoveFolder_Click"
-                                                           Content="Убрать"
+                                                           Content="{DynamicResource Loc.Common.Remove}"
                                                            CornerRadius="6"
                                                            FontSize="11"
                                                            Tag="{Binding}" />
@@ -1353,11 +1377,11 @@
                                FontSize="30"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Настройки" />
+                               Text="{DynamicResource Loc.Nav.Settings}" />
                     <TextBlock Margin="1,6,0,0"
                                FontSize="12"
                                Foreground="{DynamicResource TextSecondaryBrush}"
-                               Text="Персонализация BagaGame" />
+                               Text="{DynamicResource Loc.Settings.Subtitle}" />
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1"
@@ -1369,7 +1393,7 @@
 
                         <TextBlock Margin="2,0,0,10"
                                    Style="{StaticResource EyebrowStyle}"
-                                   Text="ОФОРМЛЕНИЕ" />
+                                   Text="{DynamicResource Loc.Settings.Appearance}" />
 
                         <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">
                             <StackPanel>
@@ -1393,18 +1417,76 @@
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="13"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="Светлая тема" />
+                                                   Text="{DynamicResource Loc.Settings.LightTheme}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Переключается мгновенно и сохраняется" />
+                                                   Text="{DynamicResource Loc.Settings.LightThemeTip}" />
                                     </StackPanel>
                                     <ui:ToggleSwitch x:Name="ThemeToggle"
                                                      Grid.Column="2"
                                                      VerticalAlignment="Center"
-                                                     AutomationProperties.Name="Светлая тема"
+                                                     AutomationProperties.Name="{DynamicResource Loc.Settings.LightTheme}"
                                                      Checked="ThemeToggle_Toggled"
                                                      Unchecked="ThemeToggle_Toggled" />
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <!-- Interface language: swaps Strings.ru.xaml and
+                                     Strings.en.xaml without a restart. -->
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Globe24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.Language}" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.LanguageTip}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <Border Padding="3"
+                                                Background="{DynamicResource ChipFillBrush}"
+                                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="9">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="LanguageRuButton"
+                                                             AutomationProperties.Name="{DynamicResource Loc.Settings.LanguageRu}"
+                                                             Checked="Language_Checked"
+                                                             Content="{DynamicResource Loc.Settings.LanguageRu}"
+                                                             GroupName="Language"
+                                                             Style="{StaticResource GroupToggleStyle}"
+                                                             Tag="Russian" />
+                                                <RadioButton x:Name="LanguageEnButton"
+                                                             AutomationProperties.Name="English"
+                                                             Checked="Language_Checked"
+                                                             Content="English"
+                                                             GroupName="Language"
+                                                             Style="{StaticResource GroupToggleStyle}"
+                                                             Tag="English" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
                                 </Grid>
 
                                 <Border Height="1" Background="{DynamicResource DividerBrush}" />
@@ -1429,11 +1511,11 @@
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="13"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="Загружать обложки" />
+                                                   Text="{DynamicResource Loc.Settings.DownloadCovers}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
-                                                   Text="Постеры сохраняются в локальный кэш" />
+                                                   Text="{DynamicResource Loc.Settings.DownloadCoversTip}" />
                                     </StackPanel>
                                     <ui:ToggleSwitch Grid.Column="2"
                                                      VerticalAlignment="Center"
@@ -1444,7 +1526,7 @@
 
                         <TextBlock Margin="2,24,0,10"
                                    Style="{StaticResource EyebrowStyle}"
-                                   Text="БИБЛИОТЕКА" />
+                                   Text="{DynamicResource Loc.Settings.Library}" />
 
                         <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">
                             <StackPanel>
@@ -1468,7 +1550,7 @@
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="13"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="Кэш обложек" />
+                                                   Text="{DynamicResource Loc.Settings.Cache}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
@@ -1482,21 +1564,21 @@
                                         <ui:BagaButton Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="OpenCacheFolder_Click"
-                                                   Content="Открыть"
+                                                   Content="{DynamicResource Loc.Common.Open}"
                                                    CornerRadius="7" />
                                         <ui:BagaButton Margin="8,0,0,0"
                                                    Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="ChangeCacheFolder_Click"
-                                                   Content="Изменить…"
+                                                   Content="{DynamicResource Loc.Common.Change}"
                                                    CornerRadius="7" />
                                         <ui:BagaButton Margin="8,0,0,0"
                                                    Padding="12,6"
                                                    Appearance="Secondary"
                                                    Click="ResetCacheFolder_Click"
-                                                   Content="Сбросить"
+                                                   Content="{DynamicResource Loc.Common.Reset}"
                                                    CornerRadius="7"
-                                                   ToolTip="Вернуть папку по умолчанию"
+                                                   ToolTip="{DynamicResource Loc.Settings.CacheTip}"
                                                    Visibility="{Binding IsCustomCoverCache, Converter={StaticResource BoolToVisibility}}" />
                                     </StackPanel>
                                 </Grid>
@@ -1523,7 +1605,7 @@
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="13"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="Скрытые игры" />
+                                                   Text="{DynamicResource Loc.Settings.Hidden}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
@@ -1533,7 +1615,7 @@
                                                Padding="12,6"
                                                Appearance="Secondary"
                                                Click="RestoreHidden_Click"
-                                               Content="Восстановить"
+                                               Content="{DynamicResource Loc.Common.Restore}"
                                                CornerRadius="7"
                                                IsEnabled="{Binding HasHidden}" />
                                 </Grid>
@@ -1542,7 +1624,7 @@
 
                         <TextBlock Margin="2,24,0,10"
                                    Style="{StaticResource EyebrowStyle}"
-                                   Text="О ПРОГРАММЕ" />
+                                   Text="{DynamicResource Loc.Settings.About}" />
 
                         <Border Style="{StaticResource PanelCardStyle}">
                             <Grid>
@@ -1571,7 +1653,7 @@
                                     <TextBlock Margin="0,3,0,0"
                                                FontSize="11"
                                                Foreground="{DynamicResource TextTertiaryBrush}"
-                                               Text="{x:Static app:AppInfo.Summary}" />
+                                               Text="{Binding VersionSummary}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -1609,11 +1691,11 @@
                                FontSize="18"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Добавить игру" />
+                               Text="{DynamicResource Loc.Library.AddGame}" />
                     <TextBlock Margin="0,6,0,0"
                                FontSize="11.5"
                                Foreground="{DynamicResource TextSecondaryBrush}"
-                               Text="Выберите папку игры или её .exe — обложка и жанр подтянутся автоматически."
+                               Text="{DynamicResource Loc.Add.Description}"
                                TextWrapping="Wrap" />
 
                     <StackPanel Margin="0,18,0,0" Orientation="Horizontal">
@@ -1621,10 +1703,10 @@
                                    Height="72"
                                    Padding="14,10"
                                    Appearance="Secondary"
-                                   AutomationProperties.Name="Папка игры"
+                                   AutomationProperties.Name="{DynamicResource Loc.Add.Folder}"
                                    Click="AddGameFolder_Click"
                                    CornerRadius="9"
-                                   ToolTip="Выбрать папку, .exe найдётся автоматически">
+                                   ToolTip="{DynamicResource Loc.Add.FolderTip}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -1640,11 +1722,11 @@
                                     <TextBlock FontSize="12.5"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="Папка игры" />
+                                               Text="{DynamicResource Loc.Add.Folder}" />
                                     <TextBlock Margin="0,3,0,0"
                                                FontSize="10.5"
                                                Foreground="{DynamicResource TextTertiaryBrush}"
-                                               Text="Найти .exe автоматически"
+                                               Text="{DynamicResource Loc.Add.FolderAction}"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
@@ -1655,10 +1737,10 @@
                                    Margin="10,0,0,0"
                                    Padding="14,10"
                                    Appearance="Secondary"
-                                   AutomationProperties.Name="Файл .exe"
+                                   AutomationProperties.Name="{DynamicResource Loc.Add.Exe}"
                                    Click="AddGameExe_Click"
                                    CornerRadius="9"
-                                   ToolTip="Указать исполняемый файл вручную">
+                                   ToolTip="{DynamicResource Loc.Add.ExeTip}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -1674,11 +1756,11 @@
                                     <TextBlock FontSize="12.5"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="Файл .exe" />
+                                               Text="{DynamicResource Loc.Add.Exe}" />
                                     <TextBlock Margin="0,3,0,0"
                                                FontSize="10.5"
                                                Foreground="{DynamicResource TextTertiaryBrush}"
-                                               Text="Указать запуск вручную"
+                                               Text="{DynamicResource Loc.Add.ExeAction}"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
@@ -1688,10 +1770,11 @@
                     <StackPanel Margin="0,20,0,0"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal">
-                        <ui:BagaButton Padding="14,7"
+                        <ui:BagaButton x:Name="AddGameCancelButton"
+                                   Padding="14,7"
                                    Appearance="Secondary"
                                    Click="AddGameCancel_Click"
-                                   Content="Отмена"
+                                   Content="{DynamicResource Loc.Common.Cancel}"
                                    CornerRadius="7" />
                     </StackPanel>
                 </StackPanel>
@@ -1726,7 +1809,7 @@
                                FontSize="18"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Переименовать игру" />
+                               Text="{DynamicResource Loc.Rename.Title}" />
                     <TextBlock x:Name="RenameSubtitle"
                                Margin="0,6,0,0"
                                FontSize="11.5"
@@ -1737,7 +1820,7 @@
                              Margin="0,18,0,0"
                              Padding="10,0"
                              VerticalContentAlignment="Center"
-                             AutomationProperties.Name="Название игры"
+                             AutomationProperties.Name="{DynamicResource Loc.Rename.Placeholder}"
                              Background="{DynamicResource FieldFillBrush}"
                              BorderBrush="{DynamicResource FieldStrokeBrush}"
                              BorderThickness="1"
@@ -1753,12 +1836,12 @@
                                    Padding="14,7"
                                    Appearance="Secondary"
                                    Click="RenameCancel_Click"
-                                   Content="Отмена"
+                                   Content="{DynamicResource Loc.Common.Cancel}"
                                    CornerRadius="7" />
                         <ui:BagaButton Padding="14,7"
                                    Appearance="Primary"
                                    Click="RenameSave_Click"
-                                   Content="Сохранить"
+                                   Content="{DynamicResource Loc.Common.Save}"
                                    CornerRadius="7" />
                     </StackPanel>
                 </StackPanel>

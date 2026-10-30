@@ -19,8 +19,11 @@ public enum LibraryGrouping
 /// </summary>
 public static class LibraryGroupingHelper
 {
-    public const string OtherGenre = "Другие";
-    public const string NoSeries = "Без серии";
+    // Localized on every read so a language switch also renames the groups.
+    public static string OtherGenre => Loc.T("Loc.Group.Other");
+
+    public static string NoSeries => Loc.T("Loc.Group.NoSeries");
+
     public const string DigitsGroup = "0–9";
     public const string OtherLetter = "#";
 

@@ -6,9 +6,11 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Native control styles, then the colour palette that
+                <!-- Native control styles, the interface strings that
+                     Localization swaps, and the colour palette that
                      ThemeService swaps between Dark.xaml and Light.xaml. -->
                 <ResourceDictionary Source="Themes/Controls.xaml" />
+                <ResourceDictionary Source="Themes/Strings.ru.xaml" />
                 <ResourceDictionary Source="Themes/Dark.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

@@ -28,9 +28,13 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _genresLoading;
     private LibraryGrouping _grouping;
     private string _searchQuery = string.Empty;
-    private string _statusText = "Подготовка…";
+    private string _statusText = Loc.T("Loc.Status.Ready");
     private string _scanInfo = string.Empty;
     private DateTime? _lastScan;
+
+    // The status keeps its resource key so a language switch re-renders it.
+    private string? _statusKey;
+    private object?[]? _statusArgs;
 
     public MainViewModel(GameLibraryService libraryService, LibraryStore store)
     {
@@ -41,6 +45,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         // Watches a launched game and grows its played time while it runs.
         _playtime = new PlaytimeTracker(_store, _libraryService);
         _playtime.PlaytimeChanged += OnPlaytimeChanged;
+        _playtime.GameStopped += OnGameStopped;
+
+        // Every visible label is re-rendered when the language is switched.
+        Loc.Changed += OnLanguageChanged;
 
         _view = (ListCollectionView)CollectionViewSource.GetDefaultView(Games);
         _view.CustomSort = new LibraryComparer(this);
@@ -58,8 +66,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         Games.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(GamesCount));
+            OnPropertyChanged(nameof(GamesCountText));
             OnPropertyChanged(nameof(LibrarySummary));
             OnPropertyChanged(nameof(VisibleCount));
+            OnPropertyChanged(nameof(VisibleCountText));
             OnPropertyChanged(nameof(HasVisibleGames));
             OnPropertyChanged(nameof(EmptyTitle));
             OnPropertyChanged(nameof(EmptyText));
@@ -78,6 +88,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Raised when a launched game closes; the window leaves the tray.</summary>
+    public event Action<string>? GameStopped;
+
     public ObservableCollection<Game> Games { get; } = new();
 
     public ObservableCollection<string> Folders { get; } = new();
@@ -89,17 +102,24 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public int VisibleCount => _view.Count;
 
+    public string VersionSummary =>
+        $"{Loc.Format("Loc.App.Version", AppInfo.VersionNumber)} · {AppInfo.Runtime}";
+
+    public string GamesCountText => Loc.Format("Loc.Library.FoundGames", GamesCount);
+
+    public string VisibleCountText => Loc.Format("Loc.Library.Shown", VisibleCount);
+
     public bool HasVisibleGames => !_view.IsEmpty;
 
     public LibraryGrouping Grouping => _grouping;
 
     public bool IsFiltered => !string.IsNullOrWhiteSpace(_searchQuery);
 
-    public string EmptyTitle => GamesCount == 0 ? "Игры не найдены" : "Ничего не найдено";
+    public string EmptyTitle => Loc.T(
+        GamesCount == 0 ? "Loc.Empty.NoGames" : "Loc.Empty.NoMatches");
 
-    public string EmptyText => GamesCount == 0
-        ? "Нажмите «Пересканировать» или добавьте игру кнопкой «Добавить игру»."
-        : "Попробуйте другой запрос или очистите поиск.";
+    public string EmptyText => Loc.T(
+        GamesCount == 0 ? "Loc.Empty.NoGamesHint" : "Loc.Empty.NoMatchesHint");
 
     /// <summary>Live search over titles, sources and group names.</summary>
     public string SearchQuery
@@ -127,12 +147,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public bool HasHidden => HiddenCount > 0;
 
     public string HiddenSummary => HiddenCount == 0
-        ? "Нет скрытых игр"
-        : $"Скрыто игр: {HiddenCount}";
+        ? Loc.T("Loc.Settings.HiddenNone")
+        : Loc.Format("Loc.Settings.HiddenCount", HiddenCount);
 
     public string FoldersSummary => FoldersCount == 0
-        ? "Добавьте папки с играми вне Steam, Epic и GOG"
-        : $"Добавлено папок: {FoldersCount}";
+        ? Loc.T("Loc.Folders.None")
+        : Loc.Format("Loc.Folders.Count", FoldersCount);
 
     public string LibrarySummary
     {
@@ -140,13 +160,25 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             if (GamesCount == 0)
             {
-                return "Библиотека пуста";
+                return Loc.T("Loc.Library.Empty");
             }
 
-            var count = $"{GamesCount} {Pluralize(GamesCount, "игра", "игры", "игр")}";
-            var text = _lastScan is null ? count : $"{count} · обновлено в {_lastScan.Value:HH:mm}";
+            var count = Loc.Format(
+                "Loc.Library.SummaryCount",
+                GamesCount,
+                Loc.Plural(
+                    GamesCount,
+                    "Loc.Library.CountOne",
+                    "Loc.Library.CountFew",
+                    "Loc.Library.CountMany"));
 
-            return IsFiltered ? $"{text} · показано: {VisibleCount}" : text;
+            var text = _lastScan is null
+                ? count
+                : Loc.Format("Loc.Library.UpdatedAt", count, _lastScan.Value.ToString("HH:mm"));
+
+            return IsFiltered
+                ? Loc.Format("Loc.Library.Filtered", text, VisibleCount)
+                : text;
         }
     }
 
@@ -223,7 +255,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         if (!_libraryService.TrySetCacheDirectory(directory))
         {
-            StatusText = "Не удалось использовать эту папку";
+            SetStatus("Loc.Status.CacheFailed");
             return;
         }
 
@@ -242,7 +274,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             game.Cover = null;
         }
 
-        StatusText = "Кэш обложек обновлён";
+        SetStatus("Loc.Status.CacheUpdated");
         await LoadCoversAsync(_lifetime.Token);
     }
 
@@ -266,7 +298,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         IsScanning = true;
-        StatusText = "Сканирование…";
+        SetStatus("Loc.Status.Scanning");
 
         try
         {
@@ -280,9 +312,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             _lastScan = DateTime.Now;
             OnPropertyChanged(nameof(LibrarySummary));
 
-            StatusText = Games.Count == 0
-                ? "Игры не найдены"
-                : "Сканирование завершено";
+            SetStatus(Games.Count == 0
+                ? "Loc.Empty.NoGames"
+                : "Loc.Status.ScanDone");
 
             ScanInfo = BuildScanInfo(outcome, games.Count(game => game.Source == GameLibraryService.ManualSource));
             NotifyHiddenChanged();
@@ -291,11 +323,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Сканирование отменено";
+            SetStatus("Loc.Status.ScanCanceled");
         }
         catch
         {
-            StatusText = "Не удалось просканировать";
+            SetStatus("Loc.Status.ScanFailed");
         }
         finally
         {
@@ -352,7 +384,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         Games.Remove(game);
-        StatusText = $"Удалено: {title}";
+        SetStatus("Loc.Status.Deleted", title);
     }
 
     /// <summary>Starts the game with its executable or through the Steam client.</summary>
@@ -370,7 +402,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                     UseShellExecute = true,
                 });
 
-                StatusText = $"Запуск: {game.Title}";
+                SetStatus("Loc.Status.Launching", game.Title);
                 _playtime.Track(game);
                 return true;
             }
@@ -383,17 +415,21 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                     UseShellExecute = true,
                 });
 
-                StatusText = $"Запуск: {game.Title}";
+                SetStatus("Loc.Status.Launching", game.Title);
                 _playtime.Track(game);
                 return true;
             }
 
-            StatusText = "Не найден файл запуска";
+            // An unplugged USB drive or an offline network share keeps its card;
+            // the message explains why nothing was started.
+            SetStatus(game.IsPathUnavailable && !string.IsNullOrWhiteSpace(game.InstallPath)
+                ? "Loc.Status.PathUnavailable"
+                : "Loc.Status.NoLaunchFile");
             return false;
         }
         catch
         {
-            StatusText = $"Не удалось запустить: {game.Title}";
+            SetStatus("Loc.Status.LaunchFailed", game.Title);
             return false;
         }
     }
@@ -403,7 +439,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         if (string.IsNullOrWhiteSpace(game.InstallPath) ||
             !Directory.Exists(game.InstallPath))
         {
-            StatusText = "Папка игры не найдена";
+            SetStatus("Loc.Status.FolderMissing");
             return;
         }
 
@@ -417,7 +453,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
         catch
         {
-            StatusText = "Не удалось открыть папку";
+            SetStatus("Loc.Status.OpenFolderFailed");
         }
     }
 
@@ -434,18 +470,31 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// </summary>
     public async Task<bool> AddSingleGameAsync(string path)
     {
-        var game = GameLibraryService.CreateManualGame(path);
+        Game? game;
+        try
+        {
+            // The folder probe walks the disk (up to eight levels) and must not
+            // freeze the window on a slow or temporarily unavailable drive.
+            SetStatus("Loc.Status.Searching");
+            game = await Task.Run(
+                () => GameLibraryService.CreateManualGame(path, _lifetime.Token),
+                _lifetime.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
 
         if (game is null)
         {
-            StatusText = "В выбранной папке не найден .exe игры";
+            SetStatus("Loc.Status.NoExeFound");
             return false;
         }
 
         var existing = Games.FirstOrDefault(item => SameGamePath(item, game));
         if (existing is not null)
         {
-            StatusText = $"Уже в библиотеке: {existing.Title}";
+            SetStatus("Loc.Status.AlreadyInLibrary", existing.Title);
             return false;
         }
 
@@ -458,7 +507,48 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         });
 
         await RescanAsync();
-        StatusText = $"Добавлено: {game.Title}";
+        SetStatus("Loc.Status.Added", game.Title);
+        return true;
+    }
+
+    /// <summary>
+    /// Points an existing manual entry at a new folder (the drive letter
+    /// changed, the game was moved). The id is kept, so the custom title, the
+    /// hidden state and the played time stay attached to the same card.
+    /// </summary>
+    public async Task<bool> ReassignGameFolderAsync(Game game, string folder)
+    {
+        Game? rebuilt;
+        try
+        {
+            SetStatus("Loc.Status.Searching");
+            rebuilt = await Task.Run(
+                () => GameLibraryService.CreateManualGame(folder, _lifetime.Token),
+                _lifetime.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+
+        if (rebuilt is null ||
+            string.IsNullOrWhiteSpace(rebuilt.InstallPath) ||
+            string.IsNullOrWhiteSpace(rebuilt.ExecutablePath))
+        {
+            SetStatus("Loc.Status.NoExeFound");
+            return false;
+        }
+
+        _store.UpdateManualGame(new ManualGameEntry
+        {
+            Id = game.Id,
+            Title = game.Title,
+            InstallPath = rebuilt.InstallPath,
+            ExecutablePath = rebuilt.ExecutablePath,
+        });
+
+        await RescanAsync();
+        SetStatus("Loc.Status.Added", game.Title);
         return true;
     }
 
@@ -521,7 +611,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         if (outcome.Games.Count == 0 && manualCount == 0)
         {
-            return "Ничего не найдено. Установите Steam, Epic Games или GOG Galaxy либо добавьте папку с играми.";
+            return Loc.T("Loc.Scan.NothingFound");
         }
 
         var parts = new List<string>
@@ -529,12 +619,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             $"{GameLibraryService.SteamSource}: {CountOf(outcome, GameLibraryService.SteamSource)}",
             $"{GameLibraryService.EpicSource}: {CountOf(outcome, GameLibraryService.EpicSource)}",
             $"{GameLibraryService.GogSource}: {CountOf(outcome, GameLibraryService.GogSource)}",
-            $"Папки: {CountOf(outcome, GameLibraryService.FolderSource)}",
+            Loc.Format("Loc.Scan.FolderCount", CountOf(outcome, GameLibraryService.FolderSource)),
         };
 
         if (manualCount > 0)
         {
-            parts.Add($"{GameLibraryService.ManualSource}: {manualCount}");
+            parts.Add($"{Loc.SourceName(GameLibraryService.ManualSource)}: {manualCount}");
         }
 
         return string.Join(" · ", parts);
@@ -628,30 +718,38 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         foreach (var entry in _store.ManualGames.ToList())
         {
+            // A record without paths cannot be repaired or launched; only that
+            // case is dropped.
             if (string.IsNullOrWhiteSpace(entry.InstallPath) ||
-                string.IsNullOrWhiteSpace(entry.ExecutablePath) ||
-                !Directory.Exists(entry.InstallPath) ||
-                !File.Exists(entry.ExecutablePath))
+                string.IsNullOrWhiteSpace(entry.ExecutablePath))
             {
                 _store.RemoveManualGame(entry.Id);
                 continue;
             }
 
-            // Older builds used the executable name and the deepest technical
-            // folder. Rebuild the readable title/root from the executable and
-            // persist the repaired values, keeping the old id so renames and
-            // hidden state still match.
-            var normalized = GameLibraryService.CreateManualGame(entry.ExecutablePath);
-            if (normalized is not null &&
-                (!string.Equals(entry.Title, normalized.Title, StringComparison.Ordinal) ||
-                 !string.Equals(
-                     entry.InstallPath,
-                     normalized.InstallPath,
-                     StringComparison.OrdinalIgnoreCase)))
+            var pathAvailable = Directory.Exists(entry.InstallPath) &&
+                                File.Exists(entry.ExecutablePath);
+
+            // An unplugged USB drive or an offline network share must not erase
+            // the user's record: the card stays and explains why it cannot run.
+            if (pathAvailable)
             {
-                entry.Title = normalized.Title;
-                entry.InstallPath = normalized.InstallPath ?? entry.InstallPath;
-                _store.UpdateManualGame(entry);
+                // Older builds used the executable name and the deepest
+                // technical folder. Rebuild the readable title/root from the
+                // executable and persist the repaired values, keeping the old
+                // id so renames and hidden state still match.
+                var normalized = GameLibraryService.CreateManualGame(entry.ExecutablePath);
+                if (normalized is not null &&
+                    (!string.Equals(entry.Title, normalized.Title, StringComparison.Ordinal) ||
+                     !string.Equals(
+                         entry.InstallPath,
+                         normalized.InstallPath,
+                         StringComparison.OrdinalIgnoreCase)))
+                {
+                    entry.Title = normalized.Title;
+                    entry.InstallPath = normalized.InstallPath ?? entry.InstallPath;
+                    _store.UpdateManualGame(entry);
+                }
             }
 
             if (!executablePaths.Add(entry.ExecutablePath))
@@ -712,7 +810,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             game.Group = _grouping switch
             {
                 LibraryGrouping.Alphabet => LibraryGroupingHelper.AlphabetGroup(game.Title),
-                LibraryGrouping.Genre => _store.GetGenre(game.Id) ?? LibraryGroupingHelper.OtherGenre,
+                LibraryGrouping.Genre => Loc.GenreName(_store.GetGenre(game.Id)),
                 LibraryGrouping.Series => series!.TryGetValue(game.Id, out var name)
                     ? name
                     : LibraryGroupingHelper.NoSeries,
@@ -726,6 +824,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _view.Refresh();
 
         OnPropertyChanged(nameof(VisibleCount));
+        OnPropertyChanged(nameof(VisibleCountText));
         OnPropertyChanged(nameof(HasVisibleGames));
         OnPropertyChanged(nameof(IsFiltered));
         OnPropertyChanged(nameof(EmptyTitle));
@@ -777,7 +876,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _genresLoading = true;
         var total = missing.Count;
         var finished = 0;
-        StatusText = $"Определение жанров… 0/{total}";
+        SetStatus("Loc.Status.GenresLoading", 0, total);
 
         try
         {
@@ -790,7 +889,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 }
 
                 finished++;
-                StatusText = $"Определение жанров… {finished}/{total}";
+                SetStatus("Loc.Status.GenresLoading", finished, total);
             });
 
             await Task.WhenAll(tasks);
@@ -812,7 +911,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             ApplyGroups();
             RefreshView();
-            StatusText = "Жанры определены";
+            SetStatus("Loc.Status.GenresDone");
         }
     }
 
@@ -918,20 +1017,40 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private static string Pluralize(int count, string one, string few, string many)
+    /// <summary>Stores the resource key so a language switch re-renders the text.</summary>
+    private void SetStatus(string key, params object?[] args)
     {
-        var lastTwo = count % 100;
-        if (lastTwo is >= 11 and <= 14)
+        _statusKey = key;
+        _statusArgs = args;
+        StatusText = Loc.Format(key, args);
+    }
+
+    private void OnGameStopped(string gameId)
+        => GameStopped?.Invoke(gameId);
+
+    private void OnLanguageChanged()
+    {
+        ApplyGroups();
+        RefreshView();
+
+        foreach (var game in Games)
         {
-            return many;
+            game.RefreshLocalization();
         }
 
-        return (count % 10) switch
+        if (_statusKey is not null)
         {
-            1 => one,
-            >= 2 and <= 4 => few,
-            _ => many,
-        };
+            StatusText = Loc.Format(_statusKey, _statusArgs ?? Array.Empty<object>());
+        }
+
+        OnPropertyChanged(nameof(EmptyTitle));
+        OnPropertyChanged(nameof(EmptyText));
+        OnPropertyChanged(nameof(GamesCountText));
+        OnPropertyChanged(nameof(VisibleCountText));
+        OnPropertyChanged(nameof(VersionSummary));
+        OnPropertyChanged(nameof(HiddenSummary));
+        OnPropertyChanged(nameof(FoldersSummary));
+        OnPropertyChanged(nameof(LibrarySummary));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -955,7 +1074,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         _lifetime.Cancel();
         _lifetime.Dispose();
+
+        Loc.Changed -= OnLanguageChanged;
         _playtime.PlaytimeChanged -= OnPlaytimeChanged;
+        _playtime.GameStopped -= OnGameStopped;
         _playtime.Dispose();
         _libraryService.Dispose();
     }

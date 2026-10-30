@@ -12,7 +12,12 @@ namespace BagaGame.Services;
 /// </summary>
 public sealed class PlaytimeTracker : IDisposable
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(20);
+    // Fast enough to notice that the game closed and to bring the launcher
+    // back from the tray, but the settings file is still written only every
+    // ReportInterval seconds.
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(3);
+
+    private static readonly TimeSpan ReportInterval = TimeSpan.FromSeconds(15);
 
     // A game may need a moment to appear (Steam starts the client first), so a
     // launch that never shows a process is forgotten after this long.
@@ -20,7 +25,7 @@ public sealed class PlaytimeTracker : IDisposable
 
     // Once seen, the process must be gone for this long before tracking stops;
     // this tolerates a game that briefly restarts itself.
-    private static readonly TimeSpan StopGrace = TimeSpan.FromSeconds(50);
+    private static readonly TimeSpan StopGrace = TimeSpan.FromSeconds(6);
 
     private readonly LibraryStore _store;
     private readonly GameLibraryService _library;
@@ -28,7 +33,8 @@ public sealed class PlaytimeTracker : IDisposable
     private readonly object _lock = new();
     private readonly Dictionary<string, Session> _sessions = new(StringComparer.OrdinalIgnoreCase);
 
-    private bool _disposed;
+    private int _tickRunning;
+    private volatile bool _disposed;
 
     private sealed class Session
     {
@@ -43,10 +49,19 @@ public sealed class PlaytimeTracker : IDisposable
         public DateTime LastTick { get; set; }
 
         public DateTime? LastSeen { get; set; }
+
+        /// <summary>Seconds counted but not yet written to the settings file.</summary>
+        public double PendingSeconds { get; set; }
     }
 
     /// <summary>Raised (on the UI thread) with the new total for one game id.</summary>
     public event Action<string, long>? PlaytimeChanged;
+
+    /// <summary>
+    /// Raised (on the UI thread) when a tracked game is no longer running, or
+    /// never appeared at all. The window uses it to come back from the tray.
+    /// </summary>
+    public event Action<string>? GameStopped;
 
     public PlaytimeTracker(LibraryStore store, GameLibraryService library)
     {
@@ -88,6 +103,25 @@ public sealed class PlaytimeTracker : IDisposable
 
     private void Tick()
     {
+        // System.Threading.Timer overlaps callbacks when a tick takes longer
+        // than the interval. Never let two ticks count the same session.
+        if (Interlocked.Exchange(ref _tickRunning, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            TickCore();
+        }
+        finally
+        {
+            Volatile.Write(ref _tickRunning, 0);
+        }
+    }
+
+    private void TickCore()
+    {
         if (_disposed)
         {
             return;
@@ -124,18 +158,17 @@ public sealed class PlaytimeTracker : IDisposable
                 session.Resolved = true;
             }
 
+            // The interval is measured from the previous tick whether the game
+            // was running or not, so a pause between two sessions is not
+            // counted as playtime.
+            var elapsed = now - session.LastTick;
+            session.LastTick = now;
+
             if (IsRunning(session))
             {
-                var elapsed = now - session.LastTick;
-                session.LastTick = now;
                 session.LastSeen = now;
-
-                var seconds = (long)elapsed.TotalSeconds;
-                if (seconds > 0)
-                {
-                    Report(id, seconds);
-                }
-
+                session.PendingSeconds += Math.Max(0, elapsed.TotalSeconds);
+                FlushIfDue(session, force: false);
                 continue;
             }
 
@@ -145,14 +178,38 @@ public sealed class PlaytimeTracker : IDisposable
                 ? now - seen > StopGrace
                 : now - session.Started > StartupGrace;
 
-            if (gone)
+            if (!gone)
             {
-                lock (_lock)
-                {
-                    _sessions.Remove(id);
-                }
+                continue;
             }
+
+            FlushIfDue(session, force: true);
+
+            lock (_lock)
+            {
+                _sessions.Remove(id);
+            }
+
+            RaiseGameStopped(id);
         }
+    }
+
+    /// <summary>Writes accumulated seconds at most every ReportInterval.</summary>
+    private void FlushIfDue(Session session, bool force)
+    {
+        if (!force && session.PendingSeconds < ReportInterval.TotalSeconds)
+        {
+            return;
+        }
+
+        var seconds = (long)session.PendingSeconds;
+        if (seconds <= 0)
+        {
+            return;
+        }
+
+        session.PendingSeconds -= seconds;
+        Report(session.Game.Id, seconds);
     }
 
     /// <summary>Adds time to the game's total and raises it on the UI thread.</summary>
@@ -172,16 +229,32 @@ public sealed class PlaytimeTracker : IDisposable
             handler(gameId, total);
         }
 
+        InvokeOnUi(Apply);
+    }
+
+    private void RaiseGameStopped(string gameId)
+    {
+        var handler = GameStopped;
+        if (handler is null)
+        {
+            return;
+        }
+
+        InvokeOnUi(() => handler(gameId));
+    }
+
+    private static void InvokeOnUi(Action action)
+    {
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher is null || dispatcher.CheckAccess())
         {
-            Apply();
+            action();
             return;
         }
 
         try
         {
-            dispatcher.Invoke(Apply);
+            dispatcher.Invoke(action);
         }
         catch
         {
@@ -228,20 +301,20 @@ public sealed class PlaytimeTracker : IDisposable
                     }
                     catch
                     {
-                        // Elevated or protected process: fall back to the name.
+                        // An inaccessible process cannot be matched reliably by
+                        // its name alone: another game may use the same name.
                     }
 
-                    if (string.IsNullOrWhiteSpace(path) ||
-                        string.Equals(path, executable, StringComparison.OrdinalIgnoreCase) ||
-                        (!string.IsNullOrWhiteSpace(installPath) &&
-                         path.StartsWith(installPath, StringComparison.OrdinalIgnoreCase)))
+                    if (!string.IsNullOrWhiteSpace(path) &&
+                        MatchesGameProcess(path, executable, installPath))
                     {
                         return true;
                     }
                 }
                 catch
                 {
-                    return true;
+                    // The process may exit during inspection. Keep checking the
+                    // remaining candidates instead of assuming a match.
                 }
             }
         }
@@ -254,6 +327,40 @@ public sealed class PlaytimeTracker : IDisposable
         }
 
         return false;
+    }
+
+    private static bool MatchesGameProcess(string path, string executable, string? installPath)
+    {
+        try
+        {
+            path = Path.GetFullPath(path);
+
+            if (string.Equals(
+                    path,
+                    Path.GetFullPath(executable),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(installPath))
+            {
+                return false;
+            }
+
+            // A prefix such as C:\Games\Foo must not match C:\Games\Foobar.
+            var root = Path.GetFullPath(installPath).TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+
+            return path.StartsWith(
+                root + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public void Dispose()
@@ -275,16 +382,9 @@ public sealed class PlaytimeTracker : IDisposable
 
         // The launcher is going away while the game may still run: keep the
         // seconds of the current, not yet reported interval.
-        var now = DateTime.UtcNow;
         foreach (var session in sessions)
         {
-            if (session.LastSeen is null)
-            {
-                // A launch that never produced a process.
-                continue;
-            }
-
-            var seconds = (long)(now - session.LastTick).TotalSeconds;
+            var seconds = (long)session.PendingSeconds;
             if (seconds <= 0)
             {
                 continue;
@@ -292,7 +392,9 @@ public sealed class PlaytimeTracker : IDisposable
 
             try
             {
-                _store.SetPlaytime(session.Game.Id, _store.GetPlaytime(session.Game.Id) + seconds);
+                _store.SetPlaytime(
+                    session.Game.Id,
+                    _store.GetPlaytime(session.Game.Id) + seconds);
             }
             catch
             {

@@ -9,24 +9,41 @@ public sealed class TrayIcon : IDisposable
 {
     private readonly System.Windows.Forms.NotifyIcon _icon;
     private readonly System.Windows.Forms.ContextMenuStrip _menu;
+    private readonly System.Windows.Forms.ToolStripMenuItem _openItem;
+    private readonly System.Windows.Forms.ToolStripMenuItem _exitItem;
     private bool _disposed;
 
-    public TrayIcon(string tooltip, Action openWindow, Action exitApplication)
+    public TrayIcon(Action openWindow, Action exitApplication)
     {
+        _openItem = new System.Windows.Forms.ToolStripMenuItem();
+        _openItem.Click += (_, _) => openWindow();
+
+        _exitItem = new System.Windows.Forms.ToolStripMenuItem();
+        _exitItem.Click += (_, _) => exitApplication();
+
         _menu = new System.Windows.Forms.ContextMenuStrip();
-        _menu.Items.Add("Открыть BagaGame", null, (_, _) => openWindow());
+        _menu.Items.Add(_openItem);
         _menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-        _menu.Items.Add("Выйти", null, (_, _) => exitApplication());
+        _menu.Items.Add(_exitItem);
 
         _icon = new System.Windows.Forms.NotifyIcon
         {
             Icon = LoadApplicationIcon(),
-            Text = Shorten(tooltip),
             ContextMenuStrip = _menu,
             Visible = false,
         };
 
         _icon.DoubleClick += (_, _) => openWindow();
+
+        RefreshTexts();
+    }
+
+    /// <summary>Re-reads the menu labels after a language switch.</summary>
+    public void RefreshTexts()
+    {
+        _openItem.Text = Loc.T("Loc.Tray.Open");
+        _exitItem.Text = Loc.T("Loc.Tray.Exit");
+        _icon.Text = Shorten(Loc.T("Loc.Tray.Tooltip"));
     }
 
     public bool Visible

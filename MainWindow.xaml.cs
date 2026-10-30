@@ -41,6 +41,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             new GameLibraryService(store.CoverCacheDirectory),
             store);
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        _viewModel.GameStopped += ViewModel_GameStopped;
         DataContext = _viewModel;
 
         // Setting IsChecked before Loaded does not trigger a theme swap; the
@@ -60,6 +61,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         ListViewButton.IsChecked = !_store.GridView;
         ApplyViewMode(_store.GridView);
         SelectGrouping(_viewModel.Grouping);
+
+        // The checked radio button mirrors the language applied at startup.
+        LanguageRuButton.IsChecked = Loc.Current == AppLanguage.Russian;
+        LanguageEnButton.IsChecked = Loc.Current == AppLanguage.English;
 
         // Covers stream in after the window is already visible.
         await _viewModel.InitializeAsync();
@@ -105,7 +110,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private async void AddFolder_Click(object sender, RoutedEventArgs e)
     {
-        var folder = FolderPicker.Pick(this, "Выберите папку с играми");
+        var folder = FolderPicker.Pick(this, Loc.T("Loc.Dialog.GamesFolder"));
         if (folder is null)
         {
             return;
@@ -143,7 +148,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         CloseAddGameOverlay();
 
-        var folder = FolderPicker.Pick(this, "Выберите папку с игрой");
+        var folder = FolderPicker.Pick(this, Loc.T("Loc.Dialog.GameFolder"));
         if (folder is null)
         {
             return;
@@ -158,8 +163,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         var dialog = new OpenFileDialog
         {
-            Title = "Выберите файл игры",
-            Filter = "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*",
+            Title = Loc.T("Loc.Dialog.GameExe"),
+            Filter = Loc.T("Loc.Dialog.ExeFilter"),
             CheckFileExists = true,
             Multiselect = false,
         };
@@ -249,10 +254,52 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// </summary>
     private void HideInTray(string gameTitle)
     {
-        _tray ??= new TrayIcon("BagaGame — игра запущена", RestoreFromTray, ExitFromTray);
+        _tray ??= new TrayIcon(RestoreFromTray, ExitFromTray);
+        _tray.RefreshTexts();
         _tray.Visible = true;
-        _tray.ShowBalloon("BagaGame", $"{gameTitle} запускается. Окно вернёт значок в трее.");
+        _tray.ShowBalloon("BagaGame", Loc.Format("Loc.Tray.Launched", gameTitle));
         Hide();
+    }
+
+    /// <summary>
+    /// The playtime tracker reports that the game closed (or never appeared),
+    /// so the window comes back on its own. A window the user already restored
+    /// is left untouched.
+    /// </summary>
+    private void ViewModel_GameStopped(string gameId)
+    {
+        if (_tray is null || !_tray.Visible)
+        {
+            return;
+        }
+
+        RestoreFromTray();
+    }
+
+    /// <summary>Second launch of the .exe: the running window comes to the front.</summary>
+    public void ShowFromExternalLaunch()
+    {
+        if (_tray is not null)
+        {
+            _tray.Visible = false;
+        }
+
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+
+        // A window restored from the tray has no foreground rights; a short
+        // topmost flip is the standard way to bring it to the user's attention.
+        Topmost = true;
+        Topmost = false;
     }
 
     private void RestoreFromTray()
@@ -291,6 +338,41 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _store.IsLightTheme = light;
     }
 
+    private void Language_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            (sender as FrameworkElement)?.Tag is not string tag ||
+            !Enum.TryParse<AppLanguage>(tag, ignoreCase: true, out var language) ||
+            Loc.Current == language)
+        {
+            return;
+        }
+
+        _store.Language = language;
+        Loc.Apply(language);
+        _tray?.RefreshTexts();
+    }
+
+    /// <summary>
+    /// Repairs a manual entry whose folder moved to another drive. The game id
+    /// stays the same, so the custom title and played time survive.
+    /// </summary>
+    private async void ReassignGameFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.DataContext is not Game game)
+        {
+            return;
+        }
+
+        var folder = FolderPicker.Pick(this, Loc.T("Loc.Dialog.GameFolder"), game.InstallPath);
+        if (folder is null)
+        {
+            return;
+        }
+
+        await _viewModel.ReassignGameFolderAsync(game, folder);
+    }
+
     // ------------------------------------------------------------------
     // Rename
     // ------------------------------------------------------------------
@@ -303,9 +385,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         _renameTarget = game;
+        var source = Loc.SourceName(game.Source);
         RenameSubtitle.Text = string.IsNullOrWhiteSpace(game.InstallPath)
-            ? game.Source
-            : $"{game.Source} · {game.InstallPath}";
+            ? source
+            : $"{source} · {game.InstallPath}";
         RenameBox.Text = game.Title;
 
         RenameOverlay.Visibility = Visibility.Visible;
@@ -536,7 +619,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         var folder = FolderPicker.Pick(
             this,
-            "Папка для кеша обложек",
+            Loc.T("Loc.Dialog.CacheFolder"),
             _viewModel.CoverCacheDirectory);
 
         if (folder is null)
@@ -569,6 +652,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _tray?.Dispose();
         _tray = null;
         _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        _viewModel.GameStopped -= ViewModel_GameStopped;
         _viewModel.Dispose();
         base.OnClosed(e);
     }

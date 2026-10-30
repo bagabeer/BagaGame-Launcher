@@ -1,0 +1,191 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Russian interface strings. Localization.SwapDictionary() replaces this
+         dictionary with Strings.en.xaml; every DynamicResource follows. -->
+
+    <sys:String x:Key="Loc.Nav.Header">НАВИГАЦИЯ</sys:String>
+    <sys:String x:Key="Loc.Nav.Library">Библиотека</sys:String>
+    <sys:String x:Key="Loc.Nav.Scan">Сканирование</sys:String>
+    <sys:String x:Key="Loc.Nav.Settings">Настройки</sys:String>
+
+    <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
+    <sys:String x:Key="Loc.Menu.OpenFolder">Открыть папку</sys:String>
+    <sys:String x:Key="Loc.Menu.Rename">Переименовать</sys:String>
+    <sys:String x:Key="Loc.Menu.Hide">Скрыть из библиотеки</sys:String>
+    <sys:String x:Key="Loc.Menu.HideTip">Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»</sys:String>
+    <sys:String x:Key="Loc.Menu.Delete">Удалить</sys:String>
+    <sys:String x:Key="Loc.Menu.DeleteTip">Удалить запись об игре — повторное сканирование найдёт игру снова</sys:String>
+    <sys:String x:Key="Loc.Menu.ReassignFolder">Указать папку заново</sys:String>
+    <sys:String x:Key="Loc.Menu.ReassignFolderTip">Папка игры недоступна: подключите диск или выберите папку с игрой заново</sys:String>
+
+    <sys:String x:Key="Loc.Common.Add">Добавить</sys:String>
+    <sys:String x:Key="Loc.Common.Remove">Убрать</sys:String>
+    <sys:String x:Key="Loc.Common.Open">Открыть</sys:String>
+    <sys:String x:Key="Loc.Common.Change">Изменить…</sys:String>
+    <sys:String x:Key="Loc.Common.Reset">Сбросить</sys:String>
+    <sys:String x:Key="Loc.Common.Cancel">Отмена</sys:String>
+    <sys:String x:Key="Loc.Common.Save">Сохранить</sys:String>
+    <sys:String x:Key="Loc.Common.Restore">Восстановить</sys:String>
+
+    <sys:String x:Key="Loc.Library.AddGame">Добавить игру</sys:String>
+    <sys:String x:Key="Loc.Library.AddGameTip">Добавить одну игру, не пересканируя всё</sys:String>
+    <sys:String x:Key="Loc.Library.Grid">Сетка</sys:String>
+    <sys:String x:Key="Loc.Library.List">Список</sys:String>
+    <sys:String x:Key="Loc.Library.SearchPlaceholder">Поиск по библиотеке</sys:String>
+    <sys:String x:Key="Loc.Library.SearchHint">Поиск по играм</sys:String>
+    <sys:String x:Key="Loc.Library.ClearSearch">Очистить поиск</sys:String>
+    <sys:String x:Key="Loc.Library.FoundGames">Найдено игр: {0}</sys:String>
+    <sys:String x:Key="Loc.Library.Shown">Показано: {0}</sys:String>
+    <sys:String x:Key="Loc.Library.GroupNone">Без группировки</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAll">Все</sys:String>
+    <sys:String x:Key="Loc.Library.GroupNoneTip">Одна общая сетка</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlpha">По алфавиту</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaShort">А–Я</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaTip">Группы по первой букве названия</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenre">По жанрам</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenreShort">Жанры</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenreTip">Группы по жанрам Steam</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeries">По сериям</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeriesShort">Серии</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeriesTip">Группы по сериям игр</sys:String>
+    <sys:String x:Key="Loc.Library.Rescan">Пересканировать</sys:String>
+    <sys:String x:Key="Loc.Library.RescanTip">Пересканировать (F5)</sys:String>
+    <sys:String x:Key="Loc.Library.SummaryCount">{0} {1}</sys:String>
+    <sys:String x:Key="Loc.Library.UpdatedAt">{0} · обновлено в {1}</sys:String>
+    <sys:String x:Key="Loc.Library.Filtered">{0} · показано: {1}</sys:String>
+    <sys:String x:Key="Loc.Library.Empty">Библиотека пуста</sys:String>
+    <sys:String x:Key="Loc.Library.CountOne">игра</sys:String>
+    <sys:String x:Key="Loc.Library.CountFew">игры</sys:String>
+    <sys:String x:Key="Loc.Library.CountMany">игр</sys:String>
+
+    <sys:String x:Key="Loc.Scan.Subtitle">Поиск игр, установленных на этом компьютере</sys:String>
+    <sys:String x:Key="Loc.Scan.Find">Найти установленные игры</sys:String>
+    <sys:String x:Key="Loc.Scan.Description">BagaGame проверит Steam, Epic Games, GOG Galaxy и добавленные папки, а затем подтянет обложки для игр Steam.</sys:String>
+    <sys:String x:Key="Loc.Scan.Now">Сканировать сейчас</sys:String>
+    <sys:String x:Key="Loc.Scan.Duration">Обычно занимает несколько секунд</sys:String>
+    <sys:String x:Key="Loc.Scan.Sources">ИСТОЧНИКИ</sys:String>
+    <sys:String x:Key="Loc.Scan.SteamAll">Все локальные библиотеки Steam</sys:String>
+    <sys:String x:Key="Loc.Scan.Supported">Поддерживается</sys:String>
+    <sys:String x:Key="Loc.Scan.EpicDesc">Игры, установленные Epic Games Launcher</sys:String>
+    <sys:String x:Key="Loc.Scan.GogDesc">Игры из локальной библиотеки GOG</sys:String>
+    <sys:String x:Key="Loc.Scan.Folders">ПАПКИ</sys:String>
+    <sys:String x:Key="Loc.Scan.CustomFolders">Пользовательские папки</sys:String>
+    <sys:String x:Key="Loc.Scan.NothingFound">Ничего не найдено. Установите Steam, Epic Games или GOG Galaxy либо добавьте папку с играми.</sys:String>
+    <sys:String x:Key="Loc.Scan.FolderCount">Папки: {0}</sys:String>
+
+    <sys:String x:Key="Loc.Settings.Subtitle">Персонализация BagaGame</sys:String>
+    <sys:String x:Key="Loc.Settings.Appearance">ОФОРМЛЕНИЕ</sys:String>
+    <sys:String x:Key="Loc.Settings.LightTheme">Светлая тема</sys:String>
+    <sys:String x:Key="Loc.Settings.LightThemeTip">Переключается мгновенно и сохраняется</sys:String>
+    <sys:String x:Key="Loc.Settings.DownloadCovers">Загружать обложки</sys:String>
+    <sys:String x:Key="Loc.Settings.DownloadCoversTip">Постеры сохраняются в локальный кэш</sys:String>
+    <sys:String x:Key="Loc.Settings.Library">БИБЛИОТЕКА</sys:String>
+    <sys:String x:Key="Loc.Settings.Cache">Кэш обложек</sys:String>
+    <sys:String x:Key="Loc.Settings.CacheTip">Вернуть папку по умолчанию</sys:String>
+    <sys:String x:Key="Loc.Settings.Hidden">Скрытые игры</sys:String>
+    <sys:String x:Key="Loc.Settings.HiddenNone">Нет скрытых игр</sys:String>
+    <sys:String x:Key="Loc.Settings.HiddenCount">Скрыто игр: {0}</sys:String>
+    <sys:String x:Key="Loc.Settings.About">О ПРОГРАММЕ</sys:String>
+    <sys:String x:Key="Loc.Settings.Language">Язык интерфейса</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageTip">Переключается мгновенно и сохраняется</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageRu">Русский</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageEn">English</sys:String>
+
+    <sys:String x:Key="Loc.Add.Title">Добавить игру</sys:String>
+    <sys:String x:Key="Loc.Add.Description">Выберите папку игры или её .exe — обложка и жанр подтянутся автоматически.</sys:String>
+    <sys:String x:Key="Loc.Add.Folder">Папка игры</sys:String>
+    <sys:String x:Key="Loc.Add.FolderTip">Выбрать папку, .exe найдётся автоматически</sys:String>
+    <sys:String x:Key="Loc.Add.FolderAction">Найти .exe автоматически</sys:String>
+    <sys:String x:Key="Loc.Add.Exe">Файл .exe</sys:String>
+    <sys:String x:Key="Loc.Add.ExeTip">Указать исполняемый файл вручную</sys:String>
+    <sys:String x:Key="Loc.Add.ExeAction">Указать запуск вручную</sys:String>
+
+    <sys:String x:Key="Loc.Rename.Title">Переименовать игру</sys:String>
+    <sys:String x:Key="Loc.Rename.Placeholder">Название игры</sys:String>
+
+    <sys:String x:Key="Loc.Status.Ready">Подготовка…</sys:String>
+    <sys:String x:Key="Loc.Status.Scanning">Сканирование…</sys:String>
+    <sys:String x:Key="Loc.Status.ScanDone">Сканирование завершено</sys:String>
+    <sys:String x:Key="Loc.Status.ScanCanceled">Сканирование отменено</sys:String>
+    <sys:String x:Key="Loc.Status.ScanFailed">Не удалось просканировать</sys:String>
+    <sys:String x:Key="Loc.Status.CacheFailed">Не удалось использовать эту папку</sys:String>
+    <sys:String x:Key="Loc.Status.CacheUpdated">Кэш обложек обновлён</sys:String>
+    <sys:String x:Key="Loc.Status.Deleted">Удалено: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.Launching">Запуск: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.NoLaunchFile">Не найден файл запуска</sys:String>
+    <sys:String x:Key="Loc.Status.LaunchFailed">Не удалось запустить: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.FolderMissing">Папка игры не найдена</sys:String>
+    <sys:String x:Key="Loc.Status.OpenFolderFailed">Не удалось открыть папку</sys:String>
+    <sys:String x:Key="Loc.Status.NoExeFound">В выбранной папке не найден .exe игры</sys:String>
+    <sys:String x:Key="Loc.Status.AlreadyInLibrary">Уже в библиотеке: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.Added">Добавлено: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.GenresLoading">Определение жанров… {0}/{1}</sys:String>
+    <sys:String x:Key="Loc.Status.GenresDone">Жанры определены</sys:String>
+    <sys:String x:Key="Loc.Status.PathUnavailable">Путь к игре недоступен</sys:String>
+    <sys:String x:Key="Loc.Status.Searching">Поиск .exe…</sys:String>
+
+    <sys:String x:Key="Loc.Empty.NoGames">Игры не найдены</sys:String>
+    <sys:String x:Key="Loc.Empty.NoMatches">Ничего не найдено</sys:String>
+    <sys:String x:Key="Loc.Empty.NoGamesHint">Нажмите «Пересканировать» или добавьте игру кнопкой «Добавить игру».</sys:String>
+    <sys:String x:Key="Loc.Empty.NoMatchesHint">Попробуйте другой запрос или очистите поиск.</sys:String>
+
+    <sys:String x:Key="Loc.Folders.None">Добавьте папки с играми вне Steam, Epic и GOG</sys:String>
+    <sys:String x:Key="Loc.Folders.Count">Добавлено папок: {0}</sys:String>
+
+    <sys:String x:Key="Loc.Playtime.Hours">{0} ч</sys:String>
+    <sys:String x:Key="Loc.Playtime.Minutes">{0} мин</sys:String>
+    <sys:String x:Key="Loc.Playtime.TooltipHours">Наиграно: {0} ч {1} мин</sys:String>
+    <sys:String x:Key="Loc.Playtime.TooltipMinutes">Наиграно: {0} мин</sys:String>
+
+    <sys:String x:Key="Loc.App.Version">Версия {0}</sys:String>
+
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame — игра запущена</sys:String>
+    <sys:String x:Key="Loc.Tray.Open">Открыть BagaGame</sys:String>
+    <sys:String x:Key="Loc.Tray.Exit">Выйти</sys:String>
+    <sys:String x:Key="Loc.Tray.Launched">{0} запускается. Окно вернётся, когда игра закроется.</sys:String>
+
+    <sys:String x:Key="Loc.Dialog.GamesFolder">Выберите папку с играми</sys:String>
+    <sys:String x:Key="Loc.Dialog.GameFolder">Выберите папку с игрой</sys:String>
+    <sys:String x:Key="Loc.Dialog.GameExe">Выберите файл игры</sys:String>
+    <sys:String x:Key="Loc.Dialog.ExeFilter">Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*</sys:String>
+    <sys:String x:Key="Loc.Dialog.CacheFolder">Папка для кеша обложек</sys:String>
+
+    <sys:String x:Key="Loc.Source.Folder">Папка</sys:String>
+    <sys:String x:Key="Loc.Source.Manual">Вручную</sys:String>
+
+    <sys:String x:Key="Loc.Group.Other">Другие</sys:String>
+    <sys:String x:Key="Loc.Group.NoSeries">Без серии</sys:String>
+
+    <sys:String x:Key="Loc.Game.PathUnavailable">Путь недоступен</sys:String>
+    <sys:String x:Key="Loc.Game.PathUnavailableTip">Папка или диск с игрой сейчас недоступны. Подключите диск и попробуйте снова — запись сохранена.</sys:String>
+
+    <sys:String x:Key="Loc.SingleInstance.Running">BagaGame уже запущен.</sys:String>
+
+    <sys:String x:Key="Loc.Genre.Action">Экшн</sys:String>
+    <sys:String x:Key="Loc.Genre.Adventure">Приключения</sys:String>
+    <sys:String x:Key="Loc.Genre.Indie">Инди</sys:String>
+    <sys:String x:Key="Loc.Genre.RPG">RPG</sys:String>
+    <sys:String x:Key="Loc.Genre.Strategy">Стратегии</sys:String>
+    <sys:String x:Key="Loc.Genre.Simulation">Симуляторы</sys:String>
+    <sys:String x:Key="Loc.Genre.Casual">Казуальные</sys:String>
+    <sys:String x:Key="Loc.Genre.Racing">Гонки</sys:String>
+    <sys:String x:Key="Loc.Genre.Sports">Спорт</sys:String>
+    <sys:String x:Key="Loc.Genre.MMO">MMO</sys:String>
+    <sys:String x:Key="Loc.Genre.FreeToPlay">Бесплатные</sys:String>
+    <sys:String x:Key="Loc.Genre.EarlyAccess">Ранний доступ</sys:String>
+    <sys:String x:Key="Loc.Genre.Animation">Анимация</sys:String>
+    <sys:String x:Key="Loc.Genre.Audio">Аудио</sys:String>
+    <sys:String x:Key="Loc.Genre.Design">Дизайн</sys:String>
+    <sys:String x:Key="Loc.Genre.Education">Обучение</sys:String>
+    <sys:String x:Key="Loc.Genre.GameDevelopment">Разработка игр</sys:String>
+    <sys:String x:Key="Loc.Genre.Photo">Фото</sys:String>
+    <sys:String x:Key="Loc.Genre.Training">Обучение</sys:String>
+    <sys:String x:Key="Loc.Genre.Utilities">Утилиты</sys:String>
+    <sys:String x:Key="Loc.Genre.Video">Видео</sys:String>
+    <sys:String x:Key="Loc.Genre.Web">Веб</sys:String>
+    <sys:String x:Key="Loc.Genre.Accounting">Бухгалтерия</sys:String>
+
+</ResourceDictionary>

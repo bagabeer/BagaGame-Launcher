@@ -1,0 +1,190 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- English interface strings. Keep the key list identical to Strings.ru.xaml. -->
+
+    <sys:String x:Key="Loc.Nav.Header">NAVIGATION</sys:String>
+    <sys:String x:Key="Loc.Nav.Library">Library</sys:String>
+    <sys:String x:Key="Loc.Nav.Scan">Scan</sys:String>
+    <sys:String x:Key="Loc.Nav.Settings">Settings</sys:String>
+
+    <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
+    <sys:String x:Key="Loc.Menu.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="Loc.Menu.Rename">Rename</sys:String>
+    <sys:String x:Key="Loc.Menu.Hide">Hide from library</sys:String>
+    <sys:String x:Key="Loc.Menu.HideTip">Remove the game from the library but keep its name and genre — bring it back in Settings with “Restore hidden”</sys:String>
+    <sys:String x:Key="Loc.Menu.Delete">Delete</sys:String>
+    <sys:String x:Key="Loc.Menu.DeleteTip">Delete the game record — the next scan will find the game again</sys:String>
+    <sys:String x:Key="Loc.Menu.ReassignFolder">Choose the folder again</sys:String>
+    <sys:String x:Key="Loc.Menu.ReassignFolderTip">The game folder is unavailable: connect the drive or pick the game folder again</sys:String>
+
+    <sys:String x:Key="Loc.Common.Add">Add</sys:String>
+    <sys:String x:Key="Loc.Common.Remove">Remove</sys:String>
+    <sys:String x:Key="Loc.Common.Open">Open</sys:String>
+    <sys:String x:Key="Loc.Common.Change">Change…</sys:String>
+    <sys:String x:Key="Loc.Common.Reset">Reset</sys:String>
+    <sys:String x:Key="Loc.Common.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Loc.Common.Save">Save</sys:String>
+    <sys:String x:Key="Loc.Common.Restore">Restore</sys:String>
+
+    <sys:String x:Key="Loc.Library.AddGame">Add game</sys:String>
+    <sys:String x:Key="Loc.Library.AddGameTip">Add a single game without rescanning everything</sys:String>
+    <sys:String x:Key="Loc.Library.Grid">Grid</sys:String>
+    <sys:String x:Key="Loc.Library.List">List</sys:String>
+    <sys:String x:Key="Loc.Library.SearchPlaceholder">Search the library</sys:String>
+    <sys:String x:Key="Loc.Library.SearchHint">Search games</sys:String>
+    <sys:String x:Key="Loc.Library.ClearSearch">Clear search</sys:String>
+    <sys:String x:Key="Loc.Library.FoundGames">Games found: {0}</sys:String>
+    <sys:String x:Key="Loc.Library.Shown">Shown: {0}</sys:String>
+    <sys:String x:Key="Loc.Library.GroupNone">No grouping</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAll">All</sys:String>
+    <sys:String x:Key="Loc.Library.GroupNoneTip">One shared grid</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlpha">By alphabet</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaShort">A–Z</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaTip">Groups by the first letter of the title</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenre">By genre</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenreShort">Genres</sys:String>
+    <sys:String x:Key="Loc.Library.GroupGenreTip">Groups by Steam genre</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeries">By series</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeriesShort">Series</sys:String>
+    <sys:String x:Key="Loc.Library.GroupSeriesTip">Groups by game series</sys:String>
+    <sys:String x:Key="Loc.Library.Rescan">Rescan</sys:String>
+    <sys:String x:Key="Loc.Library.RescanTip">Rescan (F5)</sys:String>
+    <sys:String x:Key="Loc.Library.SummaryCount">{0} {1}</sys:String>
+    <sys:String x:Key="Loc.Library.UpdatedAt">{0} · updated at {1}</sys:String>
+    <sys:String x:Key="Loc.Library.Filtered">{0} · shown: {1}</sys:String>
+    <sys:String x:Key="Loc.Library.Empty">The library is empty</sys:String>
+    <sys:String x:Key="Loc.Library.CountOne">game</sys:String>
+    <sys:String x:Key="Loc.Library.CountFew">games</sys:String>
+    <sys:String x:Key="Loc.Library.CountMany">games</sys:String>
+
+    <sys:String x:Key="Loc.Scan.Subtitle">Games installed on this computer</sys:String>
+    <sys:String x:Key="Loc.Scan.Find">Find installed games</sys:String>
+    <sys:String x:Key="Loc.Scan.Description">BagaGame checks Steam, Epic Games, GOG Galaxy and your folders, then fetches covers for Steam games.</sys:String>
+    <sys:String x:Key="Loc.Scan.Now">Scan now</sys:String>
+    <sys:String x:Key="Loc.Scan.Duration">Usually takes a few seconds</sys:String>
+    <sys:String x:Key="Loc.Scan.Sources">SOURCES</sys:String>
+    <sys:String x:Key="Loc.Scan.SteamAll">All local Steam libraries</sys:String>
+    <sys:String x:Key="Loc.Scan.Supported">Supported</sys:String>
+    <sys:String x:Key="Loc.Scan.EpicDesc">Games installed by the Epic Games Launcher</sys:String>
+    <sys:String x:Key="Loc.Scan.GogDesc">Games from the local GOG library</sys:String>
+    <sys:String x:Key="Loc.Scan.Folders">FOLDERS</sys:String>
+    <sys:String x:Key="Loc.Scan.CustomFolders">Custom folders</sys:String>
+    <sys:String x:Key="Loc.Scan.NothingFound">Nothing found. Install Steam, Epic Games or GOG Galaxy, or add a folder with games.</sys:String>
+    <sys:String x:Key="Loc.Scan.FolderCount">Folders: {0}</sys:String>
+
+    <sys:String x:Key="Loc.Settings.Subtitle">Personalize BagaGame</sys:String>
+    <sys:String x:Key="Loc.Settings.Appearance">APPEARANCE</sys:String>
+    <sys:String x:Key="Loc.Settings.LightTheme">Light theme</sys:String>
+    <sys:String x:Key="Loc.Settings.LightThemeTip">Switches instantly and is saved</sys:String>
+    <sys:String x:Key="Loc.Settings.DownloadCovers">Download covers</sys:String>
+    <sys:String x:Key="Loc.Settings.DownloadCoversTip">Posters are stored in a local cache</sys:String>
+    <sys:String x:Key="Loc.Settings.Library">LIBRARY</sys:String>
+    <sys:String x:Key="Loc.Settings.Cache">Cover cache</sys:String>
+    <sys:String x:Key="Loc.Settings.CacheTip">Restore the default folder</sys:String>
+    <sys:String x:Key="Loc.Settings.Hidden">Hidden games</sys:String>
+    <sys:String x:Key="Loc.Settings.HiddenNone">No hidden games</sys:String>
+    <sys:String x:Key="Loc.Settings.HiddenCount">Hidden games: {0}</sys:String>
+    <sys:String x:Key="Loc.Settings.About">ABOUT</sys:String>
+    <sys:String x:Key="Loc.Settings.Language">Interface language</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageTip">Switches instantly and is saved</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageRu">Русский</sys:String>
+    <sys:String x:Key="Loc.Settings.LanguageEn">English</sys:String>
+
+    <sys:String x:Key="Loc.Add.Title">Add game</sys:String>
+    <sys:String x:Key="Loc.Add.Description">Choose a game folder or its .exe — the cover and genre are fetched automatically.</sys:String>
+    <sys:String x:Key="Loc.Add.Folder">Game folder</sys:String>
+    <sys:String x:Key="Loc.Add.FolderTip">Pick a folder, the .exe is found automatically</sys:String>
+    <sys:String x:Key="Loc.Add.FolderAction">Find the .exe automatically</sys:String>
+    <sys:String x:Key="Loc.Add.Exe">.exe file</sys:String>
+    <sys:String x:Key="Loc.Add.ExeTip">Choose the executable manually</sys:String>
+    <sys:String x:Key="Loc.Add.ExeAction">Choose the executable manually</sys:String>
+
+    <sys:String x:Key="Loc.Rename.Title">Rename game</sys:String>
+    <sys:String x:Key="Loc.Rename.Placeholder">Game title</sys:String>
+
+    <sys:String x:Key="Loc.Status.Ready">Preparing…</sys:String>
+    <sys:String x:Key="Loc.Status.Scanning">Scanning…</sys:String>
+    <sys:String x:Key="Loc.Status.ScanDone">Scan complete</sys:String>
+    <sys:String x:Key="Loc.Status.ScanCanceled">Scan canceled</sys:String>
+    <sys:String x:Key="Loc.Status.ScanFailed">Could not scan</sys:String>
+    <sys:String x:Key="Loc.Status.CacheFailed">Could not use this folder</sys:String>
+    <sys:String x:Key="Loc.Status.CacheUpdated">Cover cache updated</sys:String>
+    <sys:String x:Key="Loc.Status.Deleted">Deleted: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.Launching">Launching: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.NoLaunchFile">Launch file not found</sys:String>
+    <sys:String x:Key="Loc.Status.LaunchFailed">Could not launch: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.FolderMissing">Game folder not found</sys:String>
+    <sys:String x:Key="Loc.Status.OpenFolderFailed">Could not open the folder</sys:String>
+    <sys:String x:Key="Loc.Status.NoExeFound">No game .exe found in the selected folder</sys:String>
+    <sys:String x:Key="Loc.Status.AlreadyInLibrary">Already in the library: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.Added">Added: {0}</sys:String>
+    <sys:String x:Key="Loc.Status.GenresLoading">Detecting genres… {0}/{1}</sys:String>
+    <sys:String x:Key="Loc.Status.GenresDone">Genres detected</sys:String>
+    <sys:String x:Key="Loc.Status.PathUnavailable">The game path is unavailable</sys:String>
+    <sys:String x:Key="Loc.Status.Searching">Looking for the .exe…</sys:String>
+
+    <sys:String x:Key="Loc.Empty.NoGames">No games found</sys:String>
+    <sys:String x:Key="Loc.Empty.NoMatches">Nothing found</sys:String>
+    <sys:String x:Key="Loc.Empty.NoGamesHint">Press “Rescan” or add a game with the “Add game” button.</sys:String>
+    <sys:String x:Key="Loc.Empty.NoMatchesHint">Try another query or clear the search.</sys:String>
+
+    <sys:String x:Key="Loc.Folders.None">Add folders with games outside Steam, Epic and GOG</sys:String>
+    <sys:String x:Key="Loc.Folders.Count">Folders added: {0}</sys:String>
+
+    <sys:String x:Key="Loc.Playtime.Hours">{0} h</sys:String>
+    <sys:String x:Key="Loc.Playtime.Minutes">{0} min</sys:String>
+    <sys:String x:Key="Loc.Playtime.TooltipHours">Played: {0} h {1} min</sys:String>
+    <sys:String x:Key="Loc.Playtime.TooltipMinutes">Played: {0} min</sys:String>
+
+    <sys:String x:Key="Loc.App.Version">Version {0}</sys:String>
+
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame — game running</sys:String>
+    <sys:String x:Key="Loc.Tray.Open">Open BagaGame</sys:String>
+    <sys:String x:Key="Loc.Tray.Exit">Exit</sys:String>
+    <sys:String x:Key="Loc.Tray.Launched">{0} is starting. The window returns when the game closes.</sys:String>
+
+    <sys:String x:Key="Loc.Dialog.GamesFolder">Choose a folder with games</sys:String>
+    <sys:String x:Key="Loc.Dialog.GameFolder">Choose the game folder</sys:String>
+    <sys:String x:Key="Loc.Dialog.GameExe">Choose the game file</sys:String>
+    <sys:String x:Key="Loc.Dialog.ExeFilter">Executable files (*.exe)|*.exe|All files (*.*)|*.*</sys:String>
+    <sys:String x:Key="Loc.Dialog.CacheFolder">Cover cache folder</sys:String>
+
+    <sys:String x:Key="Loc.Source.Folder">Folder</sys:String>
+    <sys:String x:Key="Loc.Source.Manual">Manual</sys:String>
+
+    <sys:String x:Key="Loc.Group.Other">Other</sys:String>
+    <sys:String x:Key="Loc.Group.NoSeries">No series</sys:String>
+
+    <sys:String x:Key="Loc.Game.PathUnavailable">Path unavailable</sys:String>
+    <sys:String x:Key="Loc.Game.PathUnavailableTip">The game folder or drive is currently unavailable. Connect the drive and try again — the record is kept.</sys:String>
+
+    <sys:String x:Key="Loc.SingleInstance.Running">BagaGame is already running.</sys:String>
+
+    <sys:String x:Key="Loc.Genre.Action">Action</sys:String>
+    <sys:String x:Key="Loc.Genre.Adventure">Adventure</sys:String>
+    <sys:String x:Key="Loc.Genre.Indie">Indie</sys:String>
+    <sys:String x:Key="Loc.Genre.RPG">RPG</sys:String>
+    <sys:String x:Key="Loc.Genre.Strategy">Strategy</sys:String>
+    <sys:String x:Key="Loc.Genre.Simulation">Simulation</sys:String>
+    <sys:String x:Key="Loc.Genre.Casual">Casual</sys:String>
+    <sys:String x:Key="Loc.Genre.Racing">Racing</sys:String>
+    <sys:String x:Key="Loc.Genre.Sports">Sports</sys:String>
+    <sys:String x:Key="Loc.Genre.MMO">MMO</sys:String>
+    <sys:String x:Key="Loc.Genre.FreeToPlay">Free to Play</sys:String>
+    <sys:String x:Key="Loc.Genre.EarlyAccess">Early Access</sys:String>
+    <sys:String x:Key="Loc.Genre.Animation">Animation</sys:String>
+    <sys:String x:Key="Loc.Genre.Audio">Audio</sys:String>
+    <sys:String x:Key="Loc.Genre.Design">Design</sys:String>
+    <sys:String x:Key="Loc.Genre.Education">Education</sys:String>
+    <sys:String x:Key="Loc.Genre.GameDevelopment">Game Development</sys:String>
+    <sys:String x:Key="Loc.Genre.Photo">Photo</sys:String>
+    <sys:String x:Key="Loc.Genre.Training">Education</sys:String>
+    <sys:String x:Key="Loc.Genre.Utilities">Utilities</sys:String>
+    <sys:String x:Key="Loc.Genre.Video">Video</sys:String>
+    <sys:String x:Key="Loc.Genre.Web">Web</sys:String>
+    <sys:String x:Key="Loc.Genre.Accounting">Accounting</sys:String>
+
+</ResourceDictionary>
