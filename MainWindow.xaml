@@ -1938,7 +1938,7 @@
               MouseLeftButtonDown="CoverOverlay_MouseLeftButtonDown"
               Visibility="Collapsed">
             <Border Width="940"
-                    MaxHeight="740"
+                    Height="760"
                     Padding="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -2022,7 +2022,7 @@
                                        CornerRadius="8" />
                     </Grid>
 
-                    <Grid Grid.Row="2" MinHeight="330">
+                    <Grid Grid.Row="2" MinHeight="450">
                         <ScrollViewer x:Name="CoverGalleryPanel"
                                       VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding CoverResults}">
@@ -2079,6 +2079,11 @@
                                     MouseLeftButtonUp="CropViewport_MouseLeftButtonUp"
                                     MouseMove="CropViewport_MouseMove"
                                     MouseWheel="CropViewport_MouseWheel">
+                                <Border.Clip>
+                                    <RectangleGeometry Rect="0,0,300,450"
+                                                       RadiusX="10"
+                                                       RadiusY="10" />
+                                </Border.Clip>
                                 <Image x:Name="CropPreviewImage"
                                        Width="300"
                                        Height="450"
