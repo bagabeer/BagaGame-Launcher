@@ -434,6 +434,24 @@ public sealed class GameLibraryService : IDisposable
             .Where(game => !string.IsNullOrWhiteSpace(game.Id))
             .GroupBy(game => game.Id, StringComparer.OrdinalIgnoreCase)
             .Select(group => group.First())
+            .ToList();
+
+        // A folder scan can report the same game twice when one executable
+        // sits in the game root and another one in a nested build folder
+        // (reported on Pikabu). Folder entries are therefore deduplicated by
+        // title, preferring the shortest install path; store entries keep
+        // their own ids and are never merged with each other.
+        var chosenFolderIds = unique
+            .Where(game => game.Source == FolderSource)
+            .GroupBy(game => game.Title.Trim(), StringComparer.CurrentCultureIgnoreCase)
+            .Select(group => group
+                .OrderBy(game => (game.InstallPath ?? string.Empty).Length)
+                .First()
+                .Id)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        unique = unique
+            .Where(game => game.Source != FolderSource || chosenFolderIds.Contains(game.Id))
             .OrderBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 

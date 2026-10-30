@@ -20,6 +20,10 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // .NET Framework otherwise negotiates the system default, which may
+        // still include obsolete TLS versions on old Windows builds.
+        System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls12;
+
         _singleInstanceMutex = new Mutex(initiallyOwned: true, MutexName, out _ownsMutex);
 
         if (!_ownsMutex)

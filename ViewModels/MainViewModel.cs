@@ -363,14 +363,15 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     /// <summary>
     /// Deletes the game's record (rename, genre, played time, cached AppID and
-    /// poster) and takes the card out of the library, but does not mark it as
-    /// hidden. A later rescan finds a scanned game again as a new entry; a
-    /// manually added game stays gone until it is added again.
+    /// poster), hides the id and takes the card out of the library. Hiding is
+    /// what keeps a scanned game from reappearing after the next scan: Pikabu
+    /// users reported that a plain delete brought the card straight back.
     /// </summary>
     public void DeleteGame(Game game)
     {
         var title = game.Title;
 
+        _store.Hide(game.Id);
         _store.RemoveManualGame(game.Id);
         _store.ForgetGame(game.Id);
 
