@@ -406,6 +406,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CoverSearchBox.Text = game.Title;
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
+        CoverSearchRow.Visibility = Visibility.Visible;
         CropPreviewImage.Source = null;
         ResetCropTransform();
 
@@ -480,6 +481,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         CoverGalleryPanel.Visibility = Visibility.Collapsed;
         CoverCropPanel.Visibility = Visibility.Visible;
+        CoverSearchRow.Visibility = Visibility.Collapsed;
         _viewModel.CoverStatusText = string.Empty;
     }
 
@@ -491,6 +493,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CropPreviewImage.Source = null;
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
+        CoverSearchRow.Visibility = Visibility.Visible;
     }
 
     private void CoverCropSave_Click(object sender, RoutedEventArgs e)
@@ -542,6 +545,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CoverOverlay.Visibility = Visibility.Collapsed;
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
+        CoverSearchRow.Visibility = Visibility.Visible;
         CropPreviewImage.Source = null;
         _coverTarget = null;
         _cropSource = null;

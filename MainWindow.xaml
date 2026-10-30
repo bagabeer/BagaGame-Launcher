@@ -1937,8 +1937,8 @@
               Background="{DynamicResource OverlayBrush}"
               MouseLeftButtonDown="CoverOverlay_MouseLeftButtonDown"
               Visibility="Collapsed">
-            <Border Width="940"
-                    Height="760"
+            <Border Width="760"
+                    MaxHeight="720"
                     Padding="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -1968,14 +1968,9 @@
                                    FontSize="18"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBlock Margin="0,6,0,0"
-                                   FontSize="11.5"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Text="{DynamicResource Loc.Cover.Subtitle}"
-                                   TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <Grid Grid.Row="1" Margin="0,16,0,12">
+                    <Grid x:Name="CoverSearchRow" Grid.Row="1" Margin="0,16,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -2022,7 +2017,7 @@
                                        CornerRadius="8" />
                     </Grid>
 
-                    <Grid Grid.Row="2" MinHeight="450">
+                    <Grid Grid.Row="2" MinHeight="250">
                         <ScrollViewer x:Name="CoverGalleryPanel"
                                       VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding CoverResults}">
@@ -2063,53 +2058,55 @@
                         </ScrollViewer>
 
                         <Grid x:Name="CoverCropPanel" Visibility="Collapsed">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border x:Name="CropViewport"
-                                    Width="300"
-                                    Height="450"
-                                    Background="{DynamicResource CoverPlaceholderBrush}"
-                                    ClipToBounds="True"
-                                    CornerRadius="10"
-                                    Cursor="SizeAll"
-                                    MouseLeftButtonDown="CropViewport_MouseLeftButtonDown"
-                                    MouseLeftButtonUp="CropViewport_MouseLeftButtonUp"
-                                    MouseMove="CropViewport_MouseMove"
-                                    MouseWheel="CropViewport_MouseWheel">
-                                <Border.Clip>
-                                    <RectangleGeometry Rect="0,0,300,450"
-                                                       RadiusX="10"
-                                                       RadiusY="10" />
-                                </Border.Clip>
-                                <Image x:Name="CropPreviewImage"
-                                       Width="300"
-                                       Height="450"
-                                       RenderTransformOrigin="0.5,0.5"
-                                       Stretch="UniformToFill">
-                                    <Image.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform x:Name="CropScale" ScaleX="1" ScaleY="1" />
-                                            <TranslateTransform x:Name="CropOffset" X="0" Y="0" />
-                                        </TransformGroup>
-                                    </Image.RenderTransform>
-                                </Image>
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Margin="26,8,0,0">
-                                <TextBlock FontSize="16"
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock HorizontalAlignment="Center"
+                                           FontSize="16"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimaryBrush}"
                                            Text="{DynamicResource Loc.Cover.CropTitle}" />
                                 <TextBlock Margin="0,8,0,0"
+                                           MaxWidth="560"
+                                           HorizontalAlignment="Center"
                                            FontSize="11.5"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            Text="{DynamicResource Loc.Cover.CropHint}"
+                                           TextAlignment="Center"
                                            TextWrapping="Wrap" />
 
-                                <StackPanel Margin="0,24,0,0" Orientation="Horizontal">
+                                <Border x:Name="CropViewport"
+                                        Width="280"
+                                        Height="420"
+                                        Margin="0,16,0,0"
+                                        Background="{DynamicResource CoverPlaceholderBrush}"
+                                        ClipToBounds="True"
+                                        CornerRadius="8"
+                                        Cursor="SizeAll"
+                                        MouseLeftButtonDown="CropViewport_MouseLeftButtonDown"
+                                        MouseLeftButtonUp="CropViewport_MouseLeftButtonUp"
+                                        MouseMove="CropViewport_MouseMove"
+                                        MouseWheel="CropViewport_MouseWheel">
+                                    <Border.Clip>
+                                        <RectangleGeometry Rect="0,0,280,420"
+                                                           RadiusX="8"
+                                                           RadiusY="8" />
+                                    </Border.Clip>
+                                    <Image x:Name="CropPreviewImage"
+                                           Width="280"
+                                           Height="420"
+                                           RenderTransformOrigin="0.5,0.5"
+                                           Stretch="UniformToFill">
+                                        <Image.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform x:Name="CropScale" ScaleX="1" ScaleY="1" />
+                                                <TranslateTransform x:Name="CropOffset" X="0" Y="0" />
+                                            </TransformGroup>
+                                        </Image.RenderTransform>
+                                    </Image>
+                                </Border>
+
+                                <StackPanel Margin="0,16,0,0"
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal">
                                     <ui:BagaButton x:Name="CoverCropBackButton"
                                                    Padding="14,7"
                                                    Appearance="Secondary"

@@ -21,7 +21,6 @@
     <sys:String x:Key="Loc.Menu.ReassignFolderTip">The game folder is unavailable: connect the drive or pick the game folder again</sys:String>
     <sys:String x:Key="Loc.Menu.ChangeCover">Change cover</sys:String>
     <sys:String x:Key="Loc.Cover.Title">Game cover</sys:String>
-    <sys:String x:Key="Loc.Cover.Subtitle">Pick an online variant, upload your own image, or restore the default.</sys:String>
     <sys:String x:Key="Loc.Cover.SearchPlaceholder">Game title to search</sys:String>
     <sys:String x:Key="Loc.Cover.Search">Search</sys:String>
     <sys:String x:Key="Loc.Cover.Upload">Upload image</sys:String>
@@ -34,6 +33,7 @@
     <sys:String x:Key="Loc.Cover.Failed">Could not apply the cover</sys:String>
     <sys:String x:Key="Loc.Cover.CropTitle">Adjust the crop</sys:String>
     <sys:String x:Key="Loc.Cover.CropHint">Drag the image, use the mouse wheel to zoom. The final cover is always 2:3.</sys:String>
+    <sys:String x:Key="Loc.Cover.Preview">Preview</sys:String>
     <sys:String x:Key="Loc.Cover.Back">Back</sys:String>
     <sys:String x:Key="Loc.Cover.Save">Save</sys:String>
     <sys:String x:Key="Loc.Cover.UploadFailed">Could not open the file. JPG, PNG and BMP up to 12 MB are supported.</sys:String>
