@@ -135,6 +135,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         await _viewModel.RestoreHiddenAsync();
     }
 
+    private async void RestoreHiddenGame_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is string gameId)
+        {
+            await _viewModel.RestoreHiddenGameAsync(gameId);
+        }
+    }
+
     // ------------------------------------------------------------------
     // Add a single game
     // ------------------------------------------------------------------

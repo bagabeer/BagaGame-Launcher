@@ -36,6 +36,9 @@ public sealed class LibraryStore
 
     public int HiddenCount => _data.Hidden.Count;
 
+    /// <summary>Ids of every hidden game, in the order they were hidden.</summary>
+    public IReadOnlyList<string> Hidden => _data.Hidden;
+
     /// <summary>Last used library layout: grid (true) or list (false).</summary>
     public bool GridView
     {
@@ -201,10 +204,31 @@ public sealed class LibraryStore
     public bool IsHidden(string gameId)
         => _data.Hidden.Contains(gameId, StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Human-readable title remembered when the game was hidden.</summary>
+    public string? GetHiddenTitle(string gameId)
+        => _data.HiddenTitles.TryGetValue(gameId, out var title) &&
+           !string.IsNullOrWhiteSpace(title)
+            ? title
+            : null;
+
+    /// <summary>Custom title set by the user, if any.</summary>
+    public string? GetCustomTitle(string gameId)
+        => _data.CustomTitles.TryGetValue(gameId, out var title) &&
+           !string.IsNullOrWhiteSpace(title)
+            ? title
+            : null;
+
     public void Unhide(string gameId)
     {
         var removed = _data.Hidden.RemoveAll(
             item => string.Equals(item, gameId, StringComparison.OrdinalIgnoreCase));
+
+        foreach (var key in _data.HiddenTitles.Keys
+                     .Where(key => string.Equals(key, gameId, StringComparison.OrdinalIgnoreCase))
+                     .ToList())
+        {
+            removed += _data.HiddenTitles.Remove(key) ? 1 : 0;
+        }
 
         if (removed > 0)
         {
@@ -292,20 +316,52 @@ public sealed class LibraryStore
             Save();
         }
 
+        var staleTitles = 0;
+
+        foreach (var key in _data.HiddenTitles.Keys
+                     .Where(key => !_data.Hidden.Contains(key, StringComparer.OrdinalIgnoreCase))
+                     .ToList())
+        {
+            staleTitles += _data.HiddenTitles.Remove(key) ? 1 : 0;
+        }
+
+        if (staleTitles > 0)
+        {
+            Save();
+        }
+
+        var hiddenTitlesChanged = false;
+
         foreach (var game in incoming)
         {
-            if (_data.Hidden.Contains(game.Id, StringComparer.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
+            // Apply the rename before the hidden check, so the list of hidden
+            // games shows the name the user actually gave the card.
             if (_data.CustomTitles.TryGetValue(game.Id, out var title) &&
                 !string.IsNullOrWhiteSpace(title))
             {
                 game.Title = title;
             }
 
+            if (_data.Hidden.Contains(game.Id, StringComparer.OrdinalIgnoreCase))
+            {
+                // Remember the title of games hidden by older builds, which
+                // did not store one, so Settings can list them by name.
+                if (!_data.HiddenTitles.TryGetValue(game.Id, out var hiddenTitle) ||
+                    !string.Equals(hiddenTitle, game.Title, StringComparison.Ordinal))
+                {
+                    _data.HiddenTitles[game.Id] = game.Title;
+                    hiddenTitlesChanged = true;
+                }
+
+                continue;
+            }
+
             result.Add(game);
+        }
+
+        if (hiddenTitlesChanged)
+        {
+            Save();
         }
 
         return result;
@@ -317,7 +373,7 @@ public sealed class LibraryStore
         Save();
     }
 
-    public void Hide(string gameId)
+    public void Hide(string gameId, string? title = null)
     {
         var changed = false;
 
@@ -327,13 +383,19 @@ public sealed class LibraryStore
             changed = true;
         }
 
-        // A manually added game is removed from the persisted list too;
-        // otherwise "restore hidden" would bring a deleted game back.
-        if (_data.ManualGames.RemoveAll(
-                item => string.Equals(item.Id, gameId, StringComparison.OrdinalIgnoreCase)) > 0)
+        if (!string.IsNullOrWhiteSpace(title))
         {
-            changed = true;
+            if (!_data.HiddenTitles.TryGetValue(gameId, out var stored) ||
+                !string.Equals(stored, title, StringComparison.Ordinal))
+            {
+                _data.HiddenTitles[gameId] = title;
+                changed = true;
+            }
         }
+
+        // Hidden manual entries stay in ManualGames: "Hide" only removes the
+        // card, while "Delete" calls RemoveManualGame explicitly. Otherwise a
+        // hidden manual game could never be restored.
 
         if (changed)
         {
@@ -349,6 +411,7 @@ public sealed class LibraryStore
         }
 
         _data.Hidden.Clear();
+        _data.HiddenTitles.Clear();
         Save();
     }
 
@@ -517,6 +580,9 @@ public sealed class LibraryStore
     private sealed class LibraryData
     {
         public List<string> Hidden { get; set; } = new();
+
+        /// <summary>Titles of hidden games, so Settings can list them by name.</summary>
+        public Dictionary<string, string> HiddenTitles { get; set; } = new();
 
         public Dictionary<string, string> CustomTitles { get; set; } = new();
 

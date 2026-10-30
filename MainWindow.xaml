@@ -1612,13 +1612,55 @@
                                                    Text="{Binding HiddenSummary}" />
                                     </StackPanel>
                                     <ui:BagaButton Grid.Column="2"
-                                               Padding="12,6"
+                                               Height="28"
+                                               MinWidth="0"
+                                               Padding="12,0"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
                                                Appearance="Secondary"
+                                               AutomationProperties.AutomationId="RestoreAllHiddenButton"
                                                Click="RestoreHidden_Click"
-                                               Content="{DynamicResource Loc.Common.Restore}"
+                                               Content="{DynamicResource Loc.Settings.RestoreAll}"
                                                CornerRadius="7"
                                                IsEnabled="{Binding HasHidden}" />
                                 </Grid>
+
+                                <!-- Hidden games are restored one by one from this list. -->
+                                <ItemsControl Margin="46,0,0,4"
+                                              ItemsSource="{Binding HiddenGames}"
+                                              Visibility="{Binding HasHidden, Converter={StaticResource BoolToVisibility}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Height="42">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock FontSize="12"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                                               Text="{Binding Title}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Margin="0,1,0,0"
+                                                               FontSize="10"
+                                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                                               Text="{Binding Source}" />
+                                                </StackPanel>
+                                                <ui:BagaButton Grid.Column="1"
+                                                               Height="26"
+                                                               MinWidth="0"
+                                                               Padding="10,0"
+                                                               VerticalAlignment="Center"
+                                                               Appearance="Secondary"
+                                                               AutomationProperties.AutomationId="RestoreHiddenItemButton"
+                                                               Click="RestoreHiddenGame_Click"
+                                                               Content="{DynamicResource Loc.Common.Restore}"
+                                                               CornerRadius="6"
+                                                               Tag="{Binding Id}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Border>
 

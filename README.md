@@ -141,6 +141,7 @@ Compat/                             — polyfills for modern C# on net472
 * Portable data in `BagaGameData` next to the `.exe`, with a `%LOCALAPPDATA%` fallback.
 * Second-instance protection: launching the app again brings up the existing window.
 * "Path unavailable" badge on the card and a "Choose folder again" menu action.
+* Hidden games can be restored individually from Settings, not only all at once.
 * Asynchronous manual game addition — the UI no longer freezes on large folders.
 * Updated interface strings, found/shown game counters.
 

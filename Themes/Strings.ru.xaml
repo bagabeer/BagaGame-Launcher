@@ -88,6 +88,7 @@
     <sys:String x:Key="Loc.Settings.Hidden">Скрытые игры</sys:String>
     <sys:String x:Key="Loc.Settings.HiddenNone">Нет скрытых игр</sys:String>
     <sys:String x:Key="Loc.Settings.HiddenCount">Скрыто игр: {0}</sys:String>
+    <sys:String x:Key="Loc.Settings.RestoreAll">Восстановить все</sys:String>
     <sys:String x:Key="Loc.Settings.About">О ПРОГРАММЕ</sys:String>
     <sys:String x:Key="Loc.Settings.Language">Язык интерфейса</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageTip">Переключается мгновенно и сохраняется</sys:String>

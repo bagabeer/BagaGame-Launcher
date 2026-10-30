@@ -86,6 +86,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             Folders.Add(folder);
         }
+
+        RefreshHiddenGames();
     }
 
     /// <summary>Raised when a launched game closes; the window leaves the tray.</summary>
@@ -94,6 +96,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<Game> Games { get; } = new();
 
     public ObservableCollection<string> Folders { get; } = new();
+
+    /// <summary>Hidden games listed in Settings, each with its own restore button.</summary>
+    public ObservableCollection<HiddenGameItem> HiddenGames { get; } = new();
 
     /// <summary>Filtered, sorted and grouped view bound to the library grid.</summary>
     public ICollectionView GamesView => _view;
@@ -356,7 +361,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// </summary>
     public void RemoveGame(Game game)
     {
-        _store.Hide(game.Id);
+        _store.Hide(game.Id, game.Title);
         Games.Remove(game);
         NotifyHiddenChanged();
     }
@@ -371,7 +376,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         var title = game.Title;
 
-        _store.Hide(game.Id);
+        _store.Hide(game.Id, title);
         _store.RemoveManualGame(game.Id);
         _store.ForgetGame(game.Id);
 
@@ -461,6 +466,19 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public async Task RestoreHiddenAsync()
     {
         _store.RestoreHidden();
+        NotifyHiddenChanged();
+        await RescanAsync();
+    }
+
+    /// <summary>Brings back one hidden game without touching the rest of the list.</summary>
+    public async Task RestoreHiddenGameAsync(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+        {
+            return;
+        }
+
+        _store.Unhide(gameId);
         NotifyHiddenChanged();
         await RescanAsync();
     }
@@ -999,9 +1017,72 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void NotifyHiddenChanged()
     {
+        RefreshHiddenGames();
         OnPropertyChanged(nameof(HiddenCount));
         OnPropertyChanged(nameof(HasHidden));
         OnPropertyChanged(nameof(HiddenSummary));
+    }
+
+    /// <summary>Rebuilds the per-item list shown in Settings.</summary>
+    private void RefreshHiddenGames()
+    {
+        HiddenGames.Clear();
+
+        foreach (var item in _store.Hidden
+                     .Select(id => new HiddenGameItem(
+                         id,
+                         ResolveHiddenTitle(id),
+                         ResolveHiddenSource(id)))
+                     .OrderBy(item => item.Title, StringComparer.CurrentCultureIgnoreCase))
+        {
+            HiddenGames.Add(item);
+        }
+    }
+
+    private string ResolveHiddenTitle(string gameId)
+        => _store.GetHiddenTitle(gameId)
+           ?? _store.GetCustomTitle(gameId)
+           ?? FallbackTitleFromId(gameId);
+
+    private static string FallbackTitleFromId(string gameId)
+    {
+        var separator = gameId.IndexOf(':');
+        if (separator < 0 || separator == gameId.Length - 1)
+        {
+            return gameId;
+        }
+
+        var kind = gameId.Substring(0, separator).ToLowerInvariant();
+        var value = gameId.Substring(separator + 1).Trim();
+
+        return kind switch
+        {
+            "folder" or "manual" => string.IsNullOrWhiteSpace(value)
+                ? gameId
+                : Path.GetFileName(value.TrimEnd(
+                    Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar)),
+            "steam" => $"Steam · {value}",
+            "epic" => $"Epic · {value}",
+            "gog" => $"GOG · {value}",
+            _ => gameId,
+        };
+    }
+
+    private static string ResolveHiddenSource(string gameId)
+    {
+        var separator = gameId.IndexOf(':');
+        var kind = separator < 0 ? gameId : gameId.Substring(0, separator);
+
+        return kind.ToLowerInvariant() switch
+        {
+            "folder" => Loc.SourceName(GameLibraryService.FolderSource),
+            "manual" => Loc.SourceName(GameLibraryService.ManualSource),
+            "steam" => GameLibraryService.SteamSource,
+            "epic" => GameLibraryService.EpicSource,
+            "gog" => GameLibraryService.GogSource,
+            _ => kind,
+        };
     }
 
     /// <summary>Keeps the card and library.json in sync with the tracker.</summary>
@@ -1052,6 +1133,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(HiddenSummary));
         OnPropertyChanged(nameof(FoldersSummary));
         OnPropertyChanged(nameof(LibrarySummary));
+        RefreshHiddenGames();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

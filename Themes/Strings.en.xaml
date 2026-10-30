@@ -87,6 +87,7 @@
     <sys:String x:Key="Loc.Settings.Hidden">Hidden games</sys:String>
     <sys:String x:Key="Loc.Settings.HiddenNone">No hidden games</sys:String>
     <sys:String x:Key="Loc.Settings.HiddenCount">Hidden games: {0}</sys:String>
+    <sys:String x:Key="Loc.Settings.RestoreAll">Restore all</sys:String>
     <sys:String x:Key="Loc.Settings.About">ABOUT</sys:String>
     <sys:String x:Key="Loc.Settings.Language">Interface language</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageTip">Switches instantly and is saved</sys:String>
