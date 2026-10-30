@@ -129,23 +129,29 @@
         <!-- Library grouping pill ("Все / А–Я / Жанры / Серии"). -->
         <!-- Minimal chevron used to expand small lists in Settings. -->
         <Style x:Key="ChevronToggleStyle" TargetType="ToggleButton">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Background" Value="{DynamicResource TileFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
                         <Border x:Name="Bg"
-                                Background="Transparent"
-                                CornerRadius="5">
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="11">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHoverBrush}" />
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource ControlFillHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -1641,7 +1647,9 @@
                                                           Style="{StaticResource ChevronToggleStyle}"
                                                           ToolTip="{DynamicResource Loc.Settings.HiddenToggle}"
                                                           Visibility="{Binding HasHidden, Converter={StaticResource BoolToVisibility}}">
-                                                <ui:SymbolIcon Symbol="ChevronDown24" FontSize="10">
+                                                <ui:SymbolIcon Symbol="ChevronDown24"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}">
                                                     <ui:SymbolIcon.Style>
                                                         <Style TargetType="ui:SymbolIcon">
                                                             <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
