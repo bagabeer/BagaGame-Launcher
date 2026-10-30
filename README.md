@@ -1,179 +1,181 @@
 # 🎮 BagaGame Launcher
 
-**BagaGame Launcher** — лёгкий и быстрый органайзер игровой библиотеки в стиле Windows 11 Fluent. Он собирает установленные игры в одну аккуратную коллекцию с постерами, группировкой по сериям и жанрам, поиском и учётом наигранного времени — вместо десятков ярлыков на рабочем столе.
+[Русский](README.ru.md) · **English**
 
-Приложение написано на **C# / WPF** под **.NET Framework 4.7.2** и не использует сторонних UI-фреймворков: все контролы стилизованы вручную. Эта версия .NET уже входит в Windows 10 и 11, поэтому ставить рантайм не нужно, а весь лаунчер занимает около **2 МБ**.
+**BagaGame Launcher** is a lightweight, fast game library organizer built in the Windows 11 Fluent style. It gathers installed games into one clean collection with posters, series and genre grouping, live search and playtime tracking — instead of dozens of desktop shortcuts.
+
+The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no third-party UI framework: every control is styled by hand. That .NET version ships with Windows 10 and 11, so there is no runtime to install, and the whole app is about **2 MB**.
 
 ---
 
-## 📥 Установка
+## 📥 Installation
 
-1. Откройте раздел **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** и скачайте архив последней версии (`v0.7.0`).
-2. Распакуйте архив в любую папку, доступную для записи (например, `D:\BagaGame`).
-3. Запустите **`BagaGame.exe`**.
+1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v0.7.0`).
+2. Extract it to any writable folder (for example, `D:\BagaGame`).
+3. Run **`BagaGame.exe`**.
 
-Установщика нет — приложение работает сразу после распаковки. Все данные (библиотека, обложки, настройки) хранятся в папке `BagaGameData` рядом с `.exe`; если папка только для чтения (например, `Program Files`), они автоматически переносятся в `%LOCALAPPDATA%\BagaGame`.
+There is no installer — the app works right after unpacking. All data (library, covers, settings) is stored in the `BagaGameData` folder next to the `.exe`. If that folder is read-only (for example, under `Program Files`), the launcher automatically falls back to `%LOCALAPPDATA%\BagaGame`.
 
-> **Требования:** Windows 10 версии 1803+ или Windows 11. .NET Framework 4.7.2 уже включён в систему — ничего доустанавливать не нужно.
+> **Requirements:** Windows 10 version 1803+ or Windows 11. .NET Framework 4.7.2 is already included in the OS — nothing else needs to be installed.
 >
-> Если Windows SmartScreen предупреждает о неизвестном издателе, нажмите **«Подробнее» → «Выполнить всё равно»**: файл не подписан сертификатом.
+> If Windows SmartScreen warns about an unknown publisher, click **"More info" → "Run anyway"**: the executable is not code-signed.
 
 ---
 
-## 📸 Скриншоты
+## 📸 Screenshots
 
-| Тёмная тема | Светлая тема |
+| Dark theme | Light theme |
 |---|---|
-| <img src="docs/screenshots/main-dark.png" alt="Библиотека, тёмная тема" width="100%"> | <img src="docs/screenshots/main-light.png" alt="Библиотека, светлая тема" width="100%"> |
+| <img src="docs/screenshots/main-dark.png" alt="Library, dark theme" width="100%"> | <img src="docs/screenshots/main-light.png" alt="Library, light theme" width="100%"> |
 
-| Настройки (RU) | Настройки (EN) |
+| Settings (RU) | Settings (EN) |
 |---|---|
-| <img src="docs/screenshots/settings-ru.png" alt="Настройки на русском" width="100%"> | <img src="docs/screenshots/settings-en.png" alt="Settings in English" width="100%"> |
+| <img src="docs/screenshots/settings-ru.png" alt="Settings in Russian" width="100%"> | <img src="docs/screenshots/settings-en.png" alt="Settings in English" width="100%"> |
 
-| Сканирование | Группировка по сериям |
+| Scanning | Series grouping |
 |---|---|
-| <img src="docs/screenshots/scan.png" alt="Страница сканирования" width="100%"> | <img src="docs/screenshots/series.png" alt="Группировка по сериям" width="100%"> |
+| <img src="docs/screenshots/scan.png" alt="Scan page" width="100%"> | <img src="docs/screenshots/series.png" alt="Series grouping" width="100%"> |
 
-| Контекстное меню | Добавление игры |
+| Context menu | Add game dialog |
 |---|---|
-| <img src="docs/screenshots/context-menu.png" alt="Контекстное меню карточки" width="100%"> | <img src="docs/screenshots/add-game.png" alt="Диалог добавления игры" width="100%"> |
+| <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/add-game.png" alt="Add game dialog" width="100%"> |
 
 ---
 
-## ✨ Возможности
+## ✨ Features
 
-* **Глубокое сканирование.** Находит игры в выбранных папках, включая нестандартные структуры и вложенные каталоги, отсеивая служебные `.exe` (`unins`, `vcredist`, `crashhandler` и подобные).
-* **Интеграция с магазинами.** Импортирует библиотеки **Steam**, **Epic Games** и **GOG Galaxy**.
-* **Обложки и жанры.** Подтягивает постеры и жанры из интернета, кэширует их локально и умеет работать без сети.
-* **Группировка.** Режимы «Все», «А–Я», «Жанры» и «Серии»: франшизы (*Resident Evil*, *Dying Light*, *Silent Hill*…) собираются автоматически.
-* **Учёт времени.** Считает наигранные часы для игр, запущенных через лаунчер, и показывает их прямо на карточке.
-* **Сворачивание в трей.** При запуске игры окно уходит в системный трей, а после её закрытия **автоматически возвращается** на экран.
-* **Русский и английский интерфейс.** Переключается в настройках без перезапуска и запоминается.
-* **Тёмная и светлая темы.** На Windows 11 используется нативный эффект Mica; на Windows 10 — аккуратный непрозрачный фон.
-* **Сетка и список.** Два режима отображения библиотеки, быстрый поиск (`Ctrl+F`) и пересканирование (`F5`).
-* **Ручное добавление.** Можно добавить отдельную папку игры или конкретный `.exe`, а также переименовать, скрыть или удалить игру через контекстное меню.
-* **Один экземпляр.** Повторный запуск не открывает второе окно, а разворачивает уже работающее.
-* **Надёжное сохранение.** Библиотека пишется атомарно (с резервной копией), а при недоступном диске карточка игры остаётся на месте с пометкой «Путь недоступен» и кнопкой «Указать папку заново».
+* **Deep scanning.** Finds games in the selected folders, including non-standard layouts and nested directories, while filtering out service executables (`unins`, `vcredist`, `crashhandler` and similar).
+* **Store integration.** Imports libraries from **Steam**, **Epic Games** and **GOG Galaxy**.
+* **Covers and genres.** Downloads posters and genres from the web, caches them locally and keeps working offline.
+* **Grouping.** "All", "A–Z", "Genres" and "Series" modes: franchises (*Resident Evil*, *Dying Light*, *Silent Hill*…) are grouped automatically.
+* **Playtime tracking.** Counts hours for games launched through the launcher and shows them right on the card.
+* **Tray mode.** When a game starts, the window hides to the system tray and **automatically comes back** once the game exits.
+* **Russian and English UI.** Switches in Settings without a restart and remembers the choice.
+* **Dark and light themes.** Native Mica on Windows 11; a clean opaque background on Windows 10.
+* **Grid and list views.** Two library layouts, live search (`Ctrl+F`) and rescan (`F5`).
+* **Manual additions.** Add a whole game folder or a specific `.exe`, then rename, hide or delete games from the context menu.
+* **Single instance.** Launching the `.exe` again brings the running window to the front instead of opening a second copy.
+* **Reliable saving.** The library is written atomically with a backup, and if a drive disappears the card stays with a "Path unavailable" badge and a "Choose folder again" action.
 
 ---
 
-## 🗂 Данные приложения
+## 🗂 Application data
 
 ```text
-<папка с BagaGame.exe>\BagaGameData\library.json   — библиотека, настройки, время, скрытые игры
-<папка с BagaGame.exe>\BagaGameData\covers\        — кэш обложек (<AppID>.jpg) и storeids.json
+<folder with BagaGame.exe>\BagaGameData\library.json   — library, settings, playtime, hidden games
+<folder with BagaGame.exe>\BagaGameData\covers\        — cover cache (<AppID>.jpg) and storeids.json
 ```
 
-Если папка рядом с `.exe` недоступна для записи, используется `%LOCALAPPDATA%\BagaGame`.
+If the folder next to the `.exe` is not writable, `%LOCALAPPDATA%\BagaGame` is used instead.
 
-| Ключ `library.json` | Назначение |
+| `library.json` key | Purpose |
 |---|---|
-| `Hidden` | Скрытые игры |
-| `CustomTitles` | Пользовательские названия |
-| `Folders` | Папки для сканирования |
-| `ManualGames` | Игры, добавленные вручную |
-| `Genres` | Кэш жанров (хранятся канонические английские названия) |
-| `Playtime` | Наигранное время в секундах |
-| `Theme`, `Language`, `GridView`, `Grouping`, `DownloadCovers`, `CacheDirectory` | Настройки интерфейса |
+| `Hidden` | Hidden games |
+| `CustomTitles` | User-defined titles |
+| `Folders` | Folders to scan |
+| `ManualGames` | Manually added games |
+| `Genres` | Genre cache (canonical English names are stored) |
+| `Playtime` | Played time in seconds |
+| `Theme`, `Language`, `GridView`, `Grouping`, `DownloadCovers`, `CacheDirectory` | Interface preferences |
 
 ---
 
-## 🛠 Сборка из исходников
+## 🛠 Building from source
 
-Нужен только **.NET SDK 8+**: он собирает проект под .NET Framework 4.7.2 через reference assemblies, Visual Studio не обязательна.
+All you need is the **.NET SDK 8+**: it builds the project for .NET Framework 4.7.2 through reference assemblies, so Visual Studio is optional.
 
 ```powershell
 dotnet build BagaGame.csproj -c Release
 dotnet run --project BagaGame.csproj
 ```
 
-Готовый `.exe` появится в `bin\Release\net472\`. Отдельный установщик и portable-публикация не требуются: достаточно скопировать папку сборки.
+The ready `.exe` appears in `bin\Release\net472\`. No installer or portable publish step is required — copying the build folder is enough.
 
-### Структура проекта
+### Project structure
 
 ```text
-BagaGame.csproj                     — net472, WPF + WinForms (только трей), без сторонних UI-пакетов
-App.xaml / App.xaml.cs              — запуск, единственный экземпляр, язык, тема
-MainWindow.xaml / .xaml.cs          — окно, карточки, поиск, горячие клавиши, трей
-ViewModels/MainViewModel.cs         — фильтрация, группы, статусы, обложки
-Models/Game.cs                      — модель игры и локализованные подписи
-Services/GameLibraryService.cs      — сканер Steam / Epic / GOG / папок, обложки и жанры
-Services/PlaytimeTracker.cs         — учёт времени и событие завершения игры
-Services/LibraryStore.cs            — атомарное сохранение library.json
-Services/LibraryGrouping.cs         — группы «А–Я», «Жанры», «Серии»
-Services/Localization.cs            — RU/EN и словари строк
-Services/TrayIcon.cs                — иконка и меню в трее
-Services/AppPaths.cs                — портативная папка данных
-Themes/                             — палитры, стили контролов, Strings.ru/en.xaml
-Controls/                           — собственные Fluent-контролы (окно, кнопки, переключатели)
-Compat/                             — полифиллы для современного C# на net472
+BagaGame.csproj                     — net472, WPF + WinForms (tray only), no third-party UI packages
+App.xaml / App.xaml.cs              — startup, single instance, language, theme
+MainWindow.xaml / .xaml.cs          — window, cards, search, hotkeys, tray
+ViewModels/MainViewModel.cs         — filtering, groups, statuses, covers
+Models/Game.cs                      — game model and localized labels
+Services/GameLibraryService.cs      — Steam / Epic / GOG / folder scanner, covers and genres
+Services/PlaytimeTracker.cs         — playtime accounting and game-exit event
+Services/LibraryStore.cs            — atomic library.json persistence
+Services/LibraryGrouping.cs         — "A–Z", "Genres" and "Series" groups
+Services/Localization.cs            — RU/EN and string dictionaries
+Services/TrayIcon.cs                — tray icon and menu
+Services/AppPaths.cs                — portable data folder resolution
+Themes/                             — palettes, control styles, Strings.ru/en.xaml
+Controls/                           — custom Fluent controls (window, buttons, toggles)
+Compat/                             — polyfills for modern C# on net472
 ```
 
 ---
 
 ## 📝 Changelog
 
-### Версия 0.7.0 (текущая)
+### Version 0.7.0 (current)
 
-**Размер и платформа**
-* Переход с .NET 8 на **.NET Framework 4.7.2** — он уже есть в Windows 10 1803+ и Windows 11, поэтому лаунчер запускается без установки рантайма.
-* Удалён **WPF-UI**: кнопки, переключатели, заголовок окна, скроллбары, меню и подсказки теперь собственные. Сторонних UI-пакетов нет.
-* Размер сборки уменьшился с **13,5 МБ до ~2 МБ**.
-* Из репозитория удалены PowerShell-скрипты и всё, что требовалось для сборки помимо .NET SDK.
+**Size and platform**
+* Retargeted from .NET 8 to **.NET Framework 4.7.2**, which ships with Windows 10 1803+ and Windows 11, so the launcher starts without installing a runtime.
+* **WPF-UI removed**: buttons, switches, the title bar, scroll bars, menus and tooltips are now custom. No third-party UI packages are referenced.
+* Build size dropped from **13.5 MB to ~2 MB**.
+* PowerShell scripts and everything that was needed to build the project besides the .NET SDK were removed from the repository.
 
-**Исправления (issue #1)**
-* Атомарное сохранение `library.json` с резервной копией `.bak` — сбой записи больше не обнуляет библиотеку.
-* Безопасная обработка путей: запрет выхода за пределы выбранной папки, проверка доступности диска.
-* Ограничения на обложки: размер файла, разрешение, количество пикселей и список разрешённых хостов.
-* Точное сопоставление процессов игры — трекер больше не считает время чужому процессу с похожим именем.
-* Корректная отмена сканирования и защита от повторного запуска.
-* Стабильные идентификаторы источников (`Folder` / `Manual`) и миграция старых жанров.
-* Ручные игры не пропадают, если их папка временно недоступна.
-* Удалённая игра больше не возвращается после пересканирования: она автоматически попадает в скрытые.
-* Дубликаты, найденные через разные `.exe` одной папки, схлопываются в одну карточку.
-* Для загрузки обложек и жанров принудительно используется TLS 1.2.
+**Fixes (issue #1 and Pikabu feedback)**
+* Atomic `library.json` saves with a `.bak` backup — a failed write no longer wipes the library.
+* Safe path handling: no escaping the selected folder, drive availability checks.
+* Cover limits: file size, resolution, pixel count and an allowlist of image hosts.
+* Exact game-process matching — the tracker no longer counts time for a similarly named process.
+* Proper scan cancellation and protection against overlapping scans.
+* Stable source ids (`Folder` / `Manual`) and migration of older genre values.
+* Manual games are kept when their folder is temporarily unavailable.
+* Deleted games no longer return after a rescan: they are automatically hidden.
+* Duplicates found through different `.exe` files in the same folder collapse into one card.
+* TLS 1.2 is enforced for cover and genre downloads.
 
-**Новое**
-* Автоматическое возвращение окна из трея после закрытия запущенной игры.
-* Переключение **RU / EN** без перезапуска с сохранением выбора.
-* Портативные данные в `BagaGameData` рядом с `.exe` с запасным вариантом в `%LOCALAPPDATA%`.
-* Защита от второго экземпляра: повторный запуск поднимает существующее окно.
-* Пометка «Путь недоступен» на карточке и пункт «Указать папку заново».
-* Асинхронное ручное добавление игр — интерфейс не подвисает на больших папках.
-* Обновлённые строки интерфейса, счётчики найденных и показанных игр.
+**New**
+* Automatic return from the tray after the launched game exits.
+* **RU / EN** switching without a restart, saved between sessions.
+* Portable data in `BagaGameData` next to the `.exe`, with a `%LOCALAPPDATA%` fallback.
+* Second-instance protection: launching the app again brings up the existing window.
+* "Path unavailable" badge on the card and a "Choose folder again" menu action.
+* Asynchronous manual game addition — the UI no longer freezes on large folders.
+* Updated interface strings, found/shown game counters.
 
-### Версия 0.6.0
-* Встроенный счётчик наигранного времени.
-* Улучшенный глубокий поиск `.exe` в скрытых и нестандартных папках.
-* Сворачивание в системный трей при запуске игры.
-* Пункт «Удалить из библиотеки» в контекстном меню.
-* Автоматическое сканирование при старте.
+### Version 0.6.0
+* Built-in playtime counter.
+* Improved deep `.exe` search in hidden and non-standard folders.
+* Minimizing to the system tray when a game starts.
+* "Delete from library" item in the context menu.
+* Automatic scan on startup.
 
-### Версия 0.5.3
-* Первый публичный релиз.
-* Импорт из Steam и Epic Games.
-* Группировка по сериям.
-* Ручное добавление игр и папок.
-
----
-
-## ⚠️ Известные ограничения
-
-* **Жанры.** Определяются через Steam Store API; неизвестные игры попадают в группу «Другое».
-* **Пользовательские папки.** Поиск основан на `.exe`, поэтому служебные утилиты иногда попадают в библиотеку — их можно скрыть или удалить через контекстное меню.
-* **Mica.** Эффект доступен только на Windows 11 (build 22000+). На Windows 10 используется обычный фон темы.
-* **Античиты и лаунчеры.** Если игра запускается через сторонний лаунчер (Ubisoft Connect, Rockstar Launcher и т. п.), трекер может не увидеть процесс и не засчитать время.
+### Version 0.5.3
+* First public release.
+* Steam and Epic Games import.
+* Series grouping.
+* Manual game and folder additions.
 
 ---
 
-## 🐛 Обратная связь
+## ⚠️ Known limitations
 
-Нашли баг или хотите предложить улучшение? Откройте **[Issue](https://github.com/bagabeer/BagaGame-Launcher/issues)** с описанием шагов для воспроизведения — это очень помогает.
+* **Genres.** Resolved through the Steam Store API; unknown games fall into the "Other" group.
+* **Custom folders.** Detection is based on `.exe` files, so utility apps may occasionally appear in the library — hide or delete them from the context menu.
+* **Mica.** The effect is available on Windows 11 (build 22000+) only. Windows 10 uses a regular theme background.
+* **Anti-cheat and third-party launchers.** If a game is started through an external launcher (Ubisoft Connect, Rockstar Launcher, etc.), the tracker may not see the process and may not count playtime.
 
 ---
 
-## 📄 Лицензия
+## 🐛 Feedback
 
-Проект распространяется по лицензии **MIT**. Подробности — в файле [LICENSE](LICENSE).
+Found a bug or have an idea? Open an **[Issue](https://github.com/bagabeer/BagaGame-Launcher/issues)** with steps to reproduce — it really helps.
 
-Сделано с ❤️ для геймеров.
+---
+
+## 📄 License
+
+This project is distributed under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+Made with ❤️ for gamers.
