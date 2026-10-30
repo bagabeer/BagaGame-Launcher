@@ -1595,6 +1595,90 @@
 
                         <TextBlock Margin="2,24,0,10"
                                    Style="{StaticResource EyebrowStyle}"
+                                   Text="{DynamicResource Loc.Settings.Covers}" />
+
+                        <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">
+                            <StackPanel>
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Globe24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.SteamGridDb}" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.SteamGridDbTip}" />
+                                    </StackPanel>
+                                    <ui:ToggleSwitch x:Name="SteamGridDbToggle"
+                                                     Grid.Column="2"
+                                                     VerticalAlignment="Center"
+                                                     AutomationProperties.Name="{DynamicResource Loc.Settings.SteamGridDb}"
+                                                     IsChecked="{Binding UseSteamGridDb}" />
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="11.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Text="{DynamicResource Loc.Settings.SteamGridDbKey}" />
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <Border Height="32"
+                                                Width="250"
+                                                Background="{DynamicResource FieldFillBrush}"
+                                                BorderBrush="{DynamicResource FieldStrokeBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="7">
+                                            <TextBox x:Name="SteamGridDbKeyBox"
+                                                     Margin="10,0"
+                                                     Padding="0"
+                                                     VerticalContentAlignment="Center"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     CaretBrush="{DynamicResource AccentBrush}"
+                                                     FocusVisualStyle="{x:Null}"
+                                                     FontSize="11.5"
+                                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                                     Style="{x:Null}"
+                                                     Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=LostFocus}" />
+                                        </Border>
+                                        <ui:BagaButton Margin="8,0,0,0"
+                                                       Padding="12,6"
+                                                       Appearance="Secondary"
+                                                       Click="OpenSteamGridDbKey_Click"
+                                                       Content="{DynamicResource Loc.Settings.SteamGridDbGetKey}"
+                                                       CornerRadius="7" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Margin="2,24,0,10"
+                                   Style="{StaticResource EyebrowStyle}"
                                    Text="{DynamicResource Loc.Settings.Library}" />
 
                         <Border Style="{StaticResource PanelCardStyle}" Padding="18,4">

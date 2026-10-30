@@ -91,6 +91,38 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>Beta: use SteamGridDB instead of Steam for the cover picker.</summary>
+    public bool UseSteamGridDb
+    {
+        get => _data.UseSteamGridDb;
+        set
+        {
+            if (_data.UseSteamGridDb == value)
+            {
+                return;
+            }
+
+            _data.UseSteamGridDb = value;
+            Save();
+        }
+    }
+
+    public string SteamGridDbApiKey
+    {
+        get => _data.SteamGridDbApiKey ?? string.Empty;
+        set
+        {
+            var key = value?.Trim() ?? string.Empty;
+            if (string.Equals(_data.SteamGridDbApiKey, key, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _data.SteamGridDbApiKey = key;
+            Save();
+        }
+    }
+
     /// <summary>Light theme is opt-in; dark stays the default.</summary>
     public bool IsLightTheme
     {
@@ -725,6 +757,10 @@ public sealed class LibraryStore
         public Dictionary<string, long> Playtime { get; set; } = new();
 
         public bool DownloadCovers { get; set; } = true;
+
+        public bool UseSteamGridDb { get; set; }
+
+        public string? SteamGridDbApiKey { get; set; }
 
         public string Theme { get; set; } = "Dark";
 

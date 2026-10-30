@@ -260,6 +260,42 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Beta source for the cover picker.</summary>
+    public bool UseSteamGridDb
+    {
+        get => _store.UseSteamGridDb;
+        set
+        {
+            if (_store.UseSteamGridDb == value)
+            {
+                return;
+            }
+
+            _store.UseSteamGridDb = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSteamGridDbConfigured));
+        }
+    }
+
+    public string SteamGridDbApiKey
+    {
+        get => _store.SteamGridDbApiKey;
+        set
+        {
+            if (string.Equals(_store.SteamGridDbApiKey, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _store.SteamGridDbApiKey = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSteamGridDbConfigured));
+        }
+    }
+
+    public bool IsSteamGridDbConfigured =>
+        UseSteamGridDb && !string.IsNullOrWhiteSpace(SteamGridDbApiKey);
+
     public string CoverCacheDirectory => _libraryService.CoverCacheDirectory;
 
     public bool IsCustomCoverCache => _store.CoverCacheDirectory is not null;
@@ -476,17 +512,30 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     }
 
     /// <summary>Searches Steam for cover variants of the given game/query.</summary>
-    public async Task SearchCoversAsync(Game game, string query)
+    public async Task SearchCoversAsync(Game game, string query, bool useSteamGridDb = false)
     {
         CoverResults.Clear();
+
+        if (useSteamGridDb && string.IsNullOrWhiteSpace(SteamGridDbApiKey))
+        {
+            CoverStatusText = Loc.T("Loc.Cover.NeedKey");
+            return;
+        }
+
         CoverStatusText = Loc.T("Loc.Cover.Searching");
 
         try
         {
-            var results = await _libraryService.SearchCoversAsync(
-                game,
-                query,
-                _lifetime.Token);
+            var results = useSteamGridDb
+                ? await _libraryService.SearchSteamGridDbAsync(
+                    game,
+                    query,
+                    SteamGridDbApiKey,
+                    _lifetime.Token)
+                : await _libraryService.SearchCoversAsync(
+                    game,
+                    query,
+                    _lifetime.Token);
 
             foreach (var candidate in results)
             {
@@ -494,7 +543,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             }
 
             CoverStatusText = results.Count == 0
-                ? Loc.T("Loc.Cover.NotFound")
+                ? Loc.T(useSteamGridDb ? "Loc.Cover.SgdbNotFound" : "Loc.Cover.NotFound")
                 : Loc.Format("Loc.Cover.Found", results.Count);
         }
         catch (OperationCanceledException)

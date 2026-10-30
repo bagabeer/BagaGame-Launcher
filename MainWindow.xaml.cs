@@ -342,6 +342,22 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         Close();
     }
 
+    private void OpenSteamGridDbKey_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(
+                "https://www.steamgriddb.com/profile/preferences/api")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // The browser may be unavailable; the key can still be pasted.
+        }
+    }
+
     private void ThemeToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (!IsLoaded)
@@ -411,7 +427,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         ResetCropTransform();
 
         CoverOverlay.Visibility = Visibility.Visible;
-        _ = _viewModel.SearchCoversAsync(game, game.Title);
+        _ = _viewModel.SearchCoversAsync(game, game.Title, _viewModel.UseSteamGridDb);
 
         CoverSearchBox.Focus();
         CoverSearchBox.SelectAll();
@@ -436,7 +452,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
-        await _viewModel.SearchCoversAsync(_coverTarget, CoverSearchBox.Text);
+        await _viewModel.SearchCoversAsync(
+            _coverTarget,
+            CoverSearchBox.Text,
+            _viewModel.UseSteamGridDb);
     }
 
     private async void CoverCandidate_Click(object sender, RoutedEventArgs e)

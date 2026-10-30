@@ -100,6 +100,13 @@
     <sys:String x:Key="Loc.Settings.LightThemeTip">Switches instantly and is saved</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCovers">Download covers</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCoversTip">Posters are stored in a local cache</sys:String>
+    <sys:String x:Key="Loc.Settings.Covers">COVERS</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB (beta)</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbTip">Alternative cover source for games outside Steam</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbKey">API key</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Get a key</sys:String>
+    <sys:String x:Key="Loc.Cover.NeedKey">Enter your SteamGridDB API key in Settings.</sys:String>
+    <sys:String x:Key="Loc.Cover.SgdbNotFound">SteamGridDB found nothing. Check the key or change the query.</sys:String>
     <sys:String x:Key="Loc.Settings.Library">LIBRARY</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Cover cache</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Restore the default folder</sys:String>

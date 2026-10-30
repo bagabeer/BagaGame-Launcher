@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
@@ -51,6 +52,9 @@ public sealed class GameLibraryService : IDisposable
         "shared.cloudflare.steamstatic.com",
         "store.steampowered.com",
         "steamcdn-a.akamaihd.net",
+        "cdn2.steamgriddb.com",
+        "cdn3.steamgriddb.com",
+        "www.steamgriddb.com",
     };
 
     private static bool IsAllowedImageUrl(string? url)
@@ -321,13 +325,25 @@ public sealed class GameLibraryService : IDisposable
     private async Task<HttpResponseMessage?> GetWithRetryAsync(
         string url,
         CancellationToken cancellationToken,
-        int attempts = 3)
+        int attempts = 3,
+        string? bearerToken = null)
     {
         for (var attempt = 1; ; attempt++)
         {
             try
             {
-                var response = await _http.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                HttpResponseMessage response;
+
+                if (string.IsNullOrWhiteSpace(bearerToken))
+                {
+                    response = await _http.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+                    response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                }
 
                 if (attempt < attempts && IsTransientStatus(response.StatusCode))
                 {
@@ -728,6 +744,13 @@ public sealed class GameLibraryService : IDisposable
 
         return null;
     }
+
+    private static int GetJsonInt(JsonElement element, string property)
+        => element.TryGetProperty(property, out var value) &&
+           value.ValueKind == JsonValueKind.Number &&
+           value.TryGetInt32(out var number)
+            ? number
+            : 0;
 
     // ---------------------------------------------------------------------
     // GOG Galaxy
@@ -1732,6 +1755,170 @@ public sealed class GameLibraryService : IDisposable
             $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/capsule_616x353.jpg",
             $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg",
         };
+
+    /// <summary>
+    /// Beta cover source. SteamGridDB exposes the artwork the community makes
+    /// for games that are absent from the Steam store, including non-Steam
+    /// shortcuts. Requires a free API key from the user's profile.
+    /// </summary>
+    public async Task<IReadOnlyList<CoverCandidate>> SearchSteamGridDbAsync(
+        Game game,
+        string? query,
+        string apiKey,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<CoverCandidate>();
+
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return results;
+        }
+
+        var term = string.IsNullOrWhiteSpace(query) ? game.Title : query.Trim();
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            return results;
+        }
+
+        try
+        {
+            var searchUrl =
+                "https://www.steamgriddb.com/api/v2/search/autocomplete/"
+                + Uri.EscapeDataString(term);
+
+            using var searchResponse = await GetWithRetryAsync(
+                    searchUrl,
+                    cancellationToken,
+                    bearerToken: apiKey)
+                .ConfigureAwait(false);
+
+            if (searchResponse is null || !searchResponse.IsSuccessStatusCode)
+            {
+                return results;
+            }
+
+            using var searchStream = await searchResponse.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            using var searchDocument = await JsonDocument.ParseAsync(
+                    searchStream,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!searchDocument.RootElement.TryGetProperty("data", out var games) ||
+                games.ValueKind != JsonValueKind.Array)
+            {
+                return results;
+            }
+
+            var matches = new List<(int Id, string Name)>();
+
+            foreach (var item in games.EnumerateArray())
+            {
+                if (matches.Count >= 3)
+                {
+                    break;
+                }
+
+                var id = GetJsonInt(item, "id");
+                var name = GetJsonString(item, "name") ?? string.Empty;
+
+                if (id > 0 && name.Length > 0)
+                {
+                    matches.Add((id, name));
+                }
+            }
+
+            foreach (var (gameId, name) in matches)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var gridsUrl =
+                    "https://www.steamgriddb.com/api/v2/grids/game/"
+                    + gameId
+                    + "?dimensions=600x900&types=static&nsfw=false&humor=false&epilepsy=false";
+
+                using var gridResponse = await GetWithRetryAsync(
+                        gridsUrl,
+                        cancellationToken,
+                        bearerToken: apiKey)
+                    .ConfigureAwait(false);
+
+                if (gridResponse is null || !gridResponse.IsSuccessStatusCode)
+                {
+                    continue;
+                }
+
+                using var gridStream = await gridResponse.Content
+                    .ReadAsStreamAsync()
+                    .ConfigureAwait(false);
+
+                using var gridDocument = await JsonDocument.ParseAsync(
+                        gridStream,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!gridDocument.RootElement.TryGetProperty("data", out var grids) ||
+                    grids.ValueKind != JsonValueKind.Array)
+                {
+                    continue;
+                }
+
+                foreach (var grid in grids.EnumerateArray())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (results.Count >= 12)
+                    {
+                        break;
+                    }
+
+                    var url = GetJsonString(grid, "url");
+                    if (url is null || !IsAllowedImageUrl(url))
+                    {
+                        continue;
+                    }
+
+                    var width = GetJsonInt(grid, "width");
+                    var height = GetJsonInt(grid, "height");
+
+                    // SteamGridDB can return landscape assets even when the
+                    // dimension filter is present; keep only 2:3 posters.
+                    if (width > 0 && height > 0 &&
+                        Math.Abs((double)width / height - 2.0 / 3.0) > 0.02)
+                    {
+                        continue;
+                    }
+
+                    var previewBytes = await DownloadImageAsync(
+                            GetJsonString(grid, "thumb") ?? url,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var preview = previewBytes is null
+                        ? null
+                        : CoverImage.LoadBytes(previewBytes, 220);
+
+                    if (preview is not null)
+                    {
+                        results.Add(new CoverCandidate(url, name, preview));
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // Invalid key, offline API or changed response: the picker simply
+            // shows no SteamGridDB results.
+        }
+
+        return results;
+    }
 
     /// <summary>
     /// Returns the game's primary Steam genre as a canonical English name
