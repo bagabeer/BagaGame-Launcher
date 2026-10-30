@@ -159,6 +159,41 @@
             </Setter>
         </Style>
 
+        <!-- Cover picker tile. -->
+        <Style x:Key="CoverTileButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="148" />
+            <Setter Property="Height" Value="232" />
+            <Setter Property="Padding" Value="9,9,9,6" />
+            <Setter Property="Background" Value="{DynamicResource TileFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Tile"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="Tile" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Tile" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="GroupToggleStyle" TargetType="RadioButton">
             <Setter Property="Height" Value="28" />
             <Setter Property="Padding" Value="11,0" />
@@ -288,6 +323,7 @@
                                   Header="{DynamicResource Loc.Menu.Launch}"
                                   IsEnabled="{Binding CanLaunch}" />
                         <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
+                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}" />
                         <MenuItem Click="ReassignGameFolder_Click"
                                   Header="{DynamicResource Loc.Menu.ReassignFolder}"
                                   ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
@@ -506,6 +542,7 @@
                                   Header="{DynamicResource Loc.Menu.Launch}"
                                   IsEnabled="{Binding CanLaunch}" />
                         <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
+                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}" />
                         <MenuItem Click="ReassignGameFolder_Click"
                                   Header="{DynamicResource Loc.Menu.ReassignFolder}"
                                   ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
@@ -1892,7 +1929,226 @@
             </Border>
         </Grid>
 
-        <!-- Rename overlay (modal, keeps the window chrome and theme) -->
+        <!-- Cover picker overlay: online variants, custom upload and crop. -->
+        <Grid x:Name="CoverOverlay"
+              Grid.RowSpan="2"
+              Grid.ColumnSpan="2"
+              Panel.ZIndex="102"
+              Background="{DynamicResource OverlayBrush}"
+              MouseLeftButtonDown="CoverOverlay_MouseLeftButtonDown"
+              Visibility="Collapsed">
+            <Border Width="940"
+                    MaxHeight="740"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource DialogFillBrush}"
+                    BorderBrush="{DynamicResource DialogStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="40"
+                                      Direction="270"
+                                      Opacity="0.5"
+                                      ShadowDepth="10"
+                                      Color="#000000" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel>
+                        <TextBlock x:Name="CoverTitle"
+                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{DynamicResource Loc.Cover.Subtitle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="1" Margin="0,16,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Height="34"
+                                Background="{DynamicResource FieldFillBrush}"
+                                BorderBrush="{DynamicResource FieldStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <TextBox x:Name="CoverSearchBox"
+                                     Margin="12,0"
+                                     Padding="0"
+                                     VerticalContentAlignment="Center"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     CaretBrush="{DynamicResource AccentBrush}"
+                                     FocusVisualStyle="{x:Null}"
+                                     FontSize="12.5"
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     KeyDown="CoverSearchBox_KeyDown"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     Style="{x:Null}"
+                                     ToolTip="{DynamicResource Loc.Cover.SearchPlaceholder}" />
+                        </Border>
+
+                        <ui:BagaButton x:Name="CoverSearchButton"
+                                       Grid.Column="1"
+                                       Margin="10,0,0,0"
+                                       Padding="16,6"
+                                       Appearance="Primary"
+                                       Click="CoverSearch_Click"
+                                       Content="{DynamicResource Loc.Cover.Search}"
+                                       CornerRadius="8" />
+
+                        <ui:BagaButton x:Name="CoverUploadButton"
+                                       Grid.Column="2"
+                                       Margin="8,0,0,0"
+                                       Padding="14,6"
+                                       Appearance="Secondary"
+                                       Click="UploadCover_Click"
+                                       Content="{DynamicResource Loc.Cover.Upload}"
+                                       CornerRadius="8" />
+                    </Grid>
+
+                    <Grid Grid.Row="2" MinHeight="330">
+                        <ScrollViewer x:Name="CoverGalleryPanel"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding CoverResults}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="0,0,12,12"
+                                                AutomationProperties.AutomationId="CoverCandidateButton"
+                                                Click="CoverCandidate_Click"
+                                                Style="{StaticResource CoverTileButtonStyle}"
+                                                Tag="{Binding}">
+                                            <StackPanel>
+                                                <Border Width="128"
+                                                        Height="192"
+                                                        CornerRadius="7">
+                                                    <Border.Background>
+                                                        <ImageBrush ImageSource="{Binding Preview}"
+                                                                    Stretch="UniformToFill" />
+                                                    </Border.Background>
+                                                </Border>
+                                                <TextBlock Margin="0,5,0,0"
+                                                           Width="128"
+                                                           HorizontalAlignment="Center"
+                                                           FontSize="10.5"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding Title}"
+                                                           TextAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <Grid x:Name="CoverCropPanel" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="CropViewport"
+                                    Width="300"
+                                    Height="450"
+                                    Background="{DynamicResource CoverPlaceholderBrush}"
+                                    ClipToBounds="True"
+                                    CornerRadius="10"
+                                    Cursor="SizeAll"
+                                    MouseLeftButtonDown="CropViewport_MouseLeftButtonDown"
+                                    MouseLeftButtonUp="CropViewport_MouseLeftButtonUp"
+                                    MouseMove="CropViewport_MouseMove"
+                                    MouseWheel="CropViewport_MouseWheel">
+                                <Image x:Name="CropPreviewImage"
+                                       Width="300"
+                                       Height="450"
+                                       RenderTransformOrigin="0.5,0.5"
+                                       Stretch="UniformToFill">
+                                    <Image.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform x:Name="CropScale" ScaleX="1" ScaleY="1" />
+                                            <TranslateTransform x:Name="CropOffset" X="0" Y="0" />
+                                        </TransformGroup>
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Margin="26,8,0,0">
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Text="{DynamicResource Loc.Cover.CropTitle}" />
+                                <TextBlock Margin="0,8,0,0"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Text="{DynamicResource Loc.Cover.CropHint}"
+                                           TextWrapping="Wrap" />
+
+                                <StackPanel Margin="0,24,0,0" Orientation="Horizontal">
+                                    <ui:BagaButton x:Name="CoverCropBackButton"
+                                                   Padding="14,7"
+                                                   Appearance="Secondary"
+                                                   Click="CoverCropBack_Click"
+                                                   Content="{DynamicResource Loc.Cover.Back}"
+                                                   CornerRadius="7" />
+                                    <ui:BagaButton x:Name="CoverCropSaveButton"
+                                                   Margin="10,0,0,0"
+                                                   Padding="16,7"
+                                                   Appearance="Primary"
+                                                   Click="CoverCropSave_Click"
+                                                   Content="{DynamicResource Loc.Cover.Save}"
+                                                   CornerRadius="7" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Row="3" Margin="0,16,0,0">
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   Text="{Binding CoverStatusText}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <ui:BagaButton x:Name="CoverResetButton"
+                                           Padding="14,7"
+                                           Appearance="Secondary"
+                                           Click="CoverReset_Click"
+                                           Content="{DynamicResource Loc.Cover.Reset}"
+                                           CornerRadius="7" />
+                            <ui:BagaButton x:Name="CoverCancelButton"
+                                           Margin="8,0,0,0"
+                                           Padding="14,7"
+                                           Appearance="Secondary"
+                                           Click="CoverOverlayCancel_Click"
+                                           Content="{DynamicResource Loc.Common.Cancel}"
+                                           CornerRadius="7" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
         <Grid x:Name="RenameOverlay"
               Grid.RowSpan="2"
               Grid.ColumnSpan="2"

@@ -20,6 +20,25 @@
     <sys:String x:Key="Loc.Menu.DeleteTip">Удалить запись об игре — повторное сканирование найдёт игру снова</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolder">Указать папку заново</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolderTip">Папка игры недоступна: подключите диск или выберите папку с игрой заново</sys:String>
+    <sys:String x:Key="Loc.Menu.ChangeCover">Сменить обложку</sys:String>
+    <sys:String x:Key="Loc.Cover.Title">Обложка игры</sys:String>
+    <sys:String x:Key="Loc.Cover.Subtitle">Выберите вариант из сети, загрузите свою картинку или верните стандартную.</sys:String>
+    <sys:String x:Key="Loc.Cover.SearchPlaceholder">Название игры для поиска</sys:String>
+    <sys:String x:Key="Loc.Cover.Search">Найти</sys:String>
+    <sys:String x:Key="Loc.Cover.Upload">Загрузить свою</sys:String>
+    <sys:String x:Key="Loc.Cover.Reset">Вернуть стандартную</sys:String>
+    <sys:String x:Key="Loc.Cover.Searching">Поиск обложек…</sys:String>
+    <sys:String x:Key="Loc.Cover.NotFound">Ничего не найдено. Попробуйте другое название или загрузите свою картинку.</sys:String>
+    <sys:String x:Key="Loc.Cover.Found">Найдено вариантов: {0}</sys:String>
+    <sys:String x:Key="Loc.Cover.Applying">Применяем обложку…</sys:String>
+    <sys:String x:Key="Loc.Cover.Applied">Обложка обновлена</sys:String>
+    <sys:String x:Key="Loc.Cover.Failed">Не удалось применить обложку</sys:String>
+    <sys:String x:Key="Loc.Cover.CropTitle">Настройте кадрирование</sys:String>
+    <sys:String x:Key="Loc.Cover.CropHint">Перетаскивайте картинку, колесом мыши меняйте масштаб. Итоговая обложка всегда 2:3.</sys:String>
+    <sys:String x:Key="Loc.Cover.Back">Назад</sys:String>
+    <sys:String x:Key="Loc.Cover.Save">Сохранить</sys:String>
+    <sys:String x:Key="Loc.Cover.UploadFailed">Не удалось открыть файл. Поддерживаются JPG, PNG и BMP до 12 МБ.</sys:String>
+    <sys:String x:Key="Loc.Cover.FileFilter">Изображения|*.jpg;*.jpeg;*.png;*.bmp</sys:String>
 
     <sys:String x:Key="Loc.Common.Add">Добавить</sys:String>
     <sys:String x:Key="Loc.Common.Remove">Убрать</sys:String>

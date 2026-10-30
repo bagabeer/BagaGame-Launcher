@@ -36,9 +36,9 @@ There is no installer — the app works right after unpacking. All data (library
 |---|---|
 | <img src="docs/screenshots/scan.png" alt="Scan page" width="100%"> | <img src="docs/screenshots/series.png" alt="Series grouping" width="100%"> |
 
-| Context menu | Add game dialog |
+| Context menu | Cover picker |
 |---|---|
-| <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/add-game.png" alt="Add game dialog" width="100%"> |
+| <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/cover-picker.png" alt="Cover picker" width="100%"> |
 
 ---
 
@@ -54,6 +54,7 @@ There is no installer — the app works right after unpacking. All data (library
 * **Dark and light themes.** Native Mica on Windows 11; a clean opaque background on Windows 10.
 * **Grid and list views.** Two library layouts, live search (`Ctrl+F`) and rescan (`F5`).
 * **Manual additions.** Add a whole game folder or a specific `.exe`, then rename, hide or delete games from the context menu.
+* **Custom covers.** Right-click a card to browse alternative Steam artwork, or upload your own image and crop it in a fixed 2:3 frame with drag and zoom. Every cover is stored as a 600×900 poster.
 * **Single instance.** Launching the `.exe` again brings the running window to the front instead of opening a second copy.
 * **Reliable saving.** The library is written atomically with a backup, and if a drive disappears the card stays with a "Path unavailable" badge and a "Choose folder again" action.
 
@@ -143,6 +144,7 @@ Compat/                             — polyfills for modern C# on net472
 * "Path unavailable" badge on the card and a "Choose folder again" menu action.
 * Hidden games can be restored individually from Settings, not only all at once.
 * Asynchronous manual game addition — the UI no longer freezes on large folders.
+* Cover picker: alternative Steam artwork, custom image upload and a 2:3 crop editor with drag/zoom.
 * Updated interface strings, found/shown game counters.
 
 ### Version 0.6.0

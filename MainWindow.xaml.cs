@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using BagaGame.Models;
 using BagaGame.Services;
 using BagaGame.ViewModels;
@@ -19,6 +20,13 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private readonly LibraryStore _store;
     private Game? _renameTarget;
     private TrayIcon? _tray;
+    private Game? _coverTarget;
+    private BitmapSource? _cropSource;
+    private bool _cropDragging;
+    private Point _cropDragStart;
+    private double _cropStartX;
+    private double _cropStartY;
+    private double _cropZoom = 1;
 
     public MainWindow()
         : this(new LibraryStore())
@@ -382,6 +390,259 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     }
 
     // ------------------------------------------------------------------
+    // Cover picker
+    // ------------------------------------------------------------------
+
+    private void ChangeCover_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.DataContext is not Game game)
+        {
+            return;
+        }
+
+        _coverTarget = game;
+        _cropSource = null;
+        CoverTitle.Text = $"{Loc.T("Loc.Cover.Title")} · {game.Title}";
+        CoverSearchBox.Text = game.Title;
+        CoverCropPanel.Visibility = Visibility.Collapsed;
+        CoverGalleryPanel.Visibility = Visibility.Visible;
+        CropPreviewImage.Source = null;
+        ResetCropTransform();
+
+        CoverOverlay.Visibility = Visibility.Visible;
+        _ = _viewModel.SearchCoversAsync(game, game.Title);
+
+        CoverSearchBox.Focus();
+        CoverSearchBox.SelectAll();
+    }
+
+    private async void CoverSearch_Click(object sender, RoutedEventArgs e)
+        => await SearchCoversAsync();
+
+    private async void CoverSearchBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            await SearchCoversAsync();
+        }
+    }
+
+    private async Task SearchCoversAsync()
+    {
+        if (_coverTarget is null)
+        {
+            return;
+        }
+
+        await _viewModel.SearchCoversAsync(_coverTarget, CoverSearchBox.Text);
+    }
+
+    private async void CoverCandidate_Click(object sender, RoutedEventArgs e)
+    {
+        if (_coverTarget is null ||
+            (sender as FrameworkElement)?.Tag is not CoverCandidate candidate)
+        {
+            return;
+        }
+
+        if (await _viewModel.ApplyCoverAsync(_coverTarget, candidate))
+        {
+            CloseCoverOverlay();
+        }
+    }
+
+    private void UploadCover_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = Loc.T("Loc.Cover.Upload"),
+            Filter = Loc.T("Loc.Cover.FileFilter"),
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        var image = CoverImage.LoadFile(dialog.FileName);
+        if (image is null)
+        {
+            _viewModel.CoverStatusText = Loc.T("Loc.Cover.UploadFailed");
+            return;
+        }
+
+        _cropSource = image;
+        CropPreviewImage.Source = image;
+        ResetCropTransform();
+
+        CoverGalleryPanel.Visibility = Visibility.Collapsed;
+        CoverCropPanel.Visibility = Visibility.Visible;
+        _viewModel.CoverStatusText = string.Empty;
+    }
+
+    private void CoverCropBack_Click(object sender, RoutedEventArgs e) => ShowCoverGallery();
+
+    private void ShowCoverGallery()
+    {
+        _cropSource = null;
+        CropPreviewImage.Source = null;
+        CoverCropPanel.Visibility = Visibility.Collapsed;
+        CoverGalleryPanel.Visibility = Visibility.Visible;
+    }
+
+    private void CoverCropSave_Click(object sender, RoutedEventArgs e)
+    {
+        if (_coverTarget is null || _cropSource is null)
+        {
+            return;
+        }
+
+        var width = CropViewport.ActualWidth > 0 ? CropViewport.ActualWidth : CropViewport.Width;
+        var height = CropViewport.ActualHeight > 0 ? CropViewport.ActualHeight : CropViewport.Height;
+
+        if (_viewModel.ApplyCustomCover(
+                _coverTarget,
+                _cropSource,
+                _cropZoom,
+                CropOffset.X,
+                CropOffset.Y,
+                width,
+                height))
+        {
+            CloseCoverOverlay();
+        }
+    }
+
+    private async void CoverReset_Click(object sender, RoutedEventArgs e)
+    {
+        if (_coverTarget is null)
+        {
+            return;
+        }
+
+        await _viewModel.ResetCoverAsync(_coverTarget);
+        CloseCoverOverlay();
+    }
+
+    private void CoverOverlayCancel_Click(object sender, RoutedEventArgs e) => CloseCoverOverlay();
+
+    private void CoverOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, CoverOverlay))
+        {
+            CloseCoverOverlay();
+        }
+    }
+
+    private void CloseCoverOverlay()
+    {
+        CoverOverlay.Visibility = Visibility.Collapsed;
+        CoverCropPanel.Visibility = Visibility.Collapsed;
+        CoverGalleryPanel.Visibility = Visibility.Visible;
+        CropPreviewImage.Source = null;
+        _coverTarget = null;
+        _cropSource = null;
+        _cropDragging = false;
+        _viewModel.CoverResults.Clear();
+        _viewModel.CoverStatusText = string.Empty;
+    }
+
+    private void ResetCropTransform()
+    {
+        _cropZoom = 1;
+        CropScale.ScaleX = 1;
+        CropScale.ScaleY = 1;
+        CropOffset.X = 0;
+        CropOffset.Y = 0;
+    }
+
+    private void CropViewport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_cropSource is null)
+        {
+            return;
+        }
+
+        _cropDragging = true;
+        _cropDragStart = e.GetPosition(CropViewport);
+        _cropStartX = CropOffset.X;
+        _cropStartY = CropOffset.Y;
+        CropViewport.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void CropViewport_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_cropDragging || _cropSource is null)
+        {
+            return;
+        }
+
+        var point = e.GetPosition(CropViewport);
+        CropOffset.X = _cropStartX + (point.X - _cropDragStart.X);
+        CropOffset.Y = _cropStartY + (point.Y - _cropDragStart.Y);
+        ClampCropOffsets();
+    }
+
+    private void CropViewport_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_cropDragging)
+        {
+            return;
+        }
+
+        _cropDragging = false;
+        CropViewport.ReleaseMouseCapture();
+        e.Handled = true;
+    }
+
+    private void CropViewport_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_cropSource is null)
+        {
+            return;
+        }
+
+        _cropZoom = Clamp(_cropZoom + (e.Delta > 0 ? 0.1 : -0.1), 1, 4);
+        CropScale.ScaleX = _cropZoom;
+        CropScale.ScaleY = _cropZoom;
+        ClampCropOffsets();
+        e.Handled = true;
+    }
+
+    private void ClampCropOffsets()
+    {
+        if (_cropSource is null)
+        {
+            return;
+        }
+
+        var viewportWidth = CropViewport.ActualWidth > 0
+            ? CropViewport.ActualWidth
+            : CropViewport.Width;
+        var viewportHeight = CropViewport.ActualHeight > 0
+            ? CropViewport.ActualHeight
+            : CropViewport.Height;
+
+        var baseScale = Math.Max(
+            viewportWidth / _cropSource.PixelWidth,
+            viewportHeight / _cropSource.PixelHeight);
+        var scale = baseScale * _cropZoom;
+
+        var maxX = Math.Max(0, (_cropSource.PixelWidth * scale - viewportWidth) / 2);
+        var maxY = Math.Max(0, (_cropSource.PixelHeight * scale - viewportHeight) / 2);
+
+        CropOffset.X = Clamp(CropOffset.X, -maxX, maxX);
+        CropOffset.Y = Clamp(CropOffset.Y, -maxY, maxY);
+    }
+
+    private static double Clamp(double value, double min, double max)
+        => value < min ? min : value > max ? max : value;
+
+    // ------------------------------------------------------------------
     // Rename
     // ------------------------------------------------------------------
 
@@ -473,6 +734,25 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private async void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (CoverOverlay.Visibility == Visibility.Visible)
+        {
+            if (e.Key == Key.Escape)
+            {
+                e.Handled = true;
+
+                if (CoverCropPanel.Visibility == Visibility.Visible)
+                {
+                    ShowCoverGallery();
+                }
+                else
+                {
+                    CloseCoverOverlay();
+                }
+            }
+
+            return;
+        }
+
         if (RenameOverlay.Visibility == Visibility.Visible)
         {
             if (e.Key == Key.Escape)

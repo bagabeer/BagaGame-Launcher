@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 using BagaGame.Models;
 using BagaGame.Services;
 
@@ -99,6 +100,17 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     /// <summary>Hidden games listed in Settings, each with its own restore button.</summary>
     public ObservableCollection<HiddenGameItem> HiddenGames { get; } = new();
+
+    /// <summary>Online covers shown in the cover picker.</summary>
+    public ObservableCollection<CoverCandidate> CoverResults { get; } = new();
+
+    private string _coverStatusText = string.Empty;
+
+    public string CoverStatusText
+    {
+        get => _coverStatusText;
+        set => SetField(ref _coverStatusText, value);
+    }
 
     /// <summary>Filtered, sorted and grouped view bound to the library grid.</summary>
     public ICollectionView GamesView => _view;
@@ -463,6 +475,116 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Searches Steam for cover variants of the given game/query.</summary>
+    public async Task SearchCoversAsync(Game game, string query)
+    {
+        CoverResults.Clear();
+        CoverStatusText = Loc.T("Loc.Cover.Searching");
+
+        try
+        {
+            var results = await _libraryService.SearchCoversAsync(
+                game,
+                query,
+                _lifetime.Token);
+
+            foreach (var candidate in results)
+            {
+                CoverResults.Add(candidate);
+            }
+
+            CoverStatusText = results.Count == 0
+                ? Loc.T("Loc.Cover.NotFound")
+                : Loc.Format("Loc.Cover.Found", results.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            // Window closing.
+        }
+        catch
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+        }
+    }
+
+    /// <summary>Downloads and applies a cover chosen from the online results.</summary>
+    public async Task<bool> ApplyCoverAsync(Game game, CoverCandidate candidate)
+    {
+        CoverStatusText = Loc.T("Loc.Cover.Applying");
+
+        try
+        {
+            var bytes = await _libraryService.DownloadCoverBytesAsync(
+                candidate.Url,
+                _lifetime.Token);
+
+            var image = bytes is null ? null : CoverImage.LoadBytes(bytes);
+            var poster = image is null ? null : CoverImage.CenterCrop(image);
+            return SaveCover(game, poster);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+    }
+
+    /// <summary>Applies a user image using the pan/zoom from the crop dialog.</summary>
+    public bool ApplyCustomCover(
+        Game game,
+        BitmapSource source,
+        double zoom,
+        double offsetX,
+        double offsetY,
+        double viewportWidth,
+        double viewportHeight)
+    {
+        var poster = CoverImage.CropToPoster(
+            source,
+            zoom,
+            offsetX,
+            offsetY,
+            viewportWidth,
+            viewportHeight);
+
+        return SaveCover(game, poster);
+    }
+
+    /// <summary>Removes the user cover and loads the downloaded one again.</summary>
+    public async Task ResetCoverAsync(Game game)
+    {
+        _store.RemoveCustomCover(game.Id);
+        game.Cover = null;
+        await LoadCoverAsync(game, _lifetime.Token, DownloadCovers);
+    }
+
+    private bool SaveCover(Game game, BitmapSource? poster)
+    {
+        if (poster is null)
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+
+        var jpeg = CoverImage.ToJpeg(poster);
+        var path = jpeg is null ? null : _store.SaveCustomCover(game.Id, jpeg);
+        var loaded = path is null ? null : CoverImage.LoadFile(path);
+
+        if (loaded is null)
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+
+        game.Cover = loaded;
+        CoverStatusText = Loc.T("Loc.Cover.Applied");
+        return true;
+    }
+
     public async Task RestoreHiddenAsync()
     {
         _store.RestoreHidden();
@@ -654,15 +776,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private async Task LoadCoversAsync(CancellationToken cancellationToken)
     {
-        if (!DownloadCovers)
-        {
-            return;
-        }
-
-        // Update each card as soon as its cover arrives; the library stays usable.
+        // A user-picked cover is loaded even when online cover downloads are
+        // turned off; only the fallback download is skipped.
         var tasks = Games
             .Where(game => game.Cover is null)
-            .Select(game => LoadCoverAsync(game, cancellationToken))
+            .Select(game => LoadCoverAsync(game, cancellationToken, DownloadCovers))
             .ToArray();
 
         try
@@ -679,7 +797,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private async Task LoadCoverAsync(Game game, CancellationToken cancellationToken)
+    private async Task LoadCoverAsync(
+        Game game,
+        CancellationToken cancellationToken,
+        bool allowDownload = true)
     {
         if (game.Cover is not null)
         {
@@ -688,6 +809,24 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
+            var customCover = _store.GetCustomCoverPath(game.Id);
+            if (customCover is not null)
+            {
+                game.Cover = await Task.Run(
+                    () => CoverImage.LoadFile(customCover),
+                    cancellationToken);
+
+                if (game.Cover is not null)
+                {
+                    return;
+                }
+            }
+
+            if (!allowDownload)
+            {
+                return;
+            }
+
             // Decode on the thread pool: cached covers are read synchronously and
             // must not stall the UI thread while the window is showing.
             var cover = await Task.Run(

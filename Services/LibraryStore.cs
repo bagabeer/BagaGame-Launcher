@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using BagaGame.Models;
 
@@ -29,6 +31,9 @@ public sealed class LibraryStore
 
     /// <summary>Folder that holds library.json, covers and the backups.</summary>
     public string DataDirectory => Path.GetDirectoryName(_filePath) ?? AppPaths.DataDirectory;
+
+    /// <summary>User-picked covers live outside the movable download cache.</summary>
+    public string CustomCoverDirectory => Path.Combine(DataDirectory, "covers-custom");
 
     public IReadOnlyList<string> Folders => _data.Folders;
 
@@ -298,6 +303,121 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>Absolute path of the user's cover for a game, if it still exists.</summary>
+    public string? GetCustomCoverPath(string gameId)
+    {
+        if (!_data.CustomCovers.TryGetValue(gameId, out var fileName) ||
+            string.IsNullOrWhiteSpace(fileName))
+        {
+            return null;
+        }
+
+        try
+        {
+            var path = Path.Combine(CustomCoverDirectory, fileName);
+            return File.Exists(path) ? path : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Stores an already normalized 600x900 JPEG and remembers it for the game.
+    /// Returns the path so the caller can update the card immediately.
+    /// </summary>
+    public string? SaveCustomCover(string gameId, byte[] jpeg)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) || jpeg.Length < 512)
+        {
+            return null;
+        }
+
+        var tempPath = string.Empty;
+
+        try
+        {
+            Directory.CreateDirectory(CustomCoverDirectory);
+
+            var fileName = CustomCoverFileName(gameId);
+            var path = Path.Combine(CustomCoverDirectory, fileName);
+            tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+
+            File.WriteAllBytes(tempPath, jpeg);
+
+            if (File.Exists(path))
+            {
+                File.Replace(tempPath, path, null);
+            }
+            else
+            {
+                File.Move(tempPath, path);
+            }
+
+            _data.CustomCovers[gameId] = fileName;
+            Save();
+            return path;
+        }
+        catch (Exception ex) when (ex is IOException
+                                       or UnauthorizedAccessException
+                                       or System.Security.SecurityException)
+        {
+            Trace.TraceError($"BagaGame: could not save custom cover: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(tempPath) && File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+            catch
+            {
+                // Best effort; the temporary file has a unique name.
+            }
+        }
+    }
+
+    /// <summary>Drops the user's cover and lets the downloaded cover return.</summary>
+    public void RemoveCustomCover(string gameId)
+    {
+        if (!_data.CustomCovers.TryGetValue(gameId, out var fileName))
+        {
+            return;
+        }
+
+        _data.CustomCovers.Remove(gameId);
+        TryDeleteCustomCover(fileName);
+        Save();
+    }
+
+    private void TryDeleteCustomCover(string fileName)
+    {
+        try
+        {
+            var path = Path.Combine(CustomCoverDirectory, fileName);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // A leftover image is harmless.
+        }
+    }
+
+    private static string CustomCoverFileName(string gameId)
+    {
+        using var sha = SHA1.Create();
+        var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(gameId));
+        return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant() + ".jpg";
+    }
+
     /// <summary>Applies saved renames and drops games the user deleted.</summary>
     public List<Game> Apply(IEnumerable<Game> games)
     {
@@ -449,6 +569,13 @@ public sealed class LibraryStore
             changed |= _data.Playtime.Remove(key);
         }
 
+        if (_data.CustomCovers.TryGetValue(gameId, out var coverName))
+        {
+            _data.CustomCovers.Remove(gameId);
+            TryDeleteCustomCover(coverName);
+            changed = true;
+        }
+
         if (changed)
         {
             Save();
@@ -583,6 +710,9 @@ public sealed class LibraryStore
 
         /// <summary>Titles of hidden games, so Settings can list them by name.</summary>
         public Dictionary<string, string> HiddenTitles { get; set; } = new();
+
+        /// <summary>Game id to file name in <c>covers-custom</c>.</summary>
+        public Dictionary<string, string> CustomCovers { get; set; } = new();
 
         public Dictionary<string, string> CustomTitles { get; set; } = new();
 

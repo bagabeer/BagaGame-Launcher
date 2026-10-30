@@ -1590,6 +1590,150 @@ public sealed class GameLibraryService : IDisposable
     }
 
     /// <summary>
+    /// Finds several Steam cover variants for the cover picker: the game's own
+    /// AppID first, then matches from the store search for the edited query.
+    /// Previews are decoded at thumbnail size; the selected URL is downloaded
+    /// again at full size when the user applies it.
+    /// </summary>
+    public async Task<IReadOnlyList<CoverCandidate>> SearchCoversAsync(
+        Game game,
+        string? query,
+        CancellationToken cancellationToken)
+    {
+        var apps = new List<(int AppId, string Title)>();
+        var seenApps = new HashSet<int>();
+        var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (game.AppId > 0 && seenApps.Add(game.AppId))
+        {
+            apps.Add((game.AppId, game.Title));
+        }
+
+        var term = string.IsNullOrWhiteSpace(query) ? game.Title : query.Trim();
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            try
+            {
+                var uri = "https://store.steampowered.com/api/storesearch/?term="
+                          + Uri.EscapeDataString(term)
+                          + "&l=english&cc=US";
+
+                using var response = await GetWithRetryAsync(uri, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (response is not null && response.IsSuccessStatusCode)
+                {
+                    using var stream = await response.Content
+                        .ReadAsStreamAsync()
+                        .ConfigureAwait(false);
+
+                    using var document = await JsonDocument.ParseAsync(
+                            stream,
+                            cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (document.RootElement.TryGetProperty("items", out var items) &&
+                        items.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in items.EnumerateArray())
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            if (apps.Count >= 5)
+                            {
+                                break;
+                            }
+
+                            if (!item.TryGetProperty("id", out var idElement) ||
+                                !idElement.TryGetInt32(out var appId) ||
+                                appId <= 0 ||
+                                !seenApps.Add(appId))
+                            {
+                                continue;
+                            }
+
+                            var title = GetJsonString(item, "name") ?? $"Steam {appId}";
+                            apps.Add((appId, title));
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch
+            {
+                // Offline store search must not block custom covers.
+            }
+        }
+
+        var results = new List<CoverCandidate>();
+
+        for (var index = 0; index < apps.Count && results.Count < 12; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var (appId, title) = apps[index];
+
+            // The game itself gets portrait, hero, capsule and header variants;
+            // other search matches only need their poster.
+            var urls = index == 0
+                ? CoverPickerUrls(appId)
+                : new[] { $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg" };
+
+            foreach (var url in urls)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!seenUrls.Add(url))
+                {
+                    continue;
+                }
+
+                var bytes = await DownloadImageAsync(url, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (bytes is null)
+                {
+                    continue;
+                }
+
+                var preview = CoverImage.LoadBytes(bytes, 220);
+                if (preview is null)
+                {
+                    continue;
+                }
+
+                results.Add(new CoverCandidate(url, title, preview));
+
+                if (results.Count >= 12)
+                {
+                    break;
+                }
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>Downloads the full-size image behind a picker preview.</summary>
+    public Task<byte[]?> DownloadCoverBytesAsync(string url, CancellationToken cancellationToken)
+        => IsAllowedImageUrl(url)
+            ? DownloadImageAsync(url, cancellationToken)
+            : Task.FromResult<byte[]?>(null);
+
+    private static string[] CoverPickerUrls(int appId)
+        => new[]
+        {
+            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg",
+            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_hero.jpg",
+            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/capsule_616x353.jpg",
+            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg",
+        };
+
+    /// <summary>
     /// Returns the game's primary Steam genre as a canonical English name
     /// ("Action", "RPG", ...), or <c>null</c> when the game is not on Steam or
     /// the machine is offline. The interface translates it for display, so the
