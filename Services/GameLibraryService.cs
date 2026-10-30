@@ -943,6 +943,10 @@ public sealed class GameLibraryService : IDisposable
         {
             shallow = FindBestExecutable(folder, 0, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch
         {
             shallow = null;
@@ -968,6 +972,10 @@ public sealed class GameLibraryService : IDisposable
         try
         {
             deep = CreateManualGame(folder, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch
         {
