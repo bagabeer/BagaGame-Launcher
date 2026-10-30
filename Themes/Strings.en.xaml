@@ -101,8 +101,8 @@
     <sys:String x:Key="Loc.Settings.DownloadCovers">Download covers</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCoversTip">Posters are stored in a local cache</sys:String>
     <sys:String x:Key="Loc.Settings.Covers">COVERS</sys:String>
-    <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB (beta)</sys:String>
-    <sys:String x:Key="Loc.Settings.SteamGridDbTip">Alternative cover source for games outside Steam</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbTip">Alternative cover source</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbKey">API key</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Get a key</sys:String>
     <sys:String x:Key="Loc.Cover.NeedKey">Enter your SteamGridDB API key in Settings.</sys:String>

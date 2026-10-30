@@ -102,8 +102,8 @@
     <sys:String x:Key="Loc.Settings.DownloadCovers">Загружать обложки</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCoversTip">Постеры сохраняются в локальный кэш</sys:String>
     <sys:String x:Key="Loc.Settings.Covers">ОБЛОЖКИ</sys:String>
-    <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB (бета)</sys:String>
-    <sys:String x:Key="Loc.Settings.SteamGridDbTip">Альтернативный источник обложек для игр вне Steam</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbTip">Альтернативный источник обложек</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbKey">API-ключ</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Получить ключ</sys:String>
     <sys:String x:Key="Loc.Cover.NeedKey">Укажите API-ключ SteamGridDB в настройках.</sys:String>
