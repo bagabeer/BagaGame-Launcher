@@ -3,9 +3,9 @@
 
     <!-- ============================== Surfaces ============================= -->
 
-    <SolidColorBrush x:Key="WindowTintBrush" Color="#F2F3F3F6" />
-    <SolidColorBrush x:Key="CardFillBrush" Color="#F2FFFFFF" />
-    <SolidColorBrush x:Key="CardFillHoverBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="WindowTintBrush" Color="#F2D8D9D4" />
+    <SolidColorBrush x:Key="CardFillBrush" Color="#F2F3F3F0" />
+    <SolidColorBrush x:Key="CardFillHoverBrush" Color="#FFF7F7F4" />
     <SolidColorBrush x:Key="CardStrokeBrush" Color="#14000000" />
     <SolidColorBrush x:Key="CardStrokeHoverBrush" Color="#803F7A16" />
     <SolidColorBrush x:Key="DividerBrush" Color="#12000000" />
@@ -31,14 +31,14 @@
     <SolidColorBrush x:Key="AccentBrightBrush" Color="#4E8F20" />
     <SolidColorBrush x:Key="AccentSoftBrush" Color="#1F3F7A16" />
     <SolidColorBrush x:Key="AccentStrokeBrush" Color="#663F7A16" />
-    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#EDEDE9" />
     <SolidColorBrush x:Key="SuccessBrush" Color="#1F8A3D" />
     <SolidColorBrush x:Key="WarningBrush" Color="#A86B00" />
 
     <!-- ============================== Overlays ============================ -->
 
     <SolidColorBrush x:Key="OverlayBrush" Color="#66000000" />
-    <SolidColorBrush x:Key="DialogFillBrush" Color="#FFF7F7FA" />
+    <SolidColorBrush x:Key="DialogFillBrush" Color="#FFF1F1EE" />
     <SolidColorBrush x:Key="DialogStrokeBrush" Color="#1F000000" />
     <SolidColorBrush x:Key="FieldFillBrush" Color="#0A000000" />
     <SolidColorBrush x:Key="FieldStrokeBrush" Color="#1F000000" />
@@ -48,7 +48,7 @@
     <SolidColorBrush x:Key="ControlFillBrush" Color="#0A000000" />
     <SolidColorBrush x:Key="ControlFillHoverBrush" Color="#14000000" />
     <SolidColorBrush x:Key="ControlFillPressedBrush" Color="#08000000" />
-    <SolidColorBrush x:Key="PopupFillBrush" Color="#FFFBFBFD" />
+    <SolidColorBrush x:Key="PopupFillBrush" Color="#FFF2F2EF" />
     <SolidColorBrush x:Key="PopupStrokeBrush" Color="#14000000" />
     <SolidColorBrush x:Key="MenuHoverBrush" Color="#0F000000" />
     <SolidColorBrush x:Key="ScrollThumbBrush" Color="#40000000" />
@@ -68,9 +68,54 @@
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="FooterFadeBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Offset="0" Color="#00F3F3F6" />
-        <GradientStop Offset="0.55" Color="#E6F3F3F6" />
-        <GradientStop Offset="1" Color="#F2F3F3F6" />
+        <GradientStop Offset="0" Color="#00D8D9D4" />
+        <GradientStop Offset="0.55" Color="#E6D8D9D4" />
+        <GradientStop Offset="1" Color="#F2D8D9D4" />
+    </LinearGradientBrush>
+
+    <!-- ============================ Big Picture =========================== -->
+
+    <SolidColorBrush x:Key="BpBackgroundBrush" Color="#D8D9D4" />
+    <SolidColorBrush x:Key="BpSidebarBrush" Color="#CDCEC9" />
+    <SolidColorBrush x:Key="BpCardBrush" Color="#EDEDE9" />
+    <SolidColorBrush x:Key="BpTextBrush" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="BpTextMutedBrush" Color="#5A5F66" />
+    <SolidColorBrush x:Key="BpDescriptionBrush" Color="#474C45" />
+    <SolidColorBrush x:Key="BpBorderBrush" Color="#1F000000" />
+    <SolidColorBrush x:Key="BpCardStrokeBrush" Color="#14000000" />
+    <SolidColorBrush x:Key="BpDividerBrush" Color="#12000000" />
+    <SolidColorBrush x:Key="BpKeyCapBrush" Color="#0F000000" />
+    <SolidColorBrush x:Key="BpKeyCapStrokeBrush" Color="#1F000000" />
+    <SolidColorBrush x:Key="BpNavHoverBrush" Color="#08000000" />
+    <SolidColorBrush x:Key="BpAccentBrush" Color="#3F7A16" />
+    <SolidColorBrush x:Key="BpAccentHoverBrush" Color="#4E8F20" />
+    <SolidColorBrush x:Key="BpAccentForegroundBrush" Color="#EDEDE9" />
+    <SolidColorBrush x:Key="BpAccentSoftBrush" Color="#1F3F7A16" />
+    <SolidColorBrush x:Key="BpSecondaryFillBrush" Color="#EDEDE9" />
+    <SolidColorBrush x:Key="BpSecondaryHoverBrush" Color="#DFE0DB" />
+    <SolidColorBrush x:Key="BpScrimBrush" Color="#66000000" />
+    <SolidColorBrush x:Key="BpPanelBrush" Color="#E2E2DD" />
+    <SolidColorBrush x:Key="BpHeroTextBrush" Color="#F7F7F7" />
+    <SolidColorBrush x:Key="BpHeroMutedBrush" Color="#D6DBD4" />
+    <SolidColorBrush x:Key="BpHeroAccentBrush" Color="#A5F26B" />
+    <SolidColorBrush x:Key="BpPadBadgeBrush" Color="#1A1C18" />
+    <SolidColorBrush x:Key="BpPadBadgeTextBrush" Color="#FFFFFF" />
+
+    <LinearGradientBrush x:Key="BpHeroLeftFadeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#B3D8D9D4" />
+        <GradientStop Offset="0.35" Color="#59D8D9D4" />
+        <GradientStop Offset="0.6" Color="#00D8D9D4" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BpHeroTopFadeBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#33D8D9D4" />
+        <GradientStop Offset="0.2" Color="#00D8D9D4" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BpHeroBottomFadeBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#00D8D9D4" />
+        <GradientStop Offset="0.78" Color="#33D8D9D4" />
+        <GradientStop Offset="1" Color="#FFD8D9D4" />
     </LinearGradientBrush>
 
 </ResourceDictionary>

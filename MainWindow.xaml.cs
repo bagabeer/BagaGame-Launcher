@@ -1,12 +1,15 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Interop;
+using System.Windows.Threading;
 using BagaGame.Models;
 using BagaGame.Services;
 using BagaGame.ViewModels;
@@ -22,6 +25,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private Game? _renameTarget;
     private TrayIcon? _tray;
     private BigPictureWindow? _bigPicture;
+    private DispatcherTimer? _bigPictureLaunchWatch;
+    private Process? _bigPictureLaunchedProcess;
+    private Game? _bigPictureGame;
     private bool _leavingBigPicture;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
@@ -357,8 +363,228 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
-        _bigPicture?.Hide();
-        HideInTray(game.Title);
+        _bigPictureGame = game;
+
+        // The tray icon appears right away so the app stays reachable, but no
+        // balloon: Big Picture itself covers the screen until the game window
+        // takes over.
+        _tray ??= new TrayIcon(RestoreFromTray, ExitFromTray);
+        _tray.RefreshTexts();
+        _tray.Visible = true;
+
+        StartBigPictureLaunchWatch();
+    }
+
+    /// <summary>
+    /// Keeps Big Picture on screen while the game starts and hides it only when
+    /// another window (the game or its launcher) takes the foreground. Hiding it
+    /// immediately would flash the desktop.
+    /// </summary>
+    private void StartBigPictureLaunchWatch()
+    {
+        StopBigPictureLaunchWatch();
+
+        var started = DateTime.UtcNow;
+        var watch = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
+        _bigPictureLaunchWatch = watch;
+
+        watch.Tick += (_, _) =>
+        {
+            // Hide Big Picture only when the game window really exists. A
+            // launcher that steals the foreground for a moment must not reveal
+            // the desktop.
+            var gameProcess = FindGameProcessWindow(_bigPictureGame);
+            if (gameProcess is not null)
+            {
+                StopBigPictureLaunchWatch();
+                _bigPicture?.Hide();
+                WatchProcessExit(gameProcess);
+                return;
+            }
+
+            if ((DateTime.UtcNow - started).TotalSeconds > 20)
+            {
+                StopBigPictureLaunchWatch();
+                var foreground = GetForegroundWindow();
+                _bigPicture?.Hide();
+                WatchForegroundProcess(foreground);
+            }
+        };
+
+        watch.Start();
+    }
+
+    /// <summary>The first process of the launched game that owns a visible window.</summary>
+    private static Process? FindGameProcessWindow(Game? game)
+    {
+        if (game is null)
+        {
+            return null;
+        }
+
+        foreach (var process in Process.GetProcesses())
+        {
+            try
+            {
+                if (process.MainWindowHandle == IntPtr.Zero)
+                {
+                    process.Dispose();
+                    continue;
+                }
+
+                string? path = null;
+
+                try
+                {
+                    path = process.MainModule?.FileName;
+                }
+                catch
+                {
+                    // An elevated process: it is not ours.
+                }
+
+                if (path is null)
+                {
+                    process.Dispose();
+                    continue;
+                }
+
+                var matches = !string.IsNullOrWhiteSpace(game.ExecutablePath)
+                    ? string.Equals(
+                        Path.GetFullPath(path),
+                        Path.GetFullPath(game.ExecutablePath),
+                        StringComparison.OrdinalIgnoreCase)
+                    : !string.IsNullOrWhiteSpace(game.InstallPath) &&
+                      IsInside(game.InstallPath, path);
+
+                if (matches)
+                {
+                    return process;
+                }
+            }
+            catch
+            {
+                // Skip this process and keep looking.
+            }
+
+            process.Dispose();
+        }
+
+        return null;
+    }
+
+    private void WatchProcessExit(Process process)
+    {
+        try
+        {
+            _bigPictureLaunchedProcess = process;
+            process.EnableRaisingEvents = true;
+
+            process.Exited += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!ReferenceEquals(_bigPictureLaunchedProcess, process))
+                {
+                    return;
+                }
+
+                StopBigPictureGameWatch();
+                ViewModel_GameStopped(_bigPictureGame?.Id ?? string.Empty);
+            }));
+
+            if (process.HasExited)
+            {
+                StopBigPictureGameWatch();
+            }
+        }
+        catch
+        {
+            // The tracker still reports the close shortly after.
+        }
+    }
+
+    /// <summary>
+    /// Watches the process that took over the screen. Its exit is the fastest
+    /// reliable signal that the game closed, so Big Picture returns at once
+    /// instead of waiting for the three-second playtime poll.
+    /// </summary>
+    private void WatchForegroundProcess(IntPtr hwnd)
+    {
+        StopBigPictureGameWatch();
+
+        try
+        {
+            GetWindowThreadProcessId(hwnd, out var pid);
+            if (pid == 0 || pid == Process.GetCurrentProcess().Id)
+            {
+                return;
+            }
+
+            var process = Process.GetProcessById((int)pid);
+            _bigPictureLaunchedProcess = process;
+            process.EnableRaisingEvents = true;
+
+            process.Exited += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!ReferenceEquals(_bigPictureLaunchedProcess, process))
+                {
+                    return;
+                }
+
+                StopBigPictureGameWatch();
+                ViewModel_GameStopped(_bigPictureGame?.Id ?? string.Empty);
+            }));
+
+            if (process.HasExited)
+            {
+                StopBigPictureGameWatch();
+            }
+        }
+        catch
+        {
+            // The process exited between checks: the playtime tracker still
+            // reports the close a moment later.
+        }
+    }
+
+    private void StopBigPictureGameWatch()
+    {
+        if (_bigPictureLaunchedProcess is { } process)
+        {
+            try
+            {
+                process.EnableRaisingEvents = false;
+            }
+            catch
+            {
+                // Already gone.
+            }
+
+            process.Dispose();
+            _bigPictureLaunchedProcess = null;
+        }
+
+        _bigPictureGame = null;
+    }
+    private static bool IsInside(string folder, string path)
+    {
+        try
+        {
+            var root = Path.GetFullPath(folder)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var full = Path.GetFullPath(path);
+
+            return full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void StopBigPictureLaunchWatch()
+    {
+        _bigPictureLaunchWatch?.Stop();
+        _bigPictureLaunchWatch = null;
     }
 
     // ------------------------------------------------------------------
@@ -387,6 +613,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// </summary>
     private void ViewModel_GameStopped(string gameId)
     {
+        StopBigPictureLaunchWatch();
+
         if (_tray is null || !_tray.Visible)
         {
             return;
@@ -442,15 +670,12 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         // In Big Picture the game was started from the television interface,
-        // so the television interface is what comes back.
+        // so it comes back instantly - without replaying the intro animation.
         if (_bigPicture is { } bigPicture)
         {
             if (!bigPicture.IsVisible)
             {
-                bigPicture.PrepareForShow();
-                bigPicture.Show();
-                bigPicture.Activate();
-                bigPicture.PlayEntrance();
+                bigPicture.ShowImmediate();
             }
             else
             {
@@ -1149,6 +1374,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     protected override void OnClosed(EventArgs e)
     {
+        StopBigPictureLaunchWatch();
+
         _bigPicture?.CloseApproved();
         _bigPicture = null;
 
@@ -1159,4 +1386,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _viewModel.Dispose();
         base.OnClosed(e);
     }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
 }

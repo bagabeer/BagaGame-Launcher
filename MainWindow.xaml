@@ -5,7 +5,7 @@
     xmlns:ui="clr-namespace:BagaGame.Controls"
     Title="BagaGame"
     Width="1320"
-    Height="880"
+    Height="960"
     MinWidth="1040"
     MinHeight="660"
     WindowStartupLocation="CenterScreen"

@@ -7,33 +7,21 @@
         ResizeMode="NoResize"
         WindowState="Maximized"
         WindowStartupLocation="CenterOwner"
-        Background="#111315"
+        Background="{DynamicResource BpBackgroundBrush}"
         ShowInTaskbar="True"
         SnapsToDevicePixels="True"
-        UseLayoutRounding="True"
-        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="False"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Grayscale"
         Closing="Window_Closing">
 
     <Window.Resources>
 
-        <!-- ============================== Palette ============================ -->
-
-        <SolidColorBrush x:Key="BpBackgroundBrush" Color="#111315" />
-        <SolidColorBrush x:Key="BpSidebarBrush" Color="#17191C" />
-        <SolidColorBrush x:Key="BpCardBrush" Color="#1C1F1D" />
-        <SolidColorBrush x:Key="BpTextBrush" Color="#F2F2F2" />
-        <SolidColorBrush x:Key="BpTextMutedBrush" Color="#92969D" />
-        <SolidColorBrush x:Key="BpBorderBrush" Color="#26FFFFFF" />
-
-        <SolidColorBrush x:Key="BpAccentBrush" Color="#A5F26B" />
-        <SolidColorBrush x:Key="BpAccentForegroundBrush" Color="#101A0C" />
-        <SolidColorBrush x:Key="BpAccentSoftBrush" Color="#1FA5F26B" />
-
         <!-- ============================== Buttons ============================ -->
 
         <Style x:Key="BpPrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BpAccentBrush}" />
-            <Setter Property="Foreground" Value="{StaticResource BpAccentForegroundBrush}" />
+            <Setter Property="Background" Value="{DynamicResource BpAccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpAccentForegroundBrush}" />
             <Setter Property="FontSize" Value="17" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Padding" Value="28,13" />
@@ -50,7 +38,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Fill" Property="Background" Value="#BDFF8A" />
+                                <Setter TargetName="Fill" Property="Background" Value="{DynamicResource BpAccentHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Fill" Property="Opacity" Value="0.85" />
@@ -62,8 +50,8 @@
         </Style>
 
         <Style x:Key="BpSecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#1B1F1C" />
-            <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource BpSecondaryFillBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
             <Setter Property="FontSize" Value="17" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Padding" Value="26,13" />
@@ -75,15 +63,15 @@
                         <Border x:Name="Fill"
                                 Padding="{TemplateBinding Padding}"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{StaticResource BpBorderBrush}"
+                                BorderBrush="{DynamicResource BpBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="11">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Fill" Property="Background" Value="#242924" />
-                                <Setter TargetName="Fill" Property="BorderBrush" Value="#4DFFFFFF" />
+                                <Setter TargetName="Fill" Property="Background" Value="{DynamicResource BpSecondaryHoverBrush}" />
+                                <Setter TargetName="Fill" Property="BorderBrush" Value="{DynamicResource BpBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Fill" Property="Opacity" Value="0.85" />
@@ -110,7 +98,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Fill" Property="Background" Value="#1FFFFFFF" />
+                                <Setter TargetName="Fill" Property="Background" Value="{DynamicResource BpNavHoverBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -121,7 +109,7 @@
         <!-- ============================ Navigation =========================== -->
 
         <Style x:Key="BpNavButton" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{StaticResource BpTextMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextMutedBrush}" />
             <Setter Property="FontSize" Value="16" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -138,7 +126,7 @@
                                         Height="20"
                                         Margin="-10,0,0,0"
                                         HorizontalAlignment="Left"
-                                        Background="{StaticResource BpAccentBrush}"
+                                        Background="{DynamicResource BpAccentBrush}"
                                         CornerRadius="2"
                                         Opacity="0" />
                                 <StackPanel Orientation="Horizontal">
@@ -154,13 +142,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#12FFFFFF" />
-                                <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource BpNavHoverBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{StaticResource BpAccentSoftBrush}" />
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource BpAccentSoftBrush}" />
                                 <Setter TargetName="Bar" Property="Opacity" Value="1" />
-                                <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -171,8 +159,8 @@
         <!-- ============================== Hints ============================== -->
 
         <Style x:Key="BpKeyCap" TargetType="Border">
-            <Setter Property="Background" Value="#22FFFFFF" />
-            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="Background" Value="{DynamicResource BpKeyCapBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BpKeyCapStrokeBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="9,3" />
@@ -181,12 +169,12 @@
         <Style x:Key="BpKeyText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
         </Style>
 
         <Style x:Key="BpHintText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Foreground" Value="{StaticResource BpTextMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextMutedBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
@@ -194,14 +182,14 @@
             <Setter Property="Width" Value="24" />
             <Setter Property="Height" Value="24" />
             <Setter Property="Margin" Value="0,0,8,0" />
-            <Setter Property="Background" Value="#33FFFFFF" />
+            <Setter Property="Background" Value="{DynamicResource BpPadBadgeBrush}" />
             <Setter Property="CornerRadius" Value="12" />
         </Style>
 
         <Style x:Key="PadBadgeText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#0E140C" />
+            <Setter Property="Foreground" Value="{DynamicResource BpPadBadgeTextBrush}" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -209,7 +197,7 @@
     </Window.Resources>
 
     <!-- The whole layout is designed for 1080p and scaled by the screen height. -->
-    <Grid x:Name="Root" Background="{StaticResource BpBackgroundBrush}">
+    <Grid x:Name="Root" Background="{DynamicResource BpBackgroundBrush}">
         <Grid.LayoutTransform>
             <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1" />
         </Grid.LayoutTransform>
@@ -221,7 +209,12 @@
 
         <!-- ============================== Sidebar =========================== -->
 
-        <Border Grid.Column="0" Background="{StaticResource BpSidebarBrush}">
+        <Border Grid.Column="0"
+                Margin="0,0,-1,0"
+                Panel.ZIndex="1"
+                Background="{DynamicResource BpSidebarBrush}"
+                BorderBrush="{DynamicResource BpDividerBrush}"
+                BorderThickness="0,0,1,0">
             <Grid Margin="26,30,26,26">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -243,12 +236,12 @@
                         <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
                                    FontSize="21"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource BpTextBrush}"
+                                   Foreground="{DynamicResource BpTextBrush}"
                                    Text="BagaGame" />
                         <TextBlock Margin="1,3,0,0"
                                    FontSize="9"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="GAME LAUNCHER" />
                     </StackPanel>
                 </StackPanel>
@@ -258,23 +251,23 @@
                      because they are awkward on a controller. -->
                 <StackPanel Grid.Row="1" Margin="0,40,0,0">
                     <Border Padding="16,13"
-                            Background="{StaticResource BpAccentSoftBrush}"
+                            Background="{DynamicResource BpAccentSoftBrush}"
                             CornerRadius="12">
                         <Grid>
                             <Border Width="4"
                                     Height="20"
                                     Margin="-10,0,0,0"
                                     HorizontalAlignment="Left"
-                                    Background="{StaticResource BpAccentBrush}"
+                                    Background="{DynamicResource BpAccentBrush}"
                                     CornerRadius="2" />
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon FontSize="20"
-                                               Foreground="{StaticResource BpTextBrush}"
+                                               Foreground="{DynamicResource BpTextBrush}"
                                                Symbol="Library24" />
                                 <TextBlock Margin="14,0,0,0"
                                            VerticalAlignment="Center"
                                            FontSize="16"
-                                           Foreground="{StaticResource BpTextBrush}"
+                                           Foreground="{DynamicResource BpTextBrush}"
                                            Text="{DynamicResource Loc.Nav.Library}" />
                             </StackPanel>
                         </Grid>
@@ -284,7 +277,7 @@
                 <!-- Status card -->
                 <Border Grid.Row="2"
                         Padding="16,14"
-                        Background="{StaticResource BpCardBrush}"
+                        Background="{DynamicResource BpCardBrush}"
                         CornerRadius="14">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
@@ -295,13 +288,13 @@
                             <TextBlock Margin="9,0,0,0"
                                        VerticalAlignment="Center"
                                        FontSize="13"
-                                       Foreground="{StaticResource BpTextBrush}"
+                                       Foreground="{DynamicResource BpTextBrush}"
                                        Text="{Binding StatusText}"
                                        TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                         <TextBlock Margin="17,5,0,0"
                                    FontSize="12"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="{Binding GamesCountText}" />
                     </StackPanel>
                 </Border>
@@ -342,7 +335,7 @@
                                         <BeginStoryboard>
                                             <Storyboard>
                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                                 To="0.92"
+                                                                 To="1"
                                                                  Duration="0:0:0.35">
                                                     <DoubleAnimation.EasingFunction>
                                                         <CubicEase EasingMode="EaseOut" />
@@ -367,37 +360,20 @@
                 </Image>
 
                 <!-- Left-to-right shade keeps the text readable on bright art. -->
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Offset="0" Color="#D9111315" />
-                            <GradientStop Offset="0.5" Color="#8C111315" />
-                            <GradientStop Offset="1" Color="#1A111315" />
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <Rectangle Fill="{DynamicResource BpHeroLeftFadeBrush}" />
 
                 <!-- Top shade keeps the clock readable on bright artwork. -->
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0" Color="#99111315" />
-                            <GradientStop Offset="0.28" Color="#33111315" />
-                            <GradientStop Offset="1" Color="#00111315" />
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <Rectangle Fill="{DynamicResource BpHeroTopFadeBrush}" />
 
                 <!-- Bottom shade blends the banner into the carousel. -->
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0" Color="#00111315" />
-                            <GradientStop Offset="0.6" Color="#40111315" />
-                            <GradientStop Offset="1" Color="#FF111315" />
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <Rectangle Fill="{DynamicResource BpHeroBottomFadeBrush}" />
+
+                <!-- Solid strip: fractional UI scaling can leave a one-pixel
+                     seam where the artwork meets the carousel background. -->
+                <Rectangle Height="3"
+                           VerticalAlignment="Bottom"
+                           Fill="{DynamicResource BpBackgroundBrush}"
+                           IsHitTestVisible="False" />
 
                 <!-- Clock and settings -->
                 <StackPanel Margin="0,26,30,0"
@@ -407,13 +383,13 @@
                     <TextBlock Margin="0,0,14,0"
                                VerticalAlignment="Center"
                                FontSize="19"
-                               Foreground="{StaticResource BpTextBrush}"
+                               Foreground="{DynamicResource BpTextBrush}"
                                Text="{Binding ClockText}" />
                     <Button Click="Settings_Click"
-                            Style="{StaticResource BpIconButton}"
+                            Style="{DynamicResource BpIconButton}"
                             ToolTip="{DynamicResource Loc.Nav.Settings}">
                         <ui:SymbolIcon FontSize="18"
-                                       Foreground="{StaticResource BpTextBrush}"
+                                       Foreground="{DynamicResource BpTextBrush}"
                                        Symbol="Settings24" />
                     </Button>
                 </StackPanel>
@@ -426,7 +402,7 @@
                     <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
                                FontSize="54"
                                FontWeight="Bold"
-                               Foreground="{StaticResource BpTextBrush}"
+                               Foreground="{DynamicResource BpTextBrush}"
                                Text="{Binding SelectedTitle}"
                                TextTrimming="CharacterEllipsis"
                                TextWrapping="Wrap" />
@@ -434,7 +410,7 @@
                     <TextBlock Margin="2,14,0,0"
                                FontSize="14"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource BpAccentBrush}"
+                               Foreground="{DynamicResource BpAccentBrush}"
                                Text="{Binding SelectedGenres}"
                                TextTrimming="CharacterEllipsis">
                         <TextBlock.Style>
@@ -453,7 +429,7 @@
                                MaxWidth="820"
                                MaxHeight="66"
                                FontSize="15"
-                               Foreground="#C6CCC6"
+                               Foreground="{DynamicResource BpDescriptionBrush}"
                                Text="{Binding SelectedDescription}"
                                TextTrimming="CharacterEllipsis"
                                TextWrapping="Wrap">
@@ -471,10 +447,10 @@
 
                     <StackPanel Margin="0,24,0,0" Orientation="Horizontal">
                         <Button Click="Play_Click"
-                                Style="{StaticResource BpPrimaryButton}">
+                                Style="{DynamicResource BpPrimaryButton}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon FontSize="16"
-                                               Foreground="{StaticResource BpAccentForegroundBrush}"
+                                               Foreground="{DynamicResource BpAccentForegroundBrush}"
                                                Symbol="Play24" />
                                 <TextBlock Margin="9,0,0,0"
                                            VerticalAlignment="Center"
@@ -484,10 +460,10 @@
 
                         <Button Margin="12,0,0,0"
                                 Click="Details_Click"
-                                Style="{StaticResource BpSecondaryButton}">
+                                Style="{DynamicResource BpSecondaryButton}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon FontSize="16"
-                                               Foreground="{StaticResource BpTextBrush}"
+                                               Foreground="{DynamicResource BpTextBrush}"
                                                Symbol="Info24" />
                                 <TextBlock Margin="9,0,0,0"
                                            VerticalAlignment="Center"
@@ -498,7 +474,7 @@
                 </StackPanel>
 
                 <!-- Empty library -->
-                <Border Background="#E6111315">
+                <Border Background="{DynamicResource BpBackgroundBrush}">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -512,19 +488,19 @@
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <ui:SymbolIcon FontSize="46"
-                                       Foreground="{StaticResource BpTextMutedBrush}"
+                                       Foreground="{DynamicResource BpTextMutedBrush}"
                                        Symbol="Games24" />
                         <TextBlock Margin="0,16,0,0"
                                    HorizontalAlignment="Center"
                                    FontSize="24"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource BpTextBrush}"
+                                   Foreground="{DynamicResource BpTextBrush}"
                                    Text="{Binding EmptyTitle}" />
                         <TextBlock Margin="0,8,0,0"
                                    MaxWidth="480"
                                    HorizontalAlignment="Center"
                                    FontSize="14"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="{Binding EmptyText}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap" />
@@ -543,19 +519,20 @@
                 <Grid Grid.Row="0" Margin="0,0,56,14">
                     <TextBlock FontSize="23"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource BpTextBrush}"
+                               Foreground="{DynamicResource BpTextBrush}"
                                Text="{DynamicResource Loc.BP.Recent}" />
                     <TextBlock HorizontalAlignment="Right"
                                VerticalAlignment="Bottom"
                                FontSize="12"
-                               Foreground="{StaticResource BpTextMutedBrush}"
+                               Foreground="{DynamicResource BpTextMutedBrush}"
                                Text="{Binding CounterText}" />
                 </Grid>
 
                 <ListBox x:Name="GamesList"
                          Grid.Row="1"
-                         Height="330"
-                         Padding="0,12,0,12"
+                         Height="322"
+                         Margin="-14,0,0,0"
+                         Padding="0"
                          Background="Transparent"
                          BorderThickness="0"
                          FocusVisualStyle="{x:Null}"
@@ -577,7 +554,7 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
-                            <Setter Property="Margin" Value="0,0,20,0" />
+                            <Setter Property="Margin" Value="0" />
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                             <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -585,6 +562,7 @@
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
                                         <StackPanel Width="150"
+                                                    Margin="14,32,6,14"
                                                     RenderTransformOrigin="0.5,0.5">
                                             <StackPanel.RenderTransform>
                                                 <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
@@ -592,8 +570,8 @@
 
                                             <Border x:Name="Frame"
                                                     Height="225"
-                                                    Background="#191C19"
-                                                    BorderBrush="#1FFFFFFF"
+                                                    Background="{DynamicResource BpCardBrush}"
+                                                    BorderBrush="{DynamicResource BpCardStrokeBrush}"
                                                     BorderThickness="2"
                                                     CornerRadius="12">
                                                 <Grid>
@@ -601,7 +579,7 @@
                                                                VerticalAlignment="Center"
                                                                FontSize="34"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#33FFFFFF"
+                                                               Foreground="{DynamicResource BpTextMutedBrush}"
                                                                Text="{Binding Initials}" />
 
                                                     <!-- RadiusX/Y clips the artwork, so a
@@ -624,7 +602,7 @@
                                                        Margin="2,11,0,0"
                                                        MaxHeight="40"
                                                        FontSize="14"
-                                                       Foreground="{StaticResource BpTextMutedBrush}"
+                                                       Foreground="{DynamicResource BpTextMutedBrush}"
                                                        Text="{Binding Title}"
                                                        TextTrimming="CharacterEllipsis"
                                                        TextWrapping="Wrap" />
@@ -632,14 +610,14 @@
 
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource BpAccentBrush}" />
-                                                <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                                 <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
                                                 <Setter TargetName="Frame" Property="Effect">
                                                     <Setter.Value>
-                                                        <DropShadowEffect BlurRadius="26"
+                                                        <DropShadowEffect BlurRadius="22"
                                                                           Direction="0"
-                                                                          Opacity="0.55"
+                                                                          Opacity="0.5"
                                                                           ShadowDepth="0"
                                                                           Color="#A5F26B" />
                                                     </Setter.Value>
@@ -683,7 +661,7 @@
                                                 </Trigger.ExitActions>
                                             </Trigger>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -699,72 +677,67 @@
             <Grid Grid.Row="2" Height="62" Margin="56,10,56,16">
                 <Grid VerticalAlignment="Center">
                     <StackPanel x:Name="KeyboardHints" Orientation="Horizontal">
-                        <Border Style="{StaticResource BpKeyCap}">
-                            <TextBlock Style="{StaticResource BpKeyText}" Text="←  →" />
+                        <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="←  →" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Move}" />
 
-                        <Border Style="{StaticResource BpKeyCap}">
-                            <TextBlock Style="{StaticResource BpKeyText}" Text="Enter" />
+                        <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Enter" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Play}" />
 
-                        <Border Style="{StaticResource BpKeyCap}">
-                            <TextBlock Style="{StaticResource BpKeyText}" Text="Space" />
+                        <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Space" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Details}" />
 
-                        <Border Style="{StaticResource BpKeyCap}">
-                            <TextBlock Style="{StaticResource BpKeyText}" Text="Esc" />
+                        <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Esc" />
                         </Border>
                         <TextBlock Margin="8,0,0,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Exit}" />
                     </StackPanel>
 
                     <StackPanel x:Name="PadHints"
                                 Visibility="Collapsed"
                                 Orientation="Horizontal">
-                        <Border Background="#6FBF4A" Style="{StaticResource PadBadge}">
+                        <Border Style="{StaticResource PadBadge}">
                             <TextBlock Style="{StaticResource PadBadgeText}" Text="A" />
                         </Border>
                         <TextBlock Margin="0,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Play}" />
 
-                        <Border Background="#4A90E2" Style="{StaticResource PadBadge}">
+                        <Border Style="{StaticResource PadBadge}">
                             <TextBlock Style="{StaticResource PadBadgeText}" Text="X" />
                         </Border>
                         <TextBlock Margin="0,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Details}" />
 
-                        <Border Background="#7C848C" Style="{StaticResource PadBadge}">
+                        <Border Style="{StaticResource PadBadge}">
                             <TextBlock Style="{StaticResource PadBadgeText}" Text="☰" />
                         </Border>
                         <TextBlock Margin="0,0,18,0"
-                                   Style="{StaticResource BpHintText}"
+                                   Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Menu}" />
 
-                        <Border Background="#E2574A" Style="{StaticResource PadBadge}">
+                        <Border Style="{StaticResource PadBadge}">
                             <TextBlock Style="{StaticResource PadBadgeText}" Text="B" />
                         </Border>
-                        <TextBlock Style="{StaticResource BpHintText}"
+                        <TextBlock Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Exit}" />
                     </StackPanel>
                 </Grid>
 
-                <TextBlock HorizontalAlignment="Right"
-                           VerticalAlignment="Center"
-                           FontSize="12"
-                           Foreground="{StaticResource BpTextMutedBrush}"
-                           Text="F11" />
             </Grid>
         </Grid>
 
@@ -772,15 +745,15 @@
 
         <Grid x:Name="DetailsOverlay"
               Grid.ColumnSpan="2"
-              Background="#99000000"
+              Background="{DynamicResource BpScrimBrush}"
               Visibility="Collapsed"
               MouseLeftButtonDown="DetailsOverlay_MouseLeftButtonDown">
             <Border Width="460"
                     Margin="0,40,40,40"
                     Padding="34,32"
                     HorizontalAlignment="Right"
-                    Background="#F2171A18"
-                    BorderBrush="#26FFFFFF"
+                    Background="{DynamicResource BpPanelBrush}"
+                    BorderBrush="{DynamicResource BpBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="18">
                 <Grid>
@@ -792,33 +765,33 @@
 
                     <StackPanel>
                         <TextBlock FontSize="12"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="{DynamicResource Loc.BP.Details.Title}" />
                         <TextBlock Margin="0,6,0,0"
                                    FontFamily="Segoe UI Variable Display, Segoe UI"
                                    FontSize="30"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource BpTextBrush}"
+                                   Foreground="{DynamicResource BpTextBrush}"
                                    Text="{Binding SelectedTitle}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Margin="0,26,0,0">
                         <TextBlock FontSize="12"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="{DynamicResource Loc.BP.Details.Playtime}" />
                         <TextBlock Margin="0,4,0,0"
                                    FontSize="16"
-                                   Foreground="{StaticResource BpTextBrush}"
+                                   Foreground="{DynamicResource BpTextBrush}"
                                    Text="{Binding SelectedPlaytimeText}" />
 
                         <TextBlock Margin="0,20,0,0"
                                    FontSize="12"
-                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
                                    Text="{DynamicResource Loc.BP.Details.Path}" />
                         <TextBlock Margin="0,4,0,0"
                                    FontSize="13"
-                                   Foreground="{StaticResource BpTextBrush}"
+                                   Foreground="{DynamicResource BpTextBrush}"
                                    Text="{Binding SelectedFolder}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
@@ -827,7 +800,7 @@
                             Margin="0,24,0,0"
                             HorizontalAlignment="Left"
                             Click="CloseDetails_Click"
-                            Style="{StaticResource BpSecondaryButton}">
+                            Style="{DynamicResource BpSecondaryButton}">
                         <TextBlock Text="{DynamicResource Loc.BP.Close}" />
                     </Button>
                 </Grid>
@@ -839,14 +812,16 @@
         <!-- Covers the window while the mode changes, then fades out. -->
         <Border x:Name="Veil"
                 Grid.ColumnSpan="2"
-                Background="{StaticResource BpBackgroundBrush}"
+                Panel.ZIndex="10"
+                Background="{DynamicResource BpBackgroundBrush}"
                 IsHitTestVisible="False"
                 Opacity="0" />
 
         <!-- Console-style brand animation played on every entrance. -->
         <Grid x:Name="IntroLogo"
               Grid.ColumnSpan="2"
-              Background="{StaticResource BpBackgroundBrush}"
+              Panel.ZIndex="11"
+              Background="{DynamicResource BpBackgroundBrush}"
               IsHitTestVisible="False"
               Opacity="0"
               Visibility="Collapsed">
@@ -876,14 +851,14 @@
                            FontFamily="Segoe UI Variable Display, Segoe UI"
                            FontSize="34"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource BpTextBrush}"
+                           Foreground="{DynamicResource BpTextBrush}"
                            Text="BagaGame" />
 
                 <TextBlock Margin="1,6,0,0"
                            HorizontalAlignment="Center"
                            FontSize="10"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource BpTextMutedBrush}"
+                           Foreground="{DynamicResource BpTextMutedBrush}"
                            Text="GAME LAUNCHER" />
             </StackPanel>
         </Grid>

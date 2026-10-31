@@ -73,4 +73,50 @@
         <GradientStop Offset="1" Color="#F21A1A1A" />
     </LinearGradientBrush>
 
+    <!-- ============================ Big Picture =========================== -->
+
+    <SolidColorBrush x:Key="BpBackgroundBrush" Color="#111315" />
+    <SolidColorBrush x:Key="BpSidebarBrush" Color="#17191C" />
+    <SolidColorBrush x:Key="BpCardBrush" Color="#1C1F1D" />
+    <SolidColorBrush x:Key="BpTextBrush" Color="#F2F2F2" />
+    <SolidColorBrush x:Key="BpTextMutedBrush" Color="#92969D" />
+    <SolidColorBrush x:Key="BpDescriptionBrush" Color="#C6CCC6" />
+    <SolidColorBrush x:Key="BpBorderBrush" Color="#26FFFFFF" />
+    <SolidColorBrush x:Key="BpCardStrokeBrush" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="BpDividerBrush" Color="#14FFFFFF" />
+    <SolidColorBrush x:Key="BpKeyCapBrush" Color="#22FFFFFF" />
+    <SolidColorBrush x:Key="BpKeyCapStrokeBrush" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="BpNavHoverBrush" Color="#12FFFFFF" />
+    <SolidColorBrush x:Key="BpAccentBrush" Color="#A5F26B" />
+    <SolidColorBrush x:Key="BpAccentHoverBrush" Color="#BDFF8A" />
+    <SolidColorBrush x:Key="BpAccentForegroundBrush" Color="#101A0C" />
+    <SolidColorBrush x:Key="BpAccentSoftBrush" Color="#1FA5F26B" />
+    <SolidColorBrush x:Key="BpSecondaryFillBrush" Color="#1B1F1C" />
+    <SolidColorBrush x:Key="BpSecondaryHoverBrush" Color="#242924" />
+    <SolidColorBrush x:Key="BpScrimBrush" Color="#99000000" />
+    <SolidColorBrush x:Key="BpPanelBrush" Color="#F2171A18" />
+    <SolidColorBrush x:Key="BpHeroTextBrush" Color="#F7F7F7" />
+    <SolidColorBrush x:Key="BpHeroMutedBrush" Color="#D6DBD4" />
+    <SolidColorBrush x:Key="BpHeroAccentBrush" Color="#A5F26B" />
+    <SolidColorBrush x:Key="BpPadBadgeBrush" Color="#F2F2F2" />
+    <SolidColorBrush x:Key="BpPadBadgeTextBrush" Color="#12140F" />
+
+    <LinearGradientBrush x:Key="BpHeroLeftFadeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#99111315" />
+        <GradientStop Offset="0.35" Color="#33111315" />
+        <GradientStop Offset="0.6" Color="#00111315" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BpHeroTopFadeBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#4D111315" />
+        <GradientStop Offset="0.2" Color="#00111315" />
+        <GradientStop Offset="1" Color="#00111315" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BpHeroBottomFadeBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#00111315" />
+        <GradientStop Offset="0.78" Color="#40111315" />
+        <GradientStop Offset="1" Color="#FF111315" />
+    </LinearGradientBrush>
+
 </ResourceDictionary>

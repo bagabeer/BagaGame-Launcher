@@ -16,8 +16,8 @@
         WindowStyle="None">
 
     <Border Margin="14"
-            Background="#F2171A18"
-            BorderBrush="#33FFFFFF"
+            Background="{DynamicResource BpPanelBrush}"
+            BorderBrush="{DynamicResource BpBorderBrush}"
             BorderThickness="1"
             CornerRadius="24">
         <Border.Effect>
@@ -55,25 +55,25 @@
                        FontFamily="Segoe UI Variable Display, Segoe UI"
                        FontSize="30"
                        FontWeight="SemiBold"
-                       Foreground="#F2F2F2"
+                       Foreground="{DynamicResource BpTextBrush}"
                        Text="BagaGame" />
 
             <TextBlock Margin="1,6,0,0"
                        HorizontalAlignment="Center"
                        FontSize="10"
                        FontWeight="SemiBold"
-                       Foreground="#92969D"
+                       Foreground="{DynamicResource BpTextMutedBrush}"
                        Text="GAME LAUNCHER" />
 
             <Border Margin="0,26,0,0"
                     Width="120"
                     Height="3"
-                    Background="#22FFFFFF"
+                    Background="{DynamicResource BpKeyCapBrush}"
                     CornerRadius="2">
                 <Border x:Name="Progress"
                         Width="42"
                         HorizontalAlignment="Left"
-                        Background="{DynamicResource AccentBrush}"
+                        Background="{DynamicResource BpAccentBrush}"
                         CornerRadius="2" />
             </Border>
         </StackPanel>

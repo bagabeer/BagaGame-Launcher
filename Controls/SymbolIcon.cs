@@ -42,6 +42,7 @@ public sealed class SymbolIcon : TextBlock
         ["ArrowClockwise24"] = "\uE72C",
         ["Gamepad24"] = "\uE7FC",
         ["Info24"] = "\uE946",
+        ["Menu24"] = "\uE700",
     };
 
     public SymbolIcon()

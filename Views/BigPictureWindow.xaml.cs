@@ -114,6 +114,36 @@ public partial class BigPictureWindow : Window
         GamesList.Focus();
     }
 
+    /// <summary>
+    /// Shows the window instantly after a game closes: no veil, no intro logo,
+    /// no re-selection animation. The player gets the same card back at once.
+    /// </summary>
+    public void ShowImmediate()
+    {
+        _introTimer?.Stop();
+        _introTimer = null;
+        IntroLogo.Visibility = Visibility.Collapsed;
+        IntroLogo.Opacity = 0;
+        Veil.Opacity = 0;
+
+        ApplyScale();
+        _viewModel.RefreshOrder();
+        _viewModel.EnsureSelection();
+        SelectCurrent();
+
+        Show();
+        Activate();
+
+        Topmost = true;
+        Topmost = false;
+
+        _ready = true;
+        GamesList.Focus();
+        _gamepad.Start();
+        UpdateHints(_gamepad.IsConnected);
+        ScheduleDetailsLoad();
+    }
+
     /// <summary>Fades the veil in; the caller swaps the windows when it completes.</summary>
     public void PlayExit(Action completed)
     {
@@ -295,7 +325,7 @@ public partial class BigPictureWindow : Window
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-            bitmap.DecodePixelWidth = 1600;
+            bitmap.DecodePixelWidth = HeroDecodeWidth;
             bitmap.UriSource = new Uri(path, UriKind.Absolute);
             bitmap.EndInit();
             bitmap.Freeze();
@@ -304,6 +334,23 @@ public partial class BigPictureWindow : Window
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>Wide artwork is sharpest when decoded at the panel's real width.</summary>
+    private static int HeroDecodeWidth
+    {
+        get
+        {
+            try
+            {
+                var width = System.Windows.Forms.Screen.PrimaryScreen?.Bounds.Width ?? 1920;
+                return width >= 3000 ? 2560 : 1920;
+            }
+            catch
+            {
+                return 1920;
+            }
         }
     }
 
@@ -454,7 +501,10 @@ public partial class BigPictureWindow : Window
     private void PlayIntro()
     {
         IntroLogo.Visibility = Visibility.Visible;
-        IntroLogo.Opacity = 0;
+
+        // The overlay is opaque from the first frame: the library behind it
+        // must never be visible before the logo animation ends.
+        IntroLogo.Opacity = 1;
         IntroLogoScale.ScaleX = 0.9;
         IntroLogoScale.ScaleY = 0.9;
 
@@ -465,10 +515,6 @@ public partial class BigPictureWindow : Window
 
         IntroLogoScale.BeginAnimation(ScaleTransform.ScaleXProperty, zoom);
         IntroLogoScale.BeginAnimation(ScaleTransform.ScaleYProperty, zoom);
-
-        IntroLogo.BeginAnimation(
-            OpacityProperty,
-            new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(240)));
 
         _introTimer?.Stop();
         _introTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };

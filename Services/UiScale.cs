@@ -18,7 +18,8 @@ public static class UiScale
 
         var scale = height / DesignHeight;
 
-        // 1366x768 laptops stay readable, 4K scales exactly by two.
-        return Math.Round(Math.Min(1.75, Math.Max(0.75, scale)), 3);
+        // 1366x768 laptops stay readable, 4K scales exactly by two, and larger
+        // panels keep growing instead of hitting an early ceiling.
+        return Math.Round(Math.Min(2.5, Math.Max(0.75, scale)), 3);
     }
 }

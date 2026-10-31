@@ -179,6 +179,7 @@ public sealed class GameLibraryService : IDisposable
     public GameLibraryService(string? cacheDirectory)
     {
         _coverCacheDirectory = NormalizeCacheDirectory(cacheDirectory);
+        CoverDecodeWidth = ChooseCoverDecodeWidth();
 
         // A removed drive or a read-only folder must not stop the launcher:
         // fall back to the default cache location.
@@ -2750,17 +2751,42 @@ public sealed class GameLibraryService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Pixel width used when a poster is decoded. 360 is right for 1080p; 4K
+    /// screens get a larger decode so scaled-up cards stay sharp.
+    /// </summary>
+    public static int CoverDecodeWidth { get; private set; } = 360;
+
     private static System.Windows.Media.ImageSource LoadFrozen(string path)
     {
         var bitmap = new BitmapImage();
         bitmap.BeginInit();
         bitmap.CacheOption = BitmapCacheOption.OnLoad;
         bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-        bitmap.DecodePixelWidth = 360; // 2x of the 180 px poster, keeps memory low
+        bitmap.DecodePixelWidth = CoverDecodeWidth;
         bitmap.UriSource = new Uri(path, UriKind.Absolute);
         bitmap.EndInit();
         bitmap.Freeze();
         return bitmap;
+    }
+
+    private static int ChooseCoverDecodeWidth()
+    {
+        try
+        {
+            var width = System.Windows.Forms.Screen.PrimaryScreen?.Bounds.Width ?? 1920;
+
+            if (width >= 3000)
+            {
+                return 540;
+            }
+
+            return width >= 2200 ? 460 : 360;
+        }
+        catch
+        {
+            return 360;
+        }
     }
 
     // ---------------------------------------------------------------------
