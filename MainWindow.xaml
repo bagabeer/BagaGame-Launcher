@@ -454,18 +454,35 @@
                     </Border>
                 </Grid>
 
-                <TextBlock Grid.Row="1"
-                           Width="180"
-                           Margin="0,10,0,0"
-                           HorizontalAlignment="Left"
-                           FontSize="13"
-                           FontWeight="Normal"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           LineHeight="17"
-                           MaxHeight="36"
-                           Text="{Binding Title}"
-                           TextTrimming="CharacterEllipsis"
-                           TextWrapping="Wrap" />
+                <StackPanel Grid.Row="1"
+                            Width="180"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Left">
+                    <TextBlock FontSize="13"
+                               FontWeight="Normal"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               LineHeight="17"
+                               MaxHeight="36"
+                               Text="{Binding Title}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap" />
+
+                    <ui:BagaButton x:Name="CoverBadgeButton"
+                                   Height="16"
+                                   Margin="0,1,0,0"
+                                   Padding="0"
+                                   HorizontalAlignment="Left"
+                                   HorizontalContentAlignment="Left"
+                                   AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
+                                   Background="Transparent"
+                                   BorderThickness="0"
+                                   Click="CoverBadge_Click"
+                                   Content="{DynamicResource Loc.Cover.AddBadge}"
+                                   FontSize="9.5"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
+                                   Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
             </Grid>
 
             <DataTemplate.Triggers>
@@ -602,11 +619,44 @@
                                    Foreground="{DynamicResource TextTertiaryBrush}"
                                    Text="{Binding Details}"
                                    TextTrimming="CharacterEllipsis" />
+
+                        <ui:BagaButton Height="16"
+                                       Margin="0,1,0,0"
+                                       Padding="0"
+                                       HorizontalAlignment="Left"
+                                       HorizontalContentAlignment="Left"
+                                       AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
+                                       Background="Transparent"
+                                       BorderThickness="0"
+                                       Click="CoverBadge_Click"
+                                       Content="{DynamicResource Loc.Cover.AddBadge}"
+                                       FontSize="9.5"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
+                                       Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
+                        <ui:BagaButton x:Name="CoverBadgeButton"
+                                       Width="26"
+                                       Height="26"
+                                       Margin="0,0,10,0"
+                                       Padding="0"
+                                       VerticalAlignment="Center"
+                                       AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
+                                       Background="#CC1F1F1F"
+                                       BorderBrush="#66FFFFFF"
+                                       CornerRadius="13"
+                                       Appearance="Secondary"
+                                       Click="CoverBadge_Click"
+                                       ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
+                                       Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}">
+                            <ui:SymbolIcon Symbol="Add24"
+                                           FontSize="12"
+                                           Foreground="White" />
+                        </ui:BagaButton>
                         <Border Margin="0,0,10,0"
                                 Padding="7,2"
                                 VerticalAlignment="Center"
@@ -1586,7 +1636,8 @@
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
                                                    Text="{DynamicResource Loc.Settings.DownloadCoversTip}" />
                                     </StackPanel>
-                                    <ui:ToggleSwitch Grid.Column="2"
+                                    <ui:ToggleSwitch x:Name="DownloadCoversToggle"
+                                                     Grid.Column="2"
                                                      VerticalAlignment="Center"
                                                      IsChecked="{Binding DownloadCovers}" />
                                 </Grid>

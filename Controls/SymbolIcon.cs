@@ -38,6 +38,7 @@ public sealed class SymbolIcon : TextBlock
         ["List24"] = "\uEA37",
         ["Grid24"] = "\uE80A",
         ["Add24"] = "\uE710",
+        ["Picture24"] = "\uE8B9",
         ["ArrowClockwise24"] = "\uE72C",
     };
 

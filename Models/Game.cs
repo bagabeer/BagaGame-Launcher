@@ -77,8 +77,16 @@ public sealed class Game : INotifyPropertyChanged
 
             _cover = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasCover));
+            OnPropertyChanged(nameof(NeedsCover));
         }
     }
+
+    /// <summary>True when a poster has been loaded (or picked by the user).</summary>
+    public bool HasCover => _cover is not null;
+
+    /// <summary>Drives the "add cover" badge on the card.</summary>
+    public bool NeedsCover => _cover is null;
 
     /// <summary>True when the card can start the game (exe on disk or Steam AppID).</summary>
     public bool CanLaunch => !string.IsNullOrWhiteSpace(ExecutablePath) || AppId > 0;
