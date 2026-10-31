@@ -376,11 +376,21 @@
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource IconMutedBrush}"
                                            Text="{Binding Initials}" />
-                                <ui:SymbolIcon Margin="0,6,0,0"
-                                               Symbol="Games24"
-                                               FontSize="13"
-                                               Foreground="{DynamicResource IconSoftBrush}"
-                                               HorizontalAlignment="Center" />
+
+                                <ui:BagaButton x:Name="CoverBadgeButton"
+                                               Height="16"
+                                               Margin="0,8,0,0"
+                                               Padding="0"
+                                               HorizontalAlignment="Center"
+                                               AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
+                                               Background="Transparent"
+                                               BorderThickness="0"
+                                               Click="CoverBadge_Click"
+                                               Content="{DynamicResource Loc.Cover.AddBadge}"
+                                               FontSize="9.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
+                                               Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
                             </StackPanel>
 
                             <!-- ImageBrush is clipped by CornerRadius automatically. -->
@@ -454,35 +464,18 @@
                     </Border>
                 </Grid>
 
-                <StackPanel Grid.Row="1"
-                            Width="180"
-                            Margin="0,10,0,0"
-                            HorizontalAlignment="Left">
-                    <TextBlock FontSize="13"
-                               FontWeight="Normal"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               LineHeight="17"
-                               MaxHeight="36"
-                               Text="{Binding Title}"
-                               TextTrimming="CharacterEllipsis"
-                               TextWrapping="Wrap" />
-
-                    <ui:BagaButton x:Name="CoverBadgeButton"
-                                   Height="16"
-                                   Margin="0,1,0,0"
-                                   Padding="0"
-                                   HorizontalAlignment="Left"
-                                   HorizontalContentAlignment="Left"
-                                   AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
-                                   Background="Transparent"
-                                   BorderThickness="0"
-                                   Click="CoverBadge_Click"
-                                   Content="{DynamicResource Loc.Cover.AddBadge}"
-                                   FontSize="9.5"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"
-                                   ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
-                                   Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
-                </StackPanel>
+                <TextBlock Grid.Row="1"
+                           Width="180"
+                           Margin="0,10,0,0"
+                           HorizontalAlignment="Left"
+                           FontSize="13"
+                           FontWeight="Normal"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           LineHeight="17"
+                           MaxHeight="36"
+                           Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="Wrap" />
             </Grid>
 
             <DataTemplate.Triggers>
