@@ -29,6 +29,7 @@
     <sys:String x:Key="Loc.BP.Close">Закрыть</sys:String>
     <sys:String x:Key="Loc.BP.Menu">Меню</sys:String>
     <sys:String x:Key="Loc.BP.NotPlayed">Ещё не играли</sys:String>
+    <sys:String x:Key="Loc.BP.PlayedFor">Время в игре {0}</sys:String>
 
     <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Открыть папку</sys:String>

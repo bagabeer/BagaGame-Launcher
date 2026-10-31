@@ -380,6 +380,73 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
+                    <!-- Controller battery, flat in the top-right corner. -->
+                    <StackPanel Margin="0,0,18,0"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasBattery}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <ui:SymbolIcon FontSize="22"
+                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Symbol="Gamepad24" />
+
+                        <Grid Width="38"
+                              Height="18"
+                              Margin="8,0,0,0"
+                              VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="34" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border BorderBrush="{DynamicResource BpTextBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Opacity="0.85">
+                                <Rectangle Margin="2"
+                                           HorizontalAlignment="Left"
+                                           RadiusX="3"
+                                           RadiusY="3"
+                                           Width="{Binding BatteryFillWidth}">
+                                    <Rectangle.Style>
+                                        <Style TargetType="Rectangle">
+                                            <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBatteryLow}" Value="True">
+                                                    <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Rectangle.Style>
+                                </Rectangle>
+                            </Border>
+                            <Rectangle Grid.Column="1"
+                                       Width="3"
+                                       Height="8"
+                                       Margin="1,0,0,0"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       Fill="{DynamicResource BpTextBrush}"
+                                       Opacity="0.85"
+                                       RadiusX="1"
+                                       RadiusY="1" />
+                        </Grid>
+
+                        <TextBlock Margin="8,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource BpTextBrush}"
+                                   Text="{Binding BatteryText}" />
+                    </StackPanel>
+
                     <TextBlock Margin="0,0,14,0"
                                VerticalAlignment="Center"
                                FontSize="19"
@@ -470,7 +537,29 @@
                                            Text="{DynamicResource Loc.BP.Details}" />
                             </StackPanel>
                         </Button>
+
                     </StackPanel>
+
+                    <!-- Played time: a flat grey chip under the actions. -->
+                    <Border Margin="0,14,0,0"
+                            Padding="12,7"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource BpCardBrush}"
+                            CornerRadius="10">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasPlaytime}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock FontSize="13"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
+                                   Text="{Binding PlaytimePillText}" />
+                    </Border>
                 </StackPanel>
 
                 <!-- Empty library -->
@@ -530,8 +619,8 @@
 
                 <ListBox x:Name="GamesList"
                          Grid.Row="1"
-                         Height="322"
-                         Margin="-14,0,0,0"
+                         Height="404"
+                         Margin="-16,0,0,0"
                          Padding="0"
                          Background="Transparent"
                          BorderThickness="0"
@@ -561,15 +650,15 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
-                                        <StackPanel Width="150"
-                                                    Margin="14,32,6,14"
+                                        <StackPanel Width="180"
+                                                    Margin="16,38,6,16"
                                                     RenderTransformOrigin="0.5,0.5">
                                             <StackPanel.RenderTransform>
                                                 <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
                                             </StackPanel.RenderTransform>
 
                                             <Border x:Name="Frame"
-                                                    Height="225"
+                                                    Height="270"
                                                     Background="{DynamicResource BpCardBrush}"
                                                     BorderBrush="{DynamicResource BpCardStrokeBrush}"
                                                     BorderThickness="2"
@@ -600,8 +689,8 @@
 
                                             <TextBlock x:Name="Caption"
                                                        Margin="2,11,0,0"
-                                                       MaxHeight="40"
-                                                       FontSize="14"
+                                                       MaxHeight="44"
+                                                       FontSize="15"
                                                        Foreground="{DynamicResource BpTextMutedBrush}"
                                                        Text="{Binding Title}"
                                                        TextTrimming="CharacterEllipsis"
