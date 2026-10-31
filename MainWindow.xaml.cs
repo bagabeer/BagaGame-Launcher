@@ -637,6 +637,30 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
     }
 
+    private void MoveCursorToBigPictureScreen()
+    {
+        try
+        {
+            if (_bigPicture is not { } window)
+            {
+                return;
+            }
+
+            var handle = new WindowInteropHelper(window).Handle;
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var area = System.Windows.Forms.Screen.FromHandle(handle).WorkingArea;
+            SetCursorPos(area.Left + area.Width / 2, area.Top + area.Height / 2);
+        }
+        catch
+        {
+            // A cursor move is best effort; the game still starts.
+        }
+    }
+
     private void StopBigPictureLaunchWatch()
     {
         _bigPictureLaunchWatch?.Stop();
@@ -1449,6 +1473,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetCursorPos(int x, int y);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);

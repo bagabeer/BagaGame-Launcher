@@ -2,7 +2,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -32,6 +34,7 @@ public partial class BigPictureWindow : Window
     private readonly Dictionary<string, ImageSource?> _heroCache = new(StringComparer.Ordinal);
     private CancellationTokenSource? _detailsToken;
     private DispatcherTimer? _introTimer;
+    private bool _cursorHidden;
     private bool _closeApproved;
     private bool _ready;
     private Game? _lastTickGame;
@@ -52,6 +55,8 @@ public partial class BigPictureWindow : Window
         Loaded += OnLoaded;
         PreviewKeyDown += OnPreviewKeyDown;
         IsVisibleChanged += OnVisibleChanged;
+
+        MouseMove += (_, _) => ShowCursor();
 
         GamesList.PreviewMouseWheel += OnGamesListMouseWheel;
         GamesList.MouseDoubleClick += (_, _) => PlaySelected();
@@ -84,6 +89,7 @@ public partial class BigPictureWindow : Window
     /// <summary>Called right before the window is shown or restored from the tray.</summary>
     public void PrepareForShow()
     {
+        SnapToOwnerMonitor();
         ApplyScale();
         Veil.Opacity = 1;
         _viewModel.RefreshOrder();
@@ -95,6 +101,7 @@ public partial class BigPictureWindow : Window
     /// <summary>Fades the veil away and settles the layout with a small zoom-out.</summary>
     public void PlayEntrance()
     {
+        FillMonitorPhysical();
         PlayIntro();
         Veil.Opacity = 1;
 
@@ -133,6 +140,7 @@ public partial class BigPictureWindow : Window
         IntroLogo.Opacity = 0;
         Veil.Opacity = 0;
 
+        SnapToOwnerMonitor();
         ApplyScale();
         _viewModel.RefreshOrder();
         _viewModel.EnsureSelection();
@@ -140,6 +148,7 @@ public partial class BigPictureWindow : Window
 
         Show();
         Activate();
+        FillMonitorPhysical();
 
         Topmost = true;
         Topmost = false;
@@ -156,6 +165,7 @@ public partial class BigPictureWindow : Window
     /// <summary>Fades the veil in; the caller swaps the windows when it completes.</summary>
     public void PlayExit(Action completed)
     {
+        ShowCursor();
         _gamepad.Stop();
         _batteryTimer.Stop();
         _detailsToken?.Cancel();
@@ -179,6 +189,77 @@ public partial class BigPictureWindow : Window
     {
         _closeApproved = true;
         Close();
+    }
+
+    /// <summary>
+    /// Pins the window to the monitor that owns the library window and fills
+    /// the whole screen, taskbar included. Windows would otherwise maximize on
+    /// the monitor under the cursor, which can be a different display.
+    /// </summary>
+    private void SnapToOwnerMonitor()
+    {
+        try
+        {
+            if (Owner is not { } owner)
+            {
+                return;
+            }
+
+            var screen = System.Windows.Forms.Screen.FromHandle(
+                new WindowInteropHelper(owner).Handle);
+            var source = PresentationSource.FromVisual(owner);
+            var toDevice = source?.CompositionTarget?.TransformFromDevice;
+            if (toDevice is null)
+            {
+                return;
+            }
+
+            var topLeft = toDevice.Value.Transform(
+                new Point(screen.Bounds.Left, screen.Bounds.Top));
+            var bottomRight = toDevice.Value.Transform(
+                new Point(screen.Bounds.Right, screen.Bounds.Bottom));
+
+            WindowState = WindowState.Normal;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = topLeft.X;
+            Top = topLeft.Y;
+            Width = Math.Max(320, bottomRight.X - topLeft.X);
+            Height = Math.Max(240, bottomRight.Y - topLeft.Y);
+        }
+        catch
+        {
+            // Keep the default placement if the monitor query fails.
+        }
+    }
+
+    /// <summary>
+    /// Pins the window to the monitor's physical bounds. DIP math can leave a
+    /// one-pixel desktop stripe on displays with a different DPI.
+    /// </summary>
+    private void FillMonitorPhysical()
+    {
+        try
+        {
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var bounds = System.Windows.Forms.Screen.FromHandle(handle).Bounds;
+            SetWindowPos(
+                handle,
+                IntPtr.Zero,
+                bounds.Left,
+                bounds.Top,
+                bounds.Width,
+                bounds.Height,
+                0x0004 | 0x0010);
+        }
+        catch
+        {
+            // Keep the managed placement if the native call fails.
+        }
     }
 
     private void ApplyScale()
@@ -368,6 +449,9 @@ public partial class BigPictureWindow : Window
 
     private void OnPadCommand(PadCommand command)
     {
+        // Any controller input is a signal to get the pointer out of the way.
+        HideCursor();
+
         try
         {
             switch (command)
@@ -473,6 +557,28 @@ public partial class BigPictureWindow : Window
     }
 
     private void Play_Click(object sender, RoutedEventArgs e) => PlaySelected();
+
+    private void HideCursor()
+    {
+        if (_cursorHidden)
+        {
+            return;
+        }
+
+        _cursorHidden = true;
+        Mouse.OverrideCursor = Cursors.None;
+    }
+
+    private void ShowCursor()
+    {
+        if (!_cursorHidden)
+        {
+            return;
+        }
+
+        _cursorHidden = false;
+        Mouse.OverrideCursor = null;
+    }
 
     private void PlaySelected()
     {
@@ -608,8 +714,19 @@ public partial class BigPictureWindow : Window
         ExitRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(
+        IntPtr hwnd,
+        IntPtr insertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
+
     protected override void OnClosed(EventArgs e)
     {
+        ShowCursor();
         _gamepad.Dispose();
 
         _detailsToken?.Cancel();
