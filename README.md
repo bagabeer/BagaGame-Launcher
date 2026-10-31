@@ -172,14 +172,6 @@ Compat/                             — polyfills for modern C# on net472
 * Covers save correctly and stay after a restart.
 * Cropping no longer cuts the frame and always keeps 2:3.
 
-### Version 0.7.0
-
-**Size and platform**
-* Retargeted from .NET 8 to **.NET Framework 4.7.2**, which ships with Windows 10 1803+ and Windows 11, so the launcher starts without installing a runtime.
-* **WPF-UI removed**: buttons, switches, the title bar, scroll bars, menus and tooltips are now custom. No third-party UI packages are referenced.
-* Build size dropped from **13.5 MB to ~2 MB**.
-* PowerShell scripts and everything that was needed to build the project besides the .NET SDK were removed from the repository.
-
 **Fixes (issue #1 and Pikabu feedback)**
 * Atomic `library.json` saves with a `.bak` backup — a failed write no longer wipes the library.
 * Safe path handling: no escaping the selected folder, drive availability checks.
@@ -204,7 +196,17 @@ Compat/                             — polyfills for modern C# on net472
 * SteamGridDB cover search: API key field in Settings, up to 36 community covers and results strictly for the matched game.
 * Updated interface strings, found/shown game counters.
 
+### Version 0.7.0
+
+**Size and platform**
+* Retargeted from .NET 8 to **.NET Framework 4.7.2**, which ships with Windows 10 1803+ and Windows 11, so the launcher starts without installing a runtime.
+* **WPF-UI removed**: buttons, switches, the title bar, scroll bars, menus and tooltips are now custom. No third-party UI packages are referenced.
+* Build size dropped from **13.5 MB to ~2 MB**.
+* PowerShell scripts and everything that was needed to build the project besides the .NET SDK were removed from the repository.
+
+
 ### Version 0.6.0
+
 * Built-in playtime counter.
 * Improved deep `.exe` search in hidden and non-standard folders.
 * Minimizing to the system tray when a game starts.
