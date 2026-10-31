@@ -95,6 +95,7 @@
     <SolidColorBrush x:Key="BpSecondaryHoverBrush" Color="#242924" />
     <SolidColorBrush x:Key="BpScrimBrush" Color="#99000000" />
     <SolidColorBrush x:Key="BpPanelBrush" Color="#F2171A18" />
+    <SolidColorBrush x:Key="BpHeroPanelBrush" Color="#66171A18" />
     <SolidColorBrush x:Key="BpHeroTextBrush" Color="#F7F7F7" />
     <SolidColorBrush x:Key="BpHeroMutedBrush" Color="#D6DBD4" />
     <SolidColorBrush x:Key="BpHeroAccentBrush" Color="#A5F26B" />
@@ -121,7 +122,8 @@
 
     <LinearGradientBrush x:Key="BpHeroBottomFadeBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Offset="0" Color="#00111315" />
-        <GradientStop Offset="0.78" Color="#40111315" />
+        <GradientStop Offset="0.85" Color="#33111315" />
+        <GradientStop Offset="0.97" Color="#FF111315" />
         <GradientStop Offset="1" Color="#FF111315" />
     </LinearGradientBrush>
 

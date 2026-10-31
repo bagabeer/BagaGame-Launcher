@@ -10,7 +10,7 @@
         Background="{DynamicResource BpBackgroundBrush}"
         ShowInTaskbar="True"
         SnapsToDevicePixels="True"
-        UseLayoutRounding="False"
+        UseLayoutRounding="True"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Grayscale"
         Closing="Window_Closing">
@@ -317,6 +317,12 @@
                        Stretch="UniformToFill"
                        Opacity="0.5"
                        RenderOptions.BitmapScalingMode="LowQuality">
+                    <Image.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0.9" Color="#FFFFFFFF" />
+                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                        </LinearGradientBrush>
+                    </Image.OpacityMask>
                     <Image.Effect>
                         <BlurEffect KernelType="Gaussian" Radius="92" />
                     </Image.Effect>
@@ -326,6 +332,12 @@
                 <Image Source="{Binding HeroImage}"
                        Stretch="UniformToFill"
                        RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0.9" Color="#FFFFFFFF" />
+                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                        </LinearGradientBrush>
+                    </Image.OpacityMask>
                     <Image.Style>
                         <Style TargetType="Image">
                             <Setter Property="Opacity" Value="0" />
@@ -367,13 +379,6 @@
 
                 <!-- Bottom shade blends the banner into the carousel. -->
                 <Rectangle Fill="{DynamicResource BpHeroBottomFadeBrush}" />
-
-                <!-- Solid strip: fractional UI scaling can leave a one-pixel
-                     seam where the artwork meets the carousel background. -->
-                <Rectangle Height="3"
-                           VerticalAlignment="Bottom"
-                           Fill="{DynamicResource BpBackgroundBrush}"
-                           IsHitTestVisible="False" />
 
                 <!-- Clock and settings -->
                 <StackPanel Margin="0,26,30,0"
@@ -474,45 +479,68 @@
                                TextTrimming="CharacterEllipsis"
                                TextWrapping="Wrap" />
 
-                    <TextBlock Margin="2,14,0,0"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource BpAccentBrush}"
-                               Text="{Binding SelectedGenres}"
-                               TextTrimming="CharacterEllipsis">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Margin="2,14,0,0"
+                            Padding="18,14"
+                            HorizontalAlignment="Left"
+                            MaxWidth="820"
+                            Background="{DynamicResource BpHeroPanelBrush}"
+                            BorderThickness="0"
+                            CornerRadius="14">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Collapsed" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasGenres}" Value="True">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-
-                    <TextBlock Margin="2,12,0,0"
-                               MaxWidth="820"
-                               MaxHeight="66"
-                               FontSize="15"
-                               Foreground="{DynamicResource BpDescriptionBrush}"
-                               Text="{Binding SelectedDescription}"
-                               TextTrimming="CharacterEllipsis"
-                               TextWrapping="Wrap">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasDescription}" Value="True">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
 
-                    <StackPanel Margin="0,24,0,0" Orientation="Horizontal">
+                        <StackPanel>
+                            <TextBlock FontSize="13.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource BpAccentBrush}"
+                                       Text="{Binding SelectedGenres}"
+                                       TextTrimming="CharacterEllipsis">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasGenres}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <TextBlock Margin="0,8,0,0"
+                                       MaxWidth="760"
+                                       MaxHeight="66"
+                                       FontSize="14.5"
+                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Text="{Binding SelectedDescription}"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasDescription}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
                         <Button Click="Play_Click"
                                 Style="{DynamicResource BpPrimaryButton}">
                             <StackPanel Orientation="Horizontal">
@@ -760,6 +788,16 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </Grid>
+
+            <!-- The last rows of the banner can pick up a one-pixel seam on
+                 scaled displays; this strip is drawn above everything. -->
+            <Rectangle Grid.Row="0"
+                       Height="8"
+                       Margin="0,0,0,-4"
+                       VerticalAlignment="Bottom"
+                       Fill="{DynamicResource BpBackgroundBrush}"
+                       IsHitTestVisible="False"
+                       Panel.ZIndex="99" />
 
             <!-- Control hints -->
 
