@@ -18,7 +18,7 @@ BagaGame Launcher 0.8.0 — обновление обложек
 
 **Библиотека и карточки**
 * У игры без постера в правом верхнем углу появляется подсказка «Добавить обложку»; фон проявляется при наведении.
-* Скрытые игры можно восстанавливать по одной, список раскрывается маленькой стрелкой.
+* Скрытые игры можно восстанавливать по одной; список раскрывается маленькой стрелкой и показывает все скрытые игры.
 * У скрытых игр показывается папка или магазин, как в основном списке.
 * Окно выбора обложки стало компактным: четыре обложки в ряд, без пустоты справа.
 * На экране кадрирования один понятный заголовок и настоящая рамка 2:3.
@@ -63,7 +63,7 @@ BagaGame Launcher 0.8.0 — cover update
 
 **Library and cards**
 * Cards without a poster show a small "Add cover" hint in the top-right corner; the background appears on hover.
-* Hidden games can be restored one by one; the list expands with a small arrow.
+* Hidden games can be restored one by one; the list expands with a small arrow, so every hidden game is visible.
 * Hidden entries show their folder or store, like the main library list.
 * The cover dialog is compact: four covers per row, no empty space on the right.
 * The crop screen has one clear heading and a true 2:3 frame.

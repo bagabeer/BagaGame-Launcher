@@ -142,7 +142,7 @@ Compat/                             — polyfills for modern C# on net472
 
 **Library and cards**
 * Games without a poster show a small **Add cover** hint in the top-right corner; the background appears on hover.
-* Hidden games can be restored one by one; the list expands with a small arrow.
+* Hidden games can be restored one by one; the list expands with a small arrow, so every hidden game is visible.
 * Hidden entries show their folder or store, like the main library list.
 * The cover window is compact: four covers per row, no empty space on the right.
 * The crop screen has one clear heading and a true 2:3 frame.
