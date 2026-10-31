@@ -164,9 +164,12 @@ public sealed class GameLibraryService : IDisposable
     private readonly SemaphoreSlim _coverGate = new(6);
     private readonly Dictionary<string, int> _storeIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _storeSearchMisses = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, GameMetadata> _metadata = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _storeIdsLock = new();
+    private readonly object _metadataLock = new();
     private string _coverCacheDirectory = DefaultCoverCacheDirectory;
     private bool _storeIdsLoaded;
+    private bool _metadataLoaded;
 
     public GameLibraryService()
         : this(null)
@@ -1886,6 +1889,389 @@ public sealed class GameLibraryService : IDisposable
     }
 
     /// <summary>
+    /// Short store description and up to three genres for the Big Picture
+    /// banner. Results are cached per game and interface language; offline or
+    /// store-less games simply return <c>null</c>.
+    /// </summary>
+    public async Task<GameMetadata?> GetGameMetadataAsync(Game game, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(game.Id))
+        {
+            return null;
+        }
+
+        EnsureMetadataLoaded();
+
+        var cacheKey = (Loc.Current == AppLanguage.Russian ? "ru:" : "en:") + game.Id;
+
+        lock (_metadataLock)
+        {
+            if (_metadata.TryGetValue(cacheKey, out var cached) &&
+                (!string.IsNullOrWhiteSpace(cached.Description) || cached.Genres.Count > 0))
+            {
+                return cached;
+            }
+        }
+
+        var appId = game.AppId;
+        if (appId <= 0)
+        {
+            appId = await ResolveSteamAppIdAsync(game, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (appId <= 0)
+        {
+            return null;
+        }
+
+        var language = Loc.Current == AppLanguage.Russian ? "russian" : "english";
+        var result = new GameMetadata();
+
+        try
+        {
+            var url =
+                $"https://store.steampowered.com/api/appdetails?appids={appId}&l={language}&cc=US";
+
+            using var response = await GetWithRetryAsync(url, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (response is null || !response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            using var stream = await response.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            using var document = await JsonDocument.ParseAsync(
+                    stream,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!document.RootElement.TryGetProperty(appId.ToString(), out var entry) ||
+                !entry.TryGetProperty("data", out var data))
+            {
+                return null;
+            }
+
+            result.Description = CleanSteamText(GetJsonString(data, "short_description"));
+
+            if (data.TryGetProperty("genres", out var genres) && genres.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in genres.EnumerateArray())
+                {
+                    // 37 = Free to Play, 70 = Early Access: labels, not genres.
+                    var genreId = GetJsonInt(item, "id");
+                    if (genreId is 37 or 70)
+                    {
+                        continue;
+                    }
+
+                    var value = GetJsonString(item, "description");
+                    if (string.IsNullOrWhiteSpace(value) ||
+                        NonDescriptiveGenres.Contains(value, StringComparer.OrdinalIgnoreCase) ||
+                        result.Genres.Contains(value, StringComparer.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    result.Genres.Add(value);
+                    if (result.Genres.Count == 3)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(result.Description) && result.Genres.Count == 0)
+        {
+            return null;
+        }
+
+        lock (_metadataLock)
+        {
+            _metadata[cacheKey] = result;
+        }
+
+        SaveMetadata();
+        return result;
+    }
+
+    /// <summary>
+    /// Wide banner artwork for the Big Picture hero: Steam's library hero image
+    /// first, then SteamGridDB heroes for games the store does not know.
+    /// Returns a cached file path or <c>null</c> when nothing could be loaded.
+    /// </summary>
+    public async Task<string?> GetHeroArtworkAsync(
+        Game game,
+        string? steamGridDbKey,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(game.Id))
+        {
+            return null;
+        }
+
+        var directory = Path.Combine(_coverCacheDirectory, "heroes");
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+        }
+        catch
+        {
+            return null;
+        }
+
+        var path = Path.Combine(directory, HeroFileName(game.Id));
+
+        try
+        {
+            if (File.Exists(path) && new FileInfo(path).Length > 4096)
+            {
+                return path;
+            }
+        }
+        catch
+        {
+            // A locked cache file is simply rebuilt.
+        }
+
+        var appId = game.AppId;
+        if (appId <= 0)
+        {
+            appId = await ResolveSteamAppIdAsync(game, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (appId > 0)
+        {
+            var steamUrl =
+                $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_hero.jpg";
+
+            if (IsAllowedImageUrl(steamUrl))
+            {
+                var bytes = await DownloadImageAsync(steamUrl, cancellationToken).ConfigureAwait(false);
+                if (LooksLikeImage(bytes) && TrySave(file: path, bytes!))
+                {
+                    return path;
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(steamGridDbKey))
+        {
+            var heroUrl = await FindSteamGridDbHeroAsync(
+                    game.Title,
+                    steamGridDbKey,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (heroUrl is not null)
+            {
+                var bytes = await DownloadImageAsync(heroUrl, cancellationToken).ConfigureAwait(false);
+                if (LooksLikeImage(bytes) && TrySave(file: path, bytes!))
+                {
+                    return path;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<string?> FindSteamGridDbHeroAsync(
+        string title,
+        string apiKey,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return null;
+        }
+
+        try
+        {
+            var searchUrl =
+                "https://www.steamgriddb.com/api/v2/search/autocomplete/"
+                + Uri.EscapeDataString(title.Trim());
+
+            using var searchResponse = await GetWithRetryAsync(
+                    searchUrl,
+                    cancellationToken,
+                    bearerToken: apiKey)
+                .ConfigureAwait(false);
+
+            if (searchResponse is null || !searchResponse.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            using var searchStream = await searchResponse.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            using var searchDocument = await JsonDocument.ParseAsync(
+                    searchStream,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!searchDocument.RootElement.TryGetProperty("data", out var games) ||
+                games.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            var gameId = 0;
+            foreach (var item in games.EnumerateArray())
+            {
+                gameId = GetJsonInt(item, "id");
+                if (gameId > 0)
+                {
+                    break;
+                }
+            }
+
+            if (gameId <= 0)
+            {
+                return null;
+            }
+
+            var heroesUrl =
+                "https://www.steamgriddb.com/api/v2/heroes/game/"
+                + gameId
+                + "?types=static&nsfw=false&humor=false&epilepsy=false";
+
+            using var heroesResponse = await GetWithRetryAsync(
+                    heroesUrl,
+                    cancellationToken,
+                    bearerToken: apiKey)
+                .ConfigureAwait(false);
+
+            if (heroesResponse is null || !heroesResponse.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            using var heroesStream = await heroesResponse.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            using var heroesDocument = await JsonDocument.ParseAsync(
+                    heroesStream,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!heroesDocument.RootElement.TryGetProperty("data", out var heroes) ||
+                heroes.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            string? best = null;
+            var bestArea = 0;
+
+            foreach (var hero in heroes.EnumerateArray())
+            {
+                var url = GetJsonString(hero, "url");
+                if (url is null || !IsAllowedImageUrl(url))
+                {
+                    continue;
+                }
+
+                var width = GetJsonInt(hero, "width");
+                var height = GetJsonInt(hero, "height");
+
+                // Prefer true wide art; a square thumbnail would look blurry.
+                if (width < 1280 || height < 480)
+                {
+                    continue;
+                }
+
+                var area = width * height;
+                if (area > bestArea)
+                {
+                    bestArea = area;
+                    best = url;
+                }
+            }
+
+            return best;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool LooksLikeImage(byte[]? bytes)
+    {
+        if (bytes is null || bytes.Length < 512)
+        {
+            return false;
+        }
+
+        var jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8;
+        var png = bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
+        return jpeg || png;
+    }
+
+    private static bool TrySave(string file, byte[] bytes)
+    {
+        try
+        {
+            var temp = file + ".tmp";
+            File.WriteAllBytes(temp, bytes);
+            FileEx.MoveOverwrite(temp, file);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string HeroFileName(string id)
+    {
+        // Game ids contain paths and punctuation; a short hash keeps the file
+        // name valid and under the Windows path limit.
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(id));
+        var text = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+
+        return text.Substring(0, 24) + ".jpg";
+    }
+
+    /// <summary>
+    /// Steam descriptions may carry HTML entities and tags; the banner shows
+    /// plain text, so they are decoded and stripped.
+    /// </summary>
+    private static string? CleanSteamText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var decoded = System.Net.WebUtility.HtmlDecode(text);
+        var stripped = Regex.Replace(decoded, "<[^>]+>", " ");
+        return Regex.Replace(stripped, @"\s+", " ").Trim();
+    }
+
+    /// <summary>
     /// Steam lists "Action" for almost every game, so the most descriptive
     /// genre is picked first to keep the groups meaningful.
     /// </summary>
@@ -2712,6 +3098,71 @@ public sealed class GameLibraryService : IDisposable
     }
 
     private string StoreIdsPath => Path.Combine(_coverCacheDirectory, "storeids.json");
+
+    private string MetadataPath => Path.Combine(_coverCacheDirectory, "metadata-v2.json");
+
+    private void EnsureMetadataLoaded()
+    {
+        lock (_metadataLock)
+        {
+            if (_metadataLoaded)
+            {
+                return;
+            }
+
+            _metadataLoaded = true;
+
+            try
+            {
+                if (!File.Exists(MetadataPath))
+                {
+                    return;
+                }
+
+                var values = JsonSerializer.Deserialize<Dictionary<string, GameMetadata>>(
+                    File.ReadAllText(MetadataPath));
+
+                if (values is null)
+                {
+                    return;
+                }
+
+                foreach (var pair in values)
+                {
+                    _metadata[pair.Key] = pair.Value;
+                }
+            }
+            catch
+            {
+                // A corrupt metadata cache is rebuilt on demand.
+            }
+        }
+    }
+
+    private void SaveMetadata()
+    {
+        try
+        {
+            string json;
+
+            lock (_metadataLock)
+            {
+                json = JsonSerializer.Serialize(
+                    _metadata,
+                    new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            var path = MetadataPath;
+            var tempPath = path + ".tmp";
+            File.WriteAllText(tempPath, json);
+            FileEx.MoveOverwrite(tempPath, path);
+        }
+        catch
+        {
+            // Best effort: the banner simply loads the text again next launch.
+        }
+    }
+
     private void EnsureStoreIdsLoaded()
     {
         lock (_storeIdsLock)

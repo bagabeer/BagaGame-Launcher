@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using BagaGame.Models;
 using BagaGame.Services;
 using BagaGame.ViewModels;
+using BagaGame.Views;
 using Microsoft.Win32;
 
 namespace BagaGame;
@@ -20,6 +21,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private readonly LibraryStore _store;
     private Game? _renameTarget;
     private TrayIcon? _tray;
+    private BigPictureWindow? _bigPicture;
+    private bool _leavingBigPicture;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
     private bool _cropDragging;
@@ -44,6 +47,13 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         var workArea = SystemParameters.WorkArea;
         Width = Math.Max(MinWidth, Math.Min(Width, workArea.Width - 24));
         Height = Math.Max(MinHeight, Math.Min(Height, workArea.Height - 24));
+
+        // Center on the primary screen: Windows otherwise may place the window
+        // on another monitor (or off-screen) when the splash owned the
+        // foreground during startup.
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = workArea.Left + (workArea.Width - Width) / 2;
+        Top = workArea.Top + (workArea.Height - Height) / 2;
 
         _viewModel = new MainViewModel(
             new GameLibraryService(store.CoverCacheDirectory),
@@ -259,6 +269,99 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     }
 
     // ------------------------------------------------------------------
+    // Big Picture (fullscreen television mode)
+    // ------------------------------------------------------------------
+
+    private void BigPicture_Click(object sender, RoutedEventArgs e) => OpenBigPicture();
+
+    /// <summary>
+    /// Opens the fullscreen mode. The library window is hidden but stays alive:
+    /// the view model, the playtime tracker and the tray icon live in it.
+    /// </summary>
+    public void OpenBigPicture()
+    {
+        if (_bigPicture is { IsVisible: true } visible)
+        {
+            visible.Activate();
+            return;
+        }
+
+        if (_bigPicture is null)
+        {
+            var window = new BigPictureWindow(_viewModel, _store) { Owner = this };
+            window.ExitRequested += (_, _) => ExitBigPicture(null);
+            window.NavigateRequested += page => ExitBigPicture(page);
+            window.PlayRequested += LaunchFromBigPicture;
+            _bigPicture = window;
+        }
+
+        _leavingBigPicture = false;
+        BigPictureTransition.Enter(this, _bigPicture, _store.BigPictureSounds);
+    }
+
+    /// <summary>Fades Big Picture out and brings the library back.</summary>
+    public void ExitBigPicture(string? page)
+    {
+        if (_leavingBigPicture)
+        {
+            return;
+        }
+
+        if (_bigPicture is not { } window)
+        {
+            if (page is not null)
+            {
+                OpenMainPage(page);
+            }
+
+            return;
+        }
+
+        _leavingBigPicture = true;
+
+        BigPictureTransition.Exit(window, this, _store.BigPictureSounds, () =>
+        {
+            window.CloseApproved();
+            _bigPicture = null;
+            _leavingBigPicture = false;
+
+            if (page is not null)
+            {
+                OpenMainPage(page);
+            }
+        });
+    }
+
+    private void OpenMainPage(string page)
+    {
+        switch (page)
+        {
+            case "Scan":
+                ScanNav.IsChecked = true;
+                break;
+
+            case "Settings":
+                SettingsNav.IsChecked = true;
+                break;
+
+            default:
+                LibraryNav.IsChecked = true;
+                break;
+        }
+    }
+
+    private void LaunchFromBigPicture(Game game)
+    {
+        if (!_viewModel.LaunchGame(game))
+        {
+            return;
+        }
+
+        _bigPicture?.Hide();
+        HideInTray(game.Title);
+    }
+
+    // ------------------------------------------------------------------
 // Tray (a launched game gets the whole screen; playtime keeps counting)
 // ------------------------------------------------------------------
 
@@ -295,6 +398,19 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// <summary>Second launch of the .exe: the running window comes to the front.</summary>
     public void ShowFromExternalLaunch()
     {
+        if (_bigPicture is { } bigPicture)
+        {
+            if (bigPicture.IsVisible)
+            {
+                bigPicture.Activate();
+                return;
+            }
+
+            // A game is running; the tray restore brings Big Picture back.
+            RestoreFromTray();
+            return;
+        }
+
         if (_tray is not null)
         {
             _tray.Visible = false;
@@ -323,6 +439,25 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         if (_tray is not null)
         {
             _tray.Visible = false;
+        }
+
+        // In Big Picture the game was started from the television interface,
+        // so the television interface is what comes back.
+        if (_bigPicture is { } bigPicture)
+        {
+            if (!bigPicture.IsVisible)
+            {
+                bigPicture.PrepareForShow();
+                bigPicture.Show();
+                bigPicture.Activate();
+                bigPicture.PlayEntrance();
+            }
+            else
+            {
+                bigPicture.Activate();
+            }
+
+            return;
         }
 
         Show();
@@ -861,6 +996,13 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
+        if (e.Key == Key.F11)
+        {
+            e.Handled = true;
+            OpenBigPicture();
+            return;
+        }
+
         if (e.Key == Key.F5)
         {
             e.Handled = true;
@@ -1007,6 +1149,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     protected override void OnClosed(EventArgs e)
     {
+        _bigPicture?.CloseApproved();
+        _bigPicture = null;
+
         _tray?.Dispose();
         _tray = null;
         _viewModel.PropertyChanged -= ViewModel_PropertyChanged;

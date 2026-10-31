@@ -11,6 +11,25 @@
     <sys:String x:Key="Loc.Nav.Scan">Сканирование</sys:String>
     <sys:String x:Key="Loc.Nav.Settings">Настройки</sys:String>
 
+    <sys:String x:Key="Loc.BP.Button">Big Picture</sys:String>
+    <sys:String x:Key="Loc.BP.ButtonTip">Полноэкранный режим для телевизора (F11)</sys:String>
+    <sys:String x:Key="Loc.BP.Play">Играть</sys:String>
+    <sys:String x:Key="Loc.BP.Details">Подробнее</sys:String>
+    <sys:String x:Key="Loc.BP.Recent">Недавние игры</sys:String>
+    <sys:String x:Key="Loc.BP.Launch">Запуск: {0}</sys:String>
+    <sys:String x:Key="Loc.BP.Idle">Лаунчер готов</sys:String>
+    <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Move">выбор</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Exit">выход</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Title">Библиотека пуста</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Text">Добавьте папку с играми в основном окне — здесь они появятся с обложками.</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Title">Об игре</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Playtime">Источник и время</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Path">Папка</sys:String>
+    <sys:String x:Key="Loc.BP.Close">Закрыть</sys:String>
+    <sys:String x:Key="Loc.BP.Menu">Меню</sys:String>
+    <sys:String x:Key="Loc.BP.NotPlayed">Ещё не играли</sys:String>
+
     <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Открыть папку</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Переименовать</sys:String>

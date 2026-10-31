@@ -10,6 +10,25 @@
     <sys:String x:Key="Loc.Nav.Scan">Scan</sys:String>
     <sys:String x:Key="Loc.Nav.Settings">Settings</sys:String>
 
+    <sys:String x:Key="Loc.BP.Button">Big Picture</sys:String>
+    <sys:String x:Key="Loc.BP.ButtonTip">Fullscreen television mode (F11)</sys:String>
+    <sys:String x:Key="Loc.BP.Play">Play</sys:String>
+    <sys:String x:Key="Loc.BP.Details">Details</sys:String>
+    <sys:String x:Key="Loc.BP.Recent">Recent games</sys:String>
+    <sys:String x:Key="Loc.BP.Launch">Launching: {0}</sys:String>
+    <sys:String x:Key="Loc.BP.Idle">Launcher ready</sys:String>
+    <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Move">select</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Exit">exit</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Title">Library is empty</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Text">Add a games folder in the main window - games will appear here with their covers.</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Title">About the game</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Playtime">Source and playtime</sys:String>
+    <sys:String x:Key="Loc.BP.Details.Path">Folder</sys:String>
+    <sys:String x:Key="Loc.BP.Close">Close</sys:String>
+    <sys:String x:Key="Loc.BP.Menu">Menu</sys:String>
+    <sys:String x:Key="Loc.BP.NotPlayed">Not played yet</sys:String>
+
     <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Open folder</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Rename</sys:String>

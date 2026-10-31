@@ -76,6 +76,40 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>UI sounds when Big Picture opens and closes; on by default.</summary>
+    public bool BigPictureSounds
+    {
+        get => _data.BigPictureSounds;
+        set
+        {
+            if (_data.BigPictureSounds == value)
+            {
+                return;
+            }
+
+            _data.BigPictureSounds = value;
+            Save();
+        }
+    }
+
+    /// <summary>Unix seconds of the last launch, used for "recent games".</summary>
+    public long LastPlayed(string gameId)
+    {
+        return _data.LastPlayed.TryGetValue(gameId, out var seconds) ? seconds : 0;
+    }
+
+    /// <summary>Remembers that a game was started from the launcher.</summary>
+    public void MarkPlayed(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+        {
+            return;
+        }
+
+        _data.LastPlayed[gameId] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        Save();
+    }
+
     public bool DownloadCovers
     {
         get => _data.DownloadCovers;
@@ -755,6 +789,10 @@ public sealed class LibraryStore
         public Dictionary<string, string> Genres { get; set; } = new();
 
         public Dictionary<string, long> Playtime { get; set; } = new();
+
+        public Dictionary<string, long> LastPlayed { get; set; } = new();
+
+        public bool BigPictureSounds { get; set; } = true;
 
         public bool DownloadCovers { get; set; } = true;
 

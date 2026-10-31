@@ -1,0 +1,891 @@
+<Window x:Class="BagaGame.Views.BigPictureWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:BagaGame.Controls"
+        Title="BagaGame Big Picture"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterOwner"
+        Background="#111315"
+        ShowInTaskbar="True"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+
+        <!-- ============================== Palette ============================ -->
+
+        <SolidColorBrush x:Key="BpBackgroundBrush" Color="#111315" />
+        <SolidColorBrush x:Key="BpSidebarBrush" Color="#17191C" />
+        <SolidColorBrush x:Key="BpCardBrush" Color="#1C1F1D" />
+        <SolidColorBrush x:Key="BpTextBrush" Color="#F2F2F2" />
+        <SolidColorBrush x:Key="BpTextMutedBrush" Color="#92969D" />
+        <SolidColorBrush x:Key="BpBorderBrush" Color="#26FFFFFF" />
+
+        <SolidColorBrush x:Key="BpAccentBrush" Color="#A5F26B" />
+        <SolidColorBrush x:Key="BpAccentForegroundBrush" Color="#101A0C" />
+        <SolidColorBrush x:Key="BpAccentSoftBrush" Color="#1FA5F26B" />
+
+        <!-- ============================== Buttons ============================ -->
+
+        <Style x:Key="BpPrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BpAccentBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource BpAccentForegroundBrush}" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="28,13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Fill"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="11">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Fill" Property="Background" Value="#BDFF8A" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Fill" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BpSecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#1B1F1C" />
+            <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="26,13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Fill"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource BpBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="11">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Fill" Property="Background" Value="#242924" />
+                                <Setter TargetName="Fill" Property="BorderBrush" Value="#4DFFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Fill" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BpIconButton" TargetType="Button">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Fill"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Fill" Property="Background" Value="#1FFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ============================ Navigation =========================== -->
+
+        <Style x:Key="BpNavButton" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource BpTextMutedBrush}" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg"
+                                Padding="16,13"
+                                Background="Transparent"
+                                CornerRadius="12">
+                            <Grid>
+                                <Border x:Name="Bar"
+                                        Width="4"
+                                        Height="20"
+                                        Margin="-10,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="{StaticResource BpAccentBrush}"
+                                        CornerRadius="2"
+                                        Opacity="0" />
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon x:Name="Glyph"
+                                                   FontSize="20"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   Symbol="{TemplateBinding Tag}" />
+                                    <ContentPresenter Margin="14,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#12FFFFFF" />
+                                <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{StaticResource BpAccentSoftBrush}" />
+                                <Setter TargetName="Bar" Property="Opacity" Value="1" />
+                                <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ============================== Hints ============================== -->
+
+        <Style x:Key="BpKeyCap" TargetType="Border">
+            <Setter Property="Background" Value="#22FFFFFF" />
+            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="9,3" />
+        </Style>
+
+        <Style x:Key="BpKeyText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource BpTextBrush}" />
+        </Style>
+
+        <Style x:Key="BpHintText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource BpTextMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="PadBadge" TargetType="Border">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="#33FFFFFF" />
+            <Setter Property="CornerRadius" Value="12" />
+        </Style>
+
+        <Style x:Key="PadBadgeText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#0E140C" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+    </Window.Resources>
+
+    <!-- The whole layout is designed for 1080p and scaled by the screen height. -->
+    <Grid x:Name="Root" Background="{StaticResource BpBackgroundBrush}">
+        <Grid.LayoutTransform>
+            <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1" />
+        </Grid.LayoutTransform>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="284" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ============================== Sidebar =========================== -->
+
+        <Border Grid.Column="0" Background="{StaticResource BpSidebarBrush}">
+            <Grid Margin="26,30,26,26">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="52"
+                            Height="52"
+                            Background="{DynamicResource LogoBrush}"
+                            CornerRadius="15">
+                        <ui:SymbolIcon FontSize="26"
+                                       Foreground="#13200C"
+                                       Symbol="Gamepad24" />
+                    </Border>
+                    <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   FontSize="21"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource BpTextBrush}"
+                                   Text="BagaGame" />
+                        <TextBlock Margin="1,3,0,0"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="GAME LAUNCHER" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Section label. Navigation lives in the list itself; the only
+                     other destinations (scan, settings) stay in the main window
+                     because they are awkward on a controller. -->
+                <StackPanel Grid.Row="1" Margin="0,40,0,0">
+                    <Border Padding="16,13"
+                            Background="{StaticResource BpAccentSoftBrush}"
+                            CornerRadius="12">
+                        <Grid>
+                            <Border Width="4"
+                                    Height="20"
+                                    Margin="-10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    Background="{StaticResource BpAccentBrush}"
+                                    CornerRadius="2" />
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="20"
+                                               Foreground="{StaticResource BpTextBrush}"
+                                               Symbol="Library24" />
+                                <TextBlock Margin="14,0,0,0"
+                                           VerticalAlignment="Center"
+                                           FontSize="16"
+                                           Foreground="{StaticResource BpTextBrush}"
+                                           Text="{DynamicResource Loc.Nav.Library}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- Status card -->
+                <Border Grid.Row="2"
+                        Padding="16,14"
+                        Background="{StaticResource BpCardBrush}"
+                        CornerRadius="14">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8"
+                                     Height="8"
+                                     VerticalAlignment="Center"
+                                     Fill="{DynamicResource SuccessBrush}" />
+                            <TextBlock Margin="9,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="13"
+                                       Foreground="{StaticResource BpTextBrush}"
+                                       Text="{Binding StatusText}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Margin="17,5,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="{Binding GamesCountText}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- =============================== Content ========================== -->
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Hero banner -->
+
+            <Grid Grid.Row="0" ClipToBounds="True">
+                <Image Source="{Binding SelectedCover}"
+                       Stretch="UniformToFill"
+                       Opacity="0.5"
+                       RenderOptions.BitmapScalingMode="LowQuality">
+                    <Image.Effect>
+                        <BlurEffect KernelType="Gaussian" Radius="92" />
+                    </Image.Effect>
+                </Image>
+
+                <!-- Wide store artwork; the poster above stays as a fallback. -->
+                <Image Source="{Binding HeroImage}"
+                       Stretch="UniformToFill"
+                       RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Opacity" Value="0" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasHero}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                 To="0.92"
+                                                                 Duration="0:0:0.35">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                 To="0"
+                                                                 Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- Left-to-right shade keeps the text readable on bright art. -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Offset="0" Color="#D9111315" />
+                            <GradientStop Offset="0.5" Color="#8C111315" />
+                            <GradientStop Offset="1" Color="#1A111315" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Top shade keeps the clock readable on bright artwork. -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#99111315" />
+                            <GradientStop Offset="0.28" Color="#33111315" />
+                            <GradientStop Offset="1" Color="#00111315" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Bottom shade blends the banner into the carousel. -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#00111315" />
+                            <GradientStop Offset="0.6" Color="#40111315" />
+                            <GradientStop Offset="1" Color="#FF111315" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Clock and settings -->
+                <StackPanel Margin="0,26,30,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Orientation="Horizontal">
+                    <TextBlock Margin="0,0,14,0"
+                               VerticalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{StaticResource BpTextBrush}"
+                               Text="{Binding ClockText}" />
+                    <Button Click="Settings_Click"
+                            Style="{StaticResource BpIconButton}"
+                            ToolTip="{DynamicResource Loc.Nav.Settings}">
+                        <ui:SymbolIcon FontSize="18"
+                                       Foreground="{StaticResource BpTextBrush}"
+                                       Symbol="Settings24" />
+                    </Button>
+                </StackPanel>
+
+                <!-- Game information -->
+                <StackPanel Margin="56,0,56,42"
+                            MaxWidth="900"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom">
+                    <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
+                               FontSize="54"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BpTextBrush}"
+                               Text="{Binding SelectedTitle}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap" />
+
+                    <TextBlock Margin="2,14,0,0"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource BpAccentBrush}"
+                               Text="{Binding SelectedGenres}"
+                               TextTrimming="CharacterEllipsis">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasGenres}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock Margin="2,12,0,0"
+                               MaxWidth="820"
+                               MaxHeight="66"
+                               FontSize="15"
+                               Foreground="#C6CCC6"
+                               Text="{Binding SelectedDescription}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDescription}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <StackPanel Margin="0,24,0,0" Orientation="Horizontal">
+                        <Button Click="Play_Click"
+                                Style="{StaticResource BpPrimaryButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="16"
+                                               Foreground="{StaticResource BpAccentForegroundBrush}"
+                                               Symbol="Play24" />
+                                <TextBlock Margin="9,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{DynamicResource Loc.BP.Play}" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Margin="12,0,0,0"
+                                Click="Details_Click"
+                                Style="{StaticResource BpSecondaryButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="16"
+                                               Foreground="{StaticResource BpTextBrush}"
+                                               Symbol="Info24" />
+                                <TextBlock Margin="9,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{DynamicResource Loc.BP.Details}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Empty library -->
+                <Border Background="#E6111315">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasGames}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <ui:SymbolIcon FontSize="46"
+                                       Foreground="{StaticResource BpTextMutedBrush}"
+                                       Symbol="Games24" />
+                        <TextBlock Margin="0,16,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="24"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource BpTextBrush}"
+                                   Text="{Binding EmptyTitle}" />
+                        <TextBlock Margin="0,8,0,0"
+                                   MaxWidth="480"
+                                   HorizontalAlignment="Center"
+                                   FontSize="14"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="{Binding EmptyText}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Carousel -->
+
+            <Grid Grid.Row="1" Margin="56,18,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,56,14">
+                    <TextBlock FontSize="23"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource BpTextBrush}"
+                               Text="{DynamicResource Loc.BP.Recent}" />
+                    <TextBlock HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               FontSize="12"
+                               Foreground="{StaticResource BpTextMutedBrush}"
+                               Text="{Binding CounterText}" />
+                </Grid>
+
+                <ListBox x:Name="GamesList"
+                         Grid.Row="1"
+                         Height="330"
+                         Padding="0,12,0,12"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         FocusVisualStyle="{x:Null}"
+                         ItemsSource="{Binding Games}"
+                         KeyboardNavigation.DirectionalNavigation="Contained"
+                         ScrollViewer.CanContentScroll="True"
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         SelectedItem="{Binding SelectedGame, Mode=TwoWay}"
+                         SelectionChanged="GamesList_SelectionChanged"
+                         VerticalContentAlignment="Center"
+                         VirtualizingStackPanel.IsVirtualizing="True"
+                         VirtualizingStackPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Margin" Value="0,0,20,0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <StackPanel Width="150"
+                                                    RenderTransformOrigin="0.5,0.5">
+                                            <StackPanel.RenderTransform>
+                                                <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
+                                            </StackPanel.RenderTransform>
+
+                                            <Border x:Name="Frame"
+                                                    Height="225"
+                                                    Background="#191C19"
+                                                    BorderBrush="#1FFFFFFF"
+                                                    BorderThickness="2"
+                                                    CornerRadius="12">
+                                                <Grid>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="34"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#33FFFFFF"
+                                                               Text="{Binding Initials}" />
+
+                                                    <!-- RadiusX/Y clips the artwork, so a
+                                                         scaled card never shows square
+                                                         corners outside the rounded frame. -->
+                                                    <Rectangle RadiusX="10"
+                                                               RadiusY="10"
+                                                               Stretch="Fill">
+                                                        <Rectangle.Fill>
+                                                            <ImageBrush AlignmentX="Center"
+                                                                        AlignmentY="Center"
+                                                                        ImageSource="{Binding Cover}"
+                                                                        Stretch="UniformToFill" />
+                                                        </Rectangle.Fill>
+                                                    </Rectangle>
+                                                </Grid>
+                                            </Border>
+
+                                            <TextBlock x:Name="Caption"
+                                                       Margin="2,11,0,0"
+                                                       MaxHeight="40"
+                                                       FontSize="14"
+                                                       Foreground="{StaticResource BpTextMutedBrush}"
+                                                       Text="{Binding Title}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource BpAccentBrush}" />
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                                <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
+                                                <Setter TargetName="Frame" Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="26"
+                                                                          Direction="0"
+                                                                          Opacity="0.55"
+                                                                          ShadowDepth="0"
+                                                                          Color="#A5F26B" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="Panel.ZIndex" Value="2" />
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                                             Storyboard.TargetProperty="ScaleX"
+                                                                             To="1.05"
+                                                                             Duration="0:0:0.16">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut" />
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                            <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                                             Storyboard.TargetProperty="ScaleY"
+                                                                             To="1.05"
+                                                                             Duration="0:0:0.16">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut" />
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                                             Storyboard.TargetProperty="ScaleX"
+                                                                             To="1"
+                                                                             Duration="0:0:0.16" />
+                                                            <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                                             Storyboard.TargetProperty="ScaleY"
+                                                                             To="1"
+                                                                             Duration="0:0:0.16" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource BpTextBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </Grid>
+
+            <!-- Control hints -->
+
+            <Grid Grid.Row="2" Height="62" Margin="56,10,56,16">
+                <Grid VerticalAlignment="Center">
+                    <StackPanel x:Name="KeyboardHints" Orientation="Horizontal">
+                        <Border Style="{StaticResource BpKeyCap}">
+                            <TextBlock Style="{StaticResource BpKeyText}" Text="←  →" />
+                        </Border>
+                        <TextBlock Margin="8,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Move}" />
+
+                        <Border Style="{StaticResource BpKeyCap}">
+                            <TextBlock Style="{StaticResource BpKeyText}" Text="Enter" />
+                        </Border>
+                        <TextBlock Margin="8,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Play}" />
+
+                        <Border Style="{StaticResource BpKeyCap}">
+                            <TextBlock Style="{StaticResource BpKeyText}" Text="Space" />
+                        </Border>
+                        <TextBlock Margin="8,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Details}" />
+
+                        <Border Style="{StaticResource BpKeyCap}">
+                            <TextBlock Style="{StaticResource BpKeyText}" Text="Esc" />
+                        </Border>
+                        <TextBlock Margin="8,0,0,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Exit}" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="PadHints"
+                                Visibility="Collapsed"
+                                Orientation="Horizontal">
+                        <Border Background="#6FBF4A" Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="A" />
+                        </Border>
+                        <TextBlock Margin="0,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Play}" />
+
+                        <Border Background="#4A90E2" Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="X" />
+                        </Border>
+                        <TextBlock Margin="0,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Details}" />
+
+                        <Border Background="#7C848C" Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="☰" />
+                        </Border>
+                        <TextBlock Margin="0,0,18,0"
+                                   Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Menu}" />
+
+                        <Border Background="#E2574A" Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="B" />
+                        </Border>
+                        <TextBlock Style="{StaticResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Exit}" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{StaticResource BpTextMutedBrush}"
+                           Text="F11" />
+            </Grid>
+        </Grid>
+
+        <!-- =========================== Details panel ======================== -->
+
+        <Grid x:Name="DetailsOverlay"
+              Grid.ColumnSpan="2"
+              Background="#99000000"
+              Visibility="Collapsed"
+              MouseLeftButtonDown="DetailsOverlay_MouseLeftButtonDown">
+            <Border Width="460"
+                    Margin="0,40,40,40"
+                    Padding="34,32"
+                    HorizontalAlignment="Right"
+                    Background="#F2171A18"
+                    BorderBrush="#26FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel>
+                        <TextBlock FontSize="12"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="{DynamicResource Loc.BP.Details.Title}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   FontSize="30"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource BpTextBrush}"
+                                   Text="{Binding SelectedTitle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Margin="0,26,0,0">
+                        <TextBlock FontSize="12"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="{DynamicResource Loc.BP.Details.Playtime}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="16"
+                                   Foreground="{StaticResource BpTextBrush}"
+                                   Text="{Binding SelectedPlaytimeText}" />
+
+                        <TextBlock Margin="0,20,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource BpTextMutedBrush}"
+                                   Text="{DynamicResource Loc.BP.Details.Path}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="13"
+                                   Foreground="{StaticResource BpTextBrush}"
+                                   Text="{Binding SelectedFolder}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Button Grid.Row="2"
+                            Margin="0,24,0,0"
+                            HorizontalAlignment="Left"
+                            Click="CloseDetails_Click"
+                            Style="{StaticResource BpSecondaryButton}">
+                        <TextBlock Text="{DynamicResource Loc.BP.Close}" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================== Veil ============================== -->
+
+        <!-- Covers the window while the mode changes, then fades out. -->
+        <Border x:Name="Veil"
+                Grid.ColumnSpan="2"
+                Background="{StaticResource BpBackgroundBrush}"
+                IsHitTestVisible="False"
+                Opacity="0" />
+
+        <!-- Console-style brand animation played on every entrance. -->
+        <Grid x:Name="IntroLogo"
+              Grid.ColumnSpan="2"
+              Background="{StaticResource BpBackgroundBrush}"
+              IsHitTestVisible="False"
+              Opacity="0"
+              Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Width="108"
+                        Height="108"
+                        Background="{DynamicResource LogoBrush}"
+                        CornerRadius="30"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="IntroLogoScale" ScaleX="1" ScaleY="1" />
+                    </Border.RenderTransform>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="46"
+                                          Direction="270"
+                                          Opacity="0.55"
+                                          ShadowDepth="0"
+                                          Color="#8CE85B" />
+                    </Border.Effect>
+                    <ui:SymbolIcon FontSize="54"
+                                   Foreground="#13200C"
+                                   Symbol="Gamepad24" />
+                </Border>
+
+                <TextBlock Margin="0,24,0,0"
+                           HorizontalAlignment="Center"
+                           FontFamily="Segoe UI Variable Display, Segoe UI"
+                           FontSize="34"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource BpTextBrush}"
+                           Text="BagaGame" />
+
+                <TextBlock Margin="1,6,0,0"
+                           HorizontalAlignment="Center"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource BpTextMutedBrush}"
+                           Text="GAME LAUNCHER" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

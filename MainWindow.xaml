@@ -126,6 +126,40 @@
             </Setter>
         </Style>
 
+        <!-- Big Picture entry point in the library header. -->
+        <Style x:Key="HeaderChipButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource CardStrokeHoverBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Library grouping pill ("Все / А–Я / Жанры / Серии"). -->
         <!-- Minimal chevron used to expand small lists in Settings. -->
         <Style x:Key="ChevronToggleStyle" TargetType="ToggleButton">
@@ -914,6 +948,22 @@
                     <StackPanel Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
+                        <Button x:Name="BigPictureButton"
+                                Margin="0,0,10,0"
+                                AutomationProperties.Name="{DynamicResource Loc.BP.Button}"
+                                Click="BigPicture_Click"
+                                Style="{StaticResource HeaderChipButtonStyle}"
+                                ToolTip="{DynamicResource Loc.BP.ButtonTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="15"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Symbol="Gamepad24" />
+                                <TextBlock Margin="7,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{DynamicResource Loc.BP.Button}" />
+                            </StackPanel>
+                        </Button>
+
                         <Button x:Name="AddGameButton"
                                 AutomationProperties.Name="{DynamicResource Loc.Library.AddGame}"
                                 Click="AddGame_Click"

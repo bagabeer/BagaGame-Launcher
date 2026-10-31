@@ -115,6 +115,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>Filtered, sorted and grouped view bound to the library grid.</summary>
     public ICollectionView GamesView => _view;
 
+    /// <summary>Artwork, metadata and store lookups used by Big Picture.</summary>
+    public GameLibraryService LibraryService => _libraryService;
+
     public int GamesCount => Games.Count;
 
     public int VisibleCount => _view.Count;
@@ -457,6 +460,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 });
 
                 SetStatus("Loc.Status.Launching", game.Title);
+                _store.MarkPlayed(game.Id);
                 _playtime.Track(game);
                 return true;
             }
@@ -470,6 +474,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 });
 
                 SetStatus("Loc.Status.Launching", game.Title);
+                _store.MarkPlayed(game.Id);
                 _playtime.Track(game);
                 return true;
             }
