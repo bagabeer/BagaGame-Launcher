@@ -376,21 +376,6 @@
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource IconMutedBrush}"
                                            Text="{Binding Initials}" />
-
-                                <ui:BagaButton x:Name="CoverBadgeButton"
-                                               Height="16"
-                                               Margin="0,8,0,0"
-                                               Padding="0"
-                                               HorizontalAlignment="Center"
-                                               AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
-                                               Background="Transparent"
-                                               BorderThickness="0"
-                                               Click="CoverBadge_Click"
-                                               Content="{DynamicResource Loc.Cover.AddBadge}"
-                                               FontSize="9.5"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
-                                               Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
                             </StackPanel>
 
                             <!-- ImageBrush is clipped by CornerRadius automatically. -->
@@ -428,7 +413,23 @@
                                            Text="{Binding PathUnavailableText}" />
                             </Border>
 
-                            <!-- Small play hint that appears on hover. -->
+                            <!-- No poster was found: a quiet top-right hint, highlighted on hover. -->
+                            <ui:BagaButton x:Name="CoverBadgeButton"
+                                           Height="22"
+                                           Margin="0,8,8,0"
+                                           Padding="7,3"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Top"
+                                           AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
+                                           Background="Transparent"
+                                           BorderThickness="0"
+                                           Click="CoverBadge_Click"
+                                           Content="{DynamicResource Loc.Cover.AddBadge}"
+                                           CornerRadius="6"
+                                           FontSize="9.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
+                                           Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}" />
                             <Border x:Name="PlayBadge"
                                     Width="36"
                                     Height="36"
