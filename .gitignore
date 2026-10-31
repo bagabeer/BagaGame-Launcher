@@ -2,17 +2,29 @@
 bin/
 obj/
 .vs/
+*.user
+*.suo
 
-## Installer output
+## Publish / local packaging output
 dist/
+publish/
+Release/
+Releases/
 
 ## Portable data written next to the executable
 BagaGameData/
 
-## Local tooling / screenshots
+## Local tooling, caches and screenshots
 .artifacts/
 .dotnet/
+*.log
+crash.log
 
-## IDE
-*.user
-*.suo
+## Editor / OS noise
+.idea/
+.vscode/
+*.tmp
+*.bak
+Thumbs.db
+desktop.ini
+.DS_Store
