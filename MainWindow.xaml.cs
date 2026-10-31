@@ -82,6 +82,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         Activated += (_, _) => UpdateGamepadWatcher();
         Deactivated += (_, _) => _gamepadWatcher.Stop();
+        StateChanged += (_, _) => UpdateGamepadWatcher();
 
         Loaded += MainWindow_Loaded;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
@@ -654,6 +655,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// </summary>
     private void HideInTray(string gameTitle)
     {
+        // A running game does not need controller polling in the background.
+        _gamepadWatcher.Stop();
+
         _tray ??= new TrayIcon(RestoreFromTray, ExitFromTray);
         _tray.RefreshTexts();
         _tray.Visible = true;
@@ -748,6 +752,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         Activate();
+        UpdateGamepadWatcher();
     }
 
     private void ExitFromTray()

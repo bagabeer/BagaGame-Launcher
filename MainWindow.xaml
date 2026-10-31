@@ -117,8 +117,8 @@
                                 <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -259,8 +259,10 @@
                                 <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource TileFillHoverBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AccentStrokeBrush}" />
+                                <Setter TargetName="Bg" Property="BorderThickness" Value="1" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -348,8 +350,7 @@
             <Grid x:Name="Card"
                   Width="200"
                   Margin="0,0,0,22"
-                  Background="Transparent"
-                  ToolTip="{Binding Title}">
+                  Background="Transparent">
                 <Grid.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Click="LaunchGame_Click"
@@ -429,7 +430,10 @@
                                 </Border.Background>
                             </Border>
 
-                            <Border BorderBrush="{DynamicResource PosterStrokeBrush}" BorderThickness="1" CornerRadius="8" />
+                            <Border x:Name="PosterRing"
+                                    BorderBrush="{DynamicResource PosterStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8" />
 
                             <!-- The drive is offline: the record is kept, the
                                  card explains why it cannot be started. -->
@@ -515,6 +519,17 @@
 
             <DataTemplate.Triggers>
                 <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="PosterRing" Property="BorderBrush" Value="{DynamicResource AccentRingBrush}" />
+                    <Setter TargetName="PosterRing" Property="BorderThickness" Value="2" />
+                    <Setter TargetName="PosterRing" Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="26"
+                                              Direction="0"
+                                              Opacity="0.9"
+                                              ShadowDepth="0"
+                                              Color="#A5F26B" />
+                        </Setter.Value>
+                    </Setter>
                     <Setter TargetName="Poster" Property="BorderBrush" Value="{DynamicResource CardStrokeHoverBrush}" />
 
                     <Trigger.EnterActions>
@@ -1148,10 +1163,11 @@
                 <Grid Grid.Row="2">
                     <ScrollViewer x:Name="ScrollHost"
                                   Style="{StaticResource OverlayScrollViewer}"
-                                  Padding="36,0,20,12"
+                                  Padding="36,14,20,12"
                                   HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="GamesItems"
+                                      Margin="0,14,0,0"
                                       ItemsSource="{Binding GamesView}"
                                       ItemTemplate="{StaticResource GameCardTemplate}"
                                       ItemsPanel="{StaticResource GamesGridPanel}">

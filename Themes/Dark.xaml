@@ -101,6 +101,12 @@
     <SolidColorBrush x:Key="BpPadBadgeBrush" Color="#F2F2F2" />
     <SolidColorBrush x:Key="BpPadBadgeTextBrush" Color="#12140F" />
 
+    <LinearGradientBrush x:Key="AccentRingBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#CBFF95" />
+        <GradientStop Offset="0.55" Color="#A5F26B" />
+        <GradientStop Offset="1" Color="#68C93F" />
+    </LinearGradientBrush>
+
     <LinearGradientBrush x:Key="BpHeroLeftFadeBrush" StartPoint="0,0" EndPoint="1,0">
         <GradientStop Offset="0" Color="#99111315" />
         <GradientStop Offset="0.35" Color="#33111315" />
