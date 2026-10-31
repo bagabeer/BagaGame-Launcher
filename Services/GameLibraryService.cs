@@ -189,7 +189,9 @@ public sealed class GameLibraryService : IDisposable
         {
             Timeout = TimeSpan.FromSeconds(12),
         };
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("BagaGame/0.6.0");
+        // Take the version from the assembly so a release bump cannot leave the
+        // User-Agent pointing at an old build.
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd($"BagaGame/{AppInfo.VersionNumber}");
     }
 
     private static bool TryEnsureDirectory(string directory)
