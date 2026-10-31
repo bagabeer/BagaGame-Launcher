@@ -10,7 +10,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 
 ## 📥 Installation
 
-1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v0.7.0`).
+1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v0.8.0`).
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
@@ -40,6 +40,10 @@ There is no installer — the app works right after unpacking. All data (library
 |---|---|
 | <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/cover-picker.png" alt="Cover picker" width="100%"> |
 
+| Add game | Cover crop |
+|---|---|
+| <img src="docs/screenshots/add-game.png" alt="Add game dialog" width="100%"> | <img src="docs/screenshots/cover-crop.png" alt="Cover crop editor" width="100%"> |
+
 ---
 
 ## ✨ Features
@@ -66,6 +70,7 @@ There is no installer — the app works right after unpacking. All data (library
 ```text
 <folder with BagaGame.exe>\BagaGameData\library.json   — library, settings, playtime, hidden games
 <folder with BagaGame.exe>\BagaGameData\covers\        — cover cache (<AppID>.jpg) and storeids.json
+<folder with BagaGame.exe>\BagaGameData\covers-custom\ — user-picked 600×900 posters
 ```
 
 If the folder next to the `.exe` is not writable, `%LOCALAPPDATA%\BagaGame` is used instead.
@@ -78,6 +83,8 @@ If the folder next to the `.exe` is not writable, `%LOCALAPPDATA%\BagaGame` is u
 | `ManualGames` | Manually added games |
 | `Genres` | Genre cache (canonical English names are stored) |
 | `Playtime` | Played time in seconds |
+| `CustomCovers` | User-picked cover files in `covers-custom` |
+| `UseSteamGridDb`, `SteamGridDbApiKey` | Optional SteamGridDB source and API key |
 | `Theme`, `Language`, `GridView`, `Grouping`, `DownloadCovers`, `CacheDirectory` | Interface preferences |
 
 ---
@@ -117,7 +124,41 @@ Compat/                             — polyfills for modern C# on net472
 
 ## 📝 Changelog
 
-### Version 0.7.0 (current)
+### Version 0.8.0 (current) — cover update
+
+**Cover picker**
+* Right-click a card → **Change cover**.
+* Browse up to 36 community covers from SteamGridDB for the selected game.
+* Upload your own image: JPG, PNG or BMP, up to 12 MB.
+* Move and zoom the image inside a fixed 2:3 frame.
+* Every cover is saved as a 600×900 poster, so cards always line up.
+* **Restore default** removes your cover and brings back the automatic one.
+* Your choice survives a restart.
+
+**SteamGridDB**
+* New section in Settings: enable it, paste an API key and use the **Get a key** button.
+* Only the matched game is shown — no covers from other games.
+* A green **RU · VPN required** note warns that SteamGridDB may need a VPN in Russia.
+
+**Library and cards**
+* Games without a poster show a small **Add cover** hint in the top-right corner; the background appears on hover.
+* Hidden games can be restored one by one; the list expands with a small arrow.
+* Hidden entries show their folder or store, like the main library list.
+* The cover window is compact: four covers per row, no empty space on the right.
+* The crop screen has one clear heading and a true 2:3 frame.
+* Removed extra labels and the green text selection when the window opens.
+
+**Look and feel**
+* New green gamepad application icon.
+* Removed the glowing window border and the extra outline around dialogs.
+* Small fixes to spacing, button sizes and text.
+
+**Fixes**
+* SteamGridDB no longer mixes in artwork from other games.
+* Covers save correctly and stay after a restart.
+* Cropping no longer cuts the frame and always keeps 2:3.
+
+### Version 0.7.0
 
 **Size and platform**
 * Retargeted from .NET 8 to **.NET Framework 4.7.2**, which ships with Windows 10 1803+ and Windows 11, so the launcher starts without installing a runtime.

@@ -23,7 +23,7 @@
     <RootNamespace>BagaGame</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\bagagame.ico</ApplicationIcon>
-    <Version>0.7.0</Version>
+    <Version>0.8.0</Version>
     <Authors>BagaGame</Authors>
     <Product>BagaGame</Product>
 
