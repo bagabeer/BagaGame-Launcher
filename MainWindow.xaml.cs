@@ -411,11 +411,24 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void ChangeCover_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as MenuItem)?.DataContext is not Game game)
+        if ((sender as MenuItem)?.DataContext is Game game)
         {
-            return;
+            OpenCoverPicker(game);
         }
+    }
 
+    private void CoverBadge_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+
+        if ((sender as FrameworkElement)?.DataContext is Game game)
+        {
+            OpenCoverPicker(game);
+        }
+    }
+
+    private void OpenCoverPicker(Game game)
+    {
         _coverTarget = game;
         _cropSource = null;
         CoverTitle.Text = $"{Loc.T("Loc.Cover.Title")} · {game.Title}";

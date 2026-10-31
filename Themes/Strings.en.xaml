@@ -110,6 +110,8 @@
     <sys:String x:Key="Loc.Cover.SgdbTitle">More covers in SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbHint">Add an API key and enable SteamGridDB in Settings — community covers will appear here.</sys:String>
     <sys:String x:Key="Loc.Cover.OpenSettings">Settings</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadge">Add cover</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadgeTip">No cover found — upload your own or pick one in SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.Library">LIBRARY</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Cover cache</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Restore the default folder</sys:String>

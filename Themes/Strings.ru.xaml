@@ -111,6 +111,8 @@
     <sys:String x:Key="Loc.Cover.SgdbTitle">Больше обложек в SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbHint">Добавьте API-ключ и включите SteamGridDB в настройках — обложки сообщества появятся здесь.</sys:String>
     <sys:String x:Key="Loc.Cover.OpenSettings">Настройки</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadge">Добавить обложку</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadgeTip">Обложка не найдена — загрузите свою или выберите в SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.Library">БИБЛИОТЕКА</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Кэш обложек</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Вернуть папку по умолчанию</sys:String>
