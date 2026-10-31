@@ -1669,7 +1669,7 @@
                                             <Border Margin="8,0,0,0"
                                                     Padding="6,1"
                                                     VerticalAlignment="Center"
-                                                    Background="{DynamicResource AccentBrush}"
+                                                    Background="{DynamicResource AccentTranslucentBrush}"
                                                     CornerRadius="5"
                                                     ToolTip="{DynamicResource Loc.Settings.SteamGridDbBadgeTip}">
                                                 <TextBlock FontSize="9"

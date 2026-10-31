@@ -27,6 +27,7 @@
     <!-- =============================== Accent ============================= -->
 
     <SolidColorBrush x:Key="AccentBrush" Color="#A5F26B" />
+    <SolidColorBrush x:Key="AccentTranslucentBrush" Color="#D9A5F26B" />
     <SolidColorBrush x:Key="AccentBrightBrush" Color="#BDFF8A" />
     <SolidColorBrush x:Key="AccentSoftBrush" Color="#1AA5F26B" />
     <SolidColorBrush x:Key="AccentStrokeBrush" Color="#59A5F26B" />
