@@ -120,6 +120,8 @@
     <sys:String x:Key="Loc.Settings.LightThemeTip">Переключается мгновенно и сохраняется</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCovers">Загружать обложки</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCoversTip">Постеры сохраняются в локальный кэш</sys:String>
+    <sys:String x:Key="Loc.Settings.BigPictureAuto">Big Picture</sys:String>
+    <sys:String x:Key="Loc.Settings.BigPictureAutoTip">Включать режим при подключении контроллера, если окно лаунчера активно</sys:String>
     <sys:String x:Key="Loc.Settings.Covers">ОБЛОЖКИ</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbTip">Альтернативный источник обложек</sys:String>

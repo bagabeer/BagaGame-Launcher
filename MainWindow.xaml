@@ -5,7 +5,7 @@
     xmlns:ui="clr-namespace:BagaGame.Controls"
     Title="BagaGame"
     Width="1320"
-    Height="960"
+    Height="930"
     MinWidth="1040"
     MinHeight="660"
     WindowStartupLocation="CenterScreen"
@@ -949,22 +949,22 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                         <Button x:Name="BigPictureButton"
+                                Width="36"
+                                Height="36"
                                 Margin="0,0,10,0"
+                                Padding="0"
                                 AutomationProperties.Name="{DynamicResource Loc.BP.Button}"
                                 Click="BigPicture_Click"
                                 Style="{StaticResource HeaderChipButtonStyle}"
                                 ToolTip="{DynamicResource Loc.BP.ButtonTip}">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon FontSize="15"
-                                               Foreground="{DynamicResource AccentBrush}"
-                                               Symbol="Gamepad24" />
-                                <TextBlock Margin="7,0,0,0"
-                                           VerticalAlignment="Center"
-                                           Text="{DynamicResource Loc.BP.Button}" />
-                            </StackPanel>
+                            <ui:SymbolIcon FontSize="17"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Symbol="Gamepad24" />
                         </Button>
 
                         <Button x:Name="AddGameButton"
+                                Height="36"
+                                Padding="14,0"
                                 AutomationProperties.Name="{DynamicResource Loc.Library.AddGame}"
                                 Click="AddGame_Click"
                                 Style="{StaticResource AccentButtonStyle}"
@@ -1684,6 +1684,41 @@
                                                      Grid.Column="2"
                                                      VerticalAlignment="Center"
                                                      IsChecked="{Binding DownloadCovers}" />
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="62">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="Gamepad24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.BigPictureAuto}" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.BigPictureAutoTip}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ui:ToggleSwitch Grid.Column="2"
+                                                     VerticalAlignment="Center"
+                                                     AutomationProperties.Name="{DynamicResource Loc.Settings.BigPictureAuto}"
+                                                     IsChecked="{Binding BigPictureOnGamepad, Mode=TwoWay}" />
                                 </Grid>
                             </StackPanel>
                         </Border>

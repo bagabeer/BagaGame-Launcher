@@ -125,6 +125,25 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>
+    /// Open Big Picture automatically when a controller connects while the
+    /// launcher window is active. Off by default.
+    /// </summary>
+    public bool BigPictureOnGamepad
+    {
+        get => _data.BigPictureOnGamepad;
+        set
+        {
+            if (_data.BigPictureOnGamepad == value)
+            {
+                return;
+            }
+
+            _data.BigPictureOnGamepad = value;
+            Save();
+        }
+    }
+
     /// <summary>Beta: use SteamGridDB instead of Steam for the cover picker.</summary>
     public bool UseSteamGridDb
     {
@@ -793,6 +812,8 @@ public sealed class LibraryStore
         public Dictionary<string, long> LastPlayed { get; set; } = new();
 
         public bool BigPictureSounds { get; set; } = true;
+
+        public bool BigPictureOnGamepad { get; set; }
 
         public bool DownloadCovers { get; set; } = true;
 

@@ -12,6 +12,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using BagaGame.Models;
 using BagaGame.Services;
+using BagaGame.Services.Input;
 using BagaGame.ViewModels;
 using BagaGame.Views;
 using Microsoft.Win32;
@@ -28,6 +29,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private DispatcherTimer? _bigPictureLaunchWatch;
     private Process? _bigPictureLaunchedProcess;
     private Game? _bigPictureGame;
+    private readonly GamepadService _gamepadWatcher;
+    private DateTime _gamepadWatchStartedUtc;
     private bool _leavingBigPicture;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
@@ -72,6 +75,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         // startup theme was already applied by App.OnStartup.
         ThemeToggle.IsChecked = store.IsLightTheme;
 
+        // Automatic Big Picture: a slow poll that reacts only while this window
+        // is active, so a controller connected elsewhere never opens the mode.
+        _gamepadWatcher = new GamepadService(TimeSpan.FromMilliseconds(250));
+        _gamepadWatcher.ConnectedChanged += OnGamepadWatcherConnection;
+
+        Activated += (_, _) => UpdateGamepadWatcher();
+        Deactivated += (_, _) => _gamepadWatcher.Stop();
+
         Loaded += MainWindow_Loaded;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
     }
@@ -100,6 +111,50 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             UpdateScanAnimation();
         }
+        else if (e.PropertyName == nameof(MainViewModel.BigPictureOnGamepad))
+        {
+            UpdateGamepadWatcher();
+        }
+    }
+
+    /// <summary>
+    /// Starts or stops the automatic Big Picture watcher. It only runs while
+    /// this window is the active one.
+    /// </summary>
+    private void UpdateGamepadWatcher()
+    {
+        var active = IsVisible && IsActive && WindowState != WindowState.Minimized;
+        var bigPictureClosed = _bigPicture is null || !_bigPicture.IsVisible;
+
+        if (_store.BigPictureOnGamepad && active && bigPictureClosed)
+        {
+            _gamepadWatchStartedUtc = DateTime.UtcNow;
+            _gamepadWatcher.Start();
+            return;
+        }
+
+        _gamepadWatcher.Stop();
+    }
+
+    private void OnGamepadWatcherConnection(bool connected)
+    {
+        if (!connected ||
+            !_store.BigPictureOnGamepad ||
+            !IsActive ||
+            WindowState == WindowState.Minimized ||
+            _bigPicture is { IsVisible: true })
+        {
+            return;
+        }
+
+        // A controller that was already attached when the watcher started is a
+        // baseline, not a connection event.
+        if ((DateTime.UtcNow - _gamepadWatchStartedUtc).TotalMilliseconds < 800)
+        {
+            return;
+        }
+
+        OpenBigPicture();
     }
 
     private void UpdateScanAnimation()

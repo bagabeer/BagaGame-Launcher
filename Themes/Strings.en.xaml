@@ -119,6 +119,8 @@
     <sys:String x:Key="Loc.Settings.LightThemeTip">Switches instantly and is saved</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCovers">Download covers</sys:String>
     <sys:String x:Key="Loc.Settings.DownloadCoversTip">Posters are stored in a local cache</sys:String>
+    <sys:String x:Key="Loc.Settings.BigPictureAuto">Big Picture</sys:String>
+    <sys:String x:Key="Loc.Settings.BigPictureAutoTip">Open the mode when a controller connects while the launcher window is active</sys:String>
     <sys:String x:Key="Loc.Settings.Covers">COVERS</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbTip">Alternative cover source</sys:String>

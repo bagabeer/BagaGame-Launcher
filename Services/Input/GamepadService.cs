@@ -46,11 +46,11 @@ public sealed class GamepadService : IDisposable
     private bool _available = true;
     private bool _disposed;
 
-    public GamepadService()
+    public GamepadService(TimeSpan? pollInterval = null)
     {
         _timer = new DispatcherTimer(DispatcherPriority.Input)
         {
-            Interval = TimeSpan.FromMilliseconds(16),
+            Interval = pollInterval ?? TimeSpan.FromMilliseconds(16),
         };
         _timer.Tick += (_, _) => Poll();
     }

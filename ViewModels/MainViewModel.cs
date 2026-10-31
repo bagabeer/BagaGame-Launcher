@@ -263,6 +263,22 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Open Big Picture when a controller connects and the window is active.</summary>
+    public bool BigPictureOnGamepad
+    {
+        get => _store.BigPictureOnGamepad;
+        set
+        {
+            if (_store.BigPictureOnGamepad == value)
+            {
+                return;
+            }
+
+            _store.BigPictureOnGamepad = value;
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Beta source for the cover picker.</summary>
     public bool UseSteamGridDb
     {
