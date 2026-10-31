@@ -2027,8 +2027,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="{DynamicResource DialogFillBrush}"
-                    BorderBrush="{DynamicResource DialogStrokeBrush}"
-                    BorderThickness="1"
+                    BorderThickness="0"
                     CornerRadius="12">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="40"
