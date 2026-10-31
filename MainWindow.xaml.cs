@@ -427,10 +427,40 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         ResetCropTransform();
 
         CoverOverlay.Visibility = Visibility.Visible;
-        _ = _viewModel.SearchCoversAsync(game, game.Title, _viewModel.UseSteamGridDb);
+        UpdateCoverSourceUi();
 
-        CoverSearchBox.Focus();
-        CoverSearchBox.SelectAll();
+        if (_viewModel.IsSteamGridDbConfigured)
+        {
+            _ = _viewModel.SearchCoversAsync(game, game.Title);
+            CoverSearchBox.Focus();
+            CoverSearchBox.SelectAll();
+        }
+    }
+
+    /// <summary>
+    /// Steam search is gone from the picker: with SteamGridDB disabled the
+    /// dialog only offers manual upload and explains how to enable it.
+    /// </summary>
+    private void UpdateCoverSourceUi()
+    {
+        var configured = _viewModel.IsSteamGridDbConfigured;
+
+        CoverSearchField.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+        CoverSearchBox.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+        CoverSearchButton.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+        SgdbHintPanel.Visibility = configured ? Visibility.Collapsed : Visibility.Visible;
+
+        if (CoverCropPanel.Visibility != Visibility.Visible)
+        {
+            CoverGalleryPanel.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private void OpenSgdbSettings_Click(object sender, RoutedEventArgs e)
+    {
+        CloseCoverOverlay();
+        SettingsNav.IsChecked = true;
+        SteamGridDbKeyBox.Focus();
     }
 
     private async void CoverSearch_Click(object sender, RoutedEventArgs e)
@@ -454,8 +484,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         await _viewModel.SearchCoversAsync(
             _coverTarget,
-            CoverSearchBox.Text,
-            _viewModel.UseSteamGridDb);
+            CoverSearchBox.Text);
     }
 
     private async void CoverCandidate_Click(object sender, RoutedEventArgs e)
@@ -501,6 +530,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CoverGalleryPanel.Visibility = Visibility.Collapsed;
         CoverCropPanel.Visibility = Visibility.Visible;
         CoverSearchRow.Visibility = Visibility.Collapsed;
+        SgdbHintPanel.Visibility = Visibility.Collapsed;
         _viewModel.CoverStatusText = string.Empty;
     }
 
@@ -513,6 +543,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
         CoverSearchRow.Visibility = Visibility.Visible;
+        UpdateCoverSourceUi();
     }
 
     private void CoverCropSave_Click(object sender, RoutedEventArgs e)

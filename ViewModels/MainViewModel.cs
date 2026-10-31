@@ -512,11 +512,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     }
 
     /// <summary>Searches Steam for cover variants of the given game/query.</summary>
-    public async Task SearchCoversAsync(Game game, string query, bool useSteamGridDb = false)
+    public async Task SearchCoversAsync(Game game, string query)
     {
         CoverResults.Clear();
 
-        if (useSteamGridDb && string.IsNullOrWhiteSpace(SteamGridDbApiKey))
+        if (!IsSteamGridDbConfigured)
         {
             CoverStatusText = Loc.T("Loc.Cover.NeedKey");
             return;
@@ -526,16 +526,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
-            var results = useSteamGridDb
-                ? await _libraryService.SearchSteamGridDbAsync(
-                    game,
-                    query,
-                    SteamGridDbApiKey,
-                    _lifetime.Token)
-                : await _libraryService.SearchCoversAsync(
-                    game,
-                    query,
-                    _lifetime.Token);
+            var results = await _libraryService.SearchSteamGridDbAsync(
+                game,
+                query,
+                SteamGridDbApiKey,
+                _lifetime.Token);
 
             foreach (var candidate in results)
             {
@@ -543,7 +538,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             }
 
             CoverStatusText = results.Count == 0
-                ? Loc.T(useSteamGridDb ? "Loc.Cover.SgdbNotFound" : "Loc.Cover.NotFound")
+                ? Loc.T("Loc.Cover.SgdbNotFound")
                 : Loc.Format("Loc.Cover.Found", results.Count);
         }
         catch (OperationCanceledException)

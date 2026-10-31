@@ -14,10 +14,15 @@ internal static class WindowEffects
 {
     private const int DwmwaUseImmersiveDarkMode = 20;
     private const int DwmwaWindowCornerPreference = 33;
+    private const int DwmwaBorderColor = 34;
     private const int DwmwaSystemBackdropType = 38;
 
     private const int CornerRound = 2;
     private const int BackdropMica = 2;
+
+    // DWMWA_COLOR_NONE: removes the accent border/glow Windows 11 draws
+    // around borderless windows.
+    private const int ColorNone = unchecked((int)0xFFFFFFFE);
 
     /// <summary>Mica and rounded corners are Windows 11 (build 22000) features.</summary>
     public static bool SupportsMica => Environment.OSVersion.Version.Build >= 22000;
@@ -35,6 +40,11 @@ internal static class WindowEffects
 
         var corner = CornerRound;
         DwmSetWindowAttribute(handle, DwmwaWindowCornerPreference, ref corner, sizeof(int));
+
+        // Windows 11 otherwise paints a thin accent border (visible as a glow
+        // on dark themes) around the custom chrome.
+        var border = ColorNone;
+        DwmSetWindowAttribute(handle, DwmwaBorderColor, ref border, sizeof(int));
     }
 
     public static void SetDarkTitleBar(Window window, bool dark)

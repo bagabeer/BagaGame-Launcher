@@ -1612,154 +1612,16 @@ public sealed class GameLibraryService : IDisposable
             : null;
     }
 
-    /// <summary>
-    /// Finds several Steam cover variants for the cover picker: the game's own
-    /// AppID first, then matches from the store search for the edited query.
-    /// Previews are decoded at thumbnail size; the selected URL is downloaded
-    /// again at full size when the user applies it.
-    /// </summary>
-    public async Task<IReadOnlyList<CoverCandidate>> SearchCoversAsync(
-        Game game,
-        string? query,
-        CancellationToken cancellationToken)
-    {
-        var apps = new List<(int AppId, string Title)>();
-        var seenApps = new HashSet<int>();
-        var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        if (game.AppId > 0 && seenApps.Add(game.AppId))
-        {
-            apps.Add((game.AppId, game.Title));
-        }
-
-        var term = string.IsNullOrWhiteSpace(query) ? game.Title : query.Trim();
-
-        if (!string.IsNullOrWhiteSpace(term))
-        {
-            try
-            {
-                var uri = "https://store.steampowered.com/api/storesearch/?term="
-                          + Uri.EscapeDataString(term)
-                          + "&l=english&cc=US";
-
-                using var response = await GetWithRetryAsync(uri, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (response is not null && response.IsSuccessStatusCode)
-                {
-                    using var stream = await response.Content
-                        .ReadAsStreamAsync()
-                        .ConfigureAwait(false);
-
-                    using var document = await JsonDocument.ParseAsync(
-                            stream,
-                            cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
-
-                    if (document.RootElement.TryGetProperty("items", out var items) &&
-                        items.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var item in items.EnumerateArray())
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            if (apps.Count >= 5)
-                            {
-                                break;
-                            }
-
-                            if (!item.TryGetProperty("id", out var idElement) ||
-                                !idElement.TryGetInt32(out var appId) ||
-                                appId <= 0 ||
-                                !seenApps.Add(appId))
-                            {
-                                continue;
-                            }
-
-                            var title = GetJsonString(item, "name") ?? $"Steam {appId}";
-                            apps.Add((appId, title));
-                        }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                // Offline store search must not block custom covers.
-            }
-        }
-
-        var results = new List<CoverCandidate>();
-
-        for (var index = 0; index < apps.Count && results.Count < 12; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var (appId, title) = apps[index];
-
-            // The game itself gets portrait, hero, capsule and header variants;
-            // other search matches only need their poster.
-            var urls = index == 0
-                ? CoverPickerUrls(appId)
-                : new[] { $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg" };
-
-            foreach (var url in urls)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!seenUrls.Add(url))
-                {
-                    continue;
-                }
-
-                var bytes = await DownloadImageAsync(url, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (bytes is null)
-                {
-                    continue;
-                }
-
-                var preview = CoverImage.LoadBytes(bytes, 220);
-                if (preview is null)
-                {
-                    continue;
-                }
-
-                results.Add(new CoverCandidate(url, title, preview));
-
-                if (results.Count >= 12)
-                {
-                    break;
-                }
-            }
-        }
-
-        return results;
-    }
-
     /// <summary>Downloads the full-size image behind a picker preview.</summary>
     public Task<byte[]?> DownloadCoverBytesAsync(string url, CancellationToken cancellationToken)
         => IsAllowedImageUrl(url)
             ? DownloadImageAsync(url, cancellationToken)
             : Task.FromResult<byte[]?>(null);
 
-    private static string[] CoverPickerUrls(int appId)
-        => new[]
-        {
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg",
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_hero.jpg",
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/capsule_616x353.jpg",
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg",
-        };
-
     /// <summary>
-    /// Beta cover source. SteamGridDB exposes the artwork the community makes
-    /// for games that are absent from the Steam store, including non-Steam
-    /// shortcuts. Requires a free API key from the user's profile.
+    /// Cover source for the picker. SteamGridDB has community artwork for games
+    /// that are absent from the Steam store. Only the best matching game is
+    /// used, and every 2:3 grid from up to three pages is offered.
     /// </summary>
     public async Task<IReadOnlyList<CoverCandidate>> SearchSteamGridDbAsync(
         Game game,
@@ -1812,32 +1674,42 @@ public sealed class GameLibraryService : IDisposable
                 return results;
             }
 
-            var matches = new List<(int Id, string Name)>();
+            // Autocomplete is relevance-sorted. Taking only the first entry
+            // keeps artwork of other games out of the picker.
+            var gameId = 0;
+            var name = string.Empty;
 
             foreach (var item in games.EnumerateArray())
             {
-                if (matches.Count >= 3)
-                {
-                    break;
-                }
-
                 var id = GetJsonInt(item, "id");
-                var name = GetJsonString(item, "name") ?? string.Empty;
+                var title = GetJsonString(item, "name") ?? string.Empty;
 
-                if (id > 0 && name.Length > 0)
+                if (id > 0 && title.Length > 0)
                 {
-                    matches.Add((id, name));
+                    gameId = id;
+                    name = title;
+                    break;
                 }
             }
 
-            foreach (var (gameId, name) in matches)
+            if (gameId <= 0)
+            {
+                return results;
+            }
+
+            var found = new List<(string Url, string Thumb)>();
+            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            for (var page = 0; page < 3 && found.Count < 36; page++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var gridsUrl =
                     "https://www.steamgriddb.com/api/v2/grids/game/"
                     + gameId
-                    + "?dimensions=600x900&types=static&nsfw=false&humor=false&epilepsy=false";
+                    + "?page="
+                    + page
+                    + "&dimensions=600x900&types=static&nsfw=false&humor=false&epilepsy=false";
 
                 using var gridResponse = await GetWithRetryAsync(
                         gridsUrl,
@@ -1847,7 +1719,7 @@ public sealed class GameLibraryService : IDisposable
 
                 if (gridResponse is null || !gridResponse.IsSuccessStatusCode)
                 {
-                    continue;
+                    break;
                 }
 
                 using var gridStream = await gridResponse.Content
@@ -1860,22 +1732,23 @@ public sealed class GameLibraryService : IDisposable
                     .ConfigureAwait(false);
 
                 if (!gridDocument.RootElement.TryGetProperty("data", out var grids) ||
-                    grids.ValueKind != JsonValueKind.Array)
+                    grids.ValueKind != JsonValueKind.Array ||
+                    grids.GetArrayLength() == 0)
                 {
-                    continue;
+                    break;
                 }
 
                 foreach (var grid in grids.EnumerateArray())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (results.Count >= 12)
+                    if (found.Count >= 36)
                     {
                         break;
                     }
 
                     var url = GetJsonString(grid, "url");
-                    if (url is null || !IsAllowedImageUrl(url))
+                    if (url is null || !IsAllowedImageUrl(url) || !seenUrls.Add(url))
                     {
                         continue;
                     }
@@ -1891,19 +1764,31 @@ public sealed class GameLibraryService : IDisposable
                         continue;
                     }
 
-                    var previewBytes = await DownloadImageAsync(
-                            GetJsonString(grid, "thumb") ?? url,
-                            cancellationToken)
-                        .ConfigureAwait(false);
+                    found.Add((url, GetJsonString(grid, "thumb") ?? url));
+                }
+            }
 
-                    var preview = previewBytes is null
-                        ? null
-                        : CoverImage.LoadBytes(previewBytes, 220);
+            // Resolve previews in parallel; DownloadImageAsync already limits
+            // the number of simultaneous requests.
+            var previewTasks = found.Select(async item =>
+            {
+                var bytes = await DownloadImageAsync(item.Thumb, cancellationToken)
+                    .ConfigureAwait(false);
 
-                    if (preview is not null)
-                    {
-                        results.Add(new CoverCandidate(url, name, preview));
-                    }
+                var preview = bytes is null
+                    ? null
+                    : CoverImage.LoadBytes(bytes, 220);
+
+                return preview is null
+                    ? null
+                    : new CoverCandidate(item.Url, name, preview);
+            });
+
+            foreach (var candidate in await Task.WhenAll(previewTasks).ConfigureAwait(false))
+            {
+                if (candidate is not null)
+                {
+                    results.Add(candidate);
                 }
             }
         }

@@ -161,8 +161,8 @@
 
         <!-- Cover picker tile. -->
         <Style x:Key="CoverTileButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="148" />
-            <Setter Property="Height" Value="232" />
+            <Setter Property="Width" Value="144" />
+            <Setter Property="Height" Value="228" />
             <Setter Property="Padding" Value="9,9,9,6" />
             <Setter Property="Background" Value="{DynamicResource TileFillBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
@@ -2021,7 +2021,7 @@
               Background="{DynamicResource OverlayBrush}"
               MouseLeftButtonDown="CoverOverlay_MouseLeftButtonDown"
               Visibility="Collapsed">
-            <Border Width="760"
+            <Border Width="700"
                     MaxHeight="720"
                     Padding="24"
                     HorizontalAlignment="Center"
@@ -2052,6 +2052,46 @@
                                    FontSize="18"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <Border x:Name="SgdbHintPanel"
+                                Margin="0,12,0,0"
+                                Padding="14"
+                                Background="{DynamicResource TileFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Visibility="Collapsed">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ui:SymbolIcon Symbol="Globe24"
+                                               FontSize="20"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1"
+                                            Margin="12,0,12,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock FontSize="12.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Text="{DynamicResource Loc.Cover.SgdbTitle}" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Text="{DynamicResource Loc.Cover.SgdbHint}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ui:BagaButton Grid.Column="2"
+                                               Padding="12,6"
+                                               Appearance="Secondary"
+                                               Click="OpenSgdbSettings_Click"
+                                               Content="{DynamicResource Loc.Cover.OpenSettings}"
+                                               CornerRadius="7" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
                     <Grid x:Name="CoverSearchRow" Grid.Row="1" Margin="0,16,0,12">
@@ -2061,7 +2101,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Border Height="34"
+                        <Border x:Name="CoverSearchField"
+                                Height="34"
                                 Background="{DynamicResource FieldFillBrush}"
                                 BorderBrush="{DynamicResource FieldStrokeBrush}"
                                 BorderThickness="1"
@@ -2101,7 +2142,7 @@
                                        CornerRadius="8" />
                     </Grid>
 
-                    <Grid Grid.Row="2" MinHeight="250">
+                    <Grid Grid.Row="2">
                         <ScrollViewer x:Name="CoverGalleryPanel"
                                       VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding CoverResults}">
@@ -2118,8 +2159,8 @@
                                                 Style="{StaticResource CoverTileButtonStyle}"
                                                 Tag="{Binding}">
                                             <StackPanel>
-                                                <Border Width="128"
-                                                        Height="192"
+                                                <Border Width="124"
+                                                        Height="186"
                                                         CornerRadius="7">
                                                     <Border.Background>
                                                         <ImageBrush ImageSource="{Binding Preview}"
@@ -2127,7 +2168,7 @@
                                                     </Border.Background>
                                                 </Border>
                                                 <TextBlock Margin="0,5,0,0"
-                                                           Width="128"
+                                                           Width="124"
                                                            HorizontalAlignment="Center"
                                                            FontSize="10.5"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"

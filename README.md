@@ -54,8 +54,8 @@ There is no installer — the app works right after unpacking. All data (library
 * **Dark and light themes.** Native Mica on Windows 11; a clean opaque background on Windows 10.
 * **Grid and list views.** Two library layouts, live search (`Ctrl+F`) and rescan (`F5`).
 * **Manual additions.** Add a whole game folder or a specific `.exe`, then rename, hide or delete games from the context menu.
-* **Custom covers.** Right-click a card to browse alternative Steam artwork, or upload your own image and crop it in a fixed 2:3 frame with drag and zoom. Every cover is stored as a 600×900 poster.
-* **SteamGridDB.** Optional alternative cover source with your own free API key; enable it in Settings to search community artwork instead of Steam.
+* **Custom covers.** Right-click a card to upload your own image and crop it in a fixed 2:3 frame with drag and zoom. Every cover is stored as a 600×900 poster; with SteamGridDB enabled you can also browse community artwork.
+* **SteamGridDB.** Optional alternative cover source with your own free API key; enable it in Settings to search community artwork instead of the built-in Steam fallback.
 * **Single instance.** Launching the `.exe` again brings the running window to the front instead of opening a second copy.
 * **Reliable saving.** The library is written atomically with a backup, and if a drive disappears the card stays with a "Path unavailable" badge and a "Choose folder again" action.
 
@@ -145,8 +145,8 @@ Compat/                             — polyfills for modern C# on net472
 * "Path unavailable" badge on the card and a "Choose folder again" menu action.
 * Hidden games can be restored individually from Settings, not only all at once.
 * Asynchronous manual game addition — the UI no longer freezes on large folders.
-* Cover picker: alternative Steam artwork, custom image upload and a 2:3 crop editor with drag/zoom.
-* SteamGridDB cover search: API key field in Settings and an alternative source for the cover picker.
+* Cover picker: custom image upload and a 2:3 crop editor with drag/zoom; the old Steam web search was removed.
+* SteamGridDB cover search: API key field in Settings, up to 36 community covers and results strictly for the matched game.
 * Updated interface strings, found/shown game counters.
 
 ### Version 0.6.0

@@ -108,6 +108,9 @@
     <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Получить ключ</sys:String>
     <sys:String x:Key="Loc.Cover.NeedKey">Укажите API-ключ SteamGridDB в настройках.</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbNotFound">SteamGridDB ничего не нашёл. Проверьте ключ или измените запрос.</sys:String>
+    <sys:String x:Key="Loc.Cover.SgdbTitle">Больше обложек в SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Cover.SgdbHint">Добавьте API-ключ и включите SteamGridDB в настройках — обложки сообщества появятся здесь.</sys:String>
+    <sys:String x:Key="Loc.Cover.OpenSettings">Настройки</sys:String>
     <sys:String x:Key="Loc.Settings.Library">БИБЛИОТЕКА</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Кэш обложек</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Вернуть папку по умолчанию</sys:String>
