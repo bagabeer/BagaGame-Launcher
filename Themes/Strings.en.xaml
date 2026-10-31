@@ -103,6 +103,8 @@
     <sys:String x:Key="Loc.Settings.Covers">COVERS</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbTip">Alternative cover source</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbBadge">RU · VPN required</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbBadgeTip">In Russia SteamGridDB may require a VPN or proxy.</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbKey">API key</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Get a key</sys:String>
     <sys:String x:Key="Loc.Cover.NeedKey">Enter your SteamGridDB API key in Settings.</sys:String>

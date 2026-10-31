@@ -104,6 +104,8 @@
     <sys:String x:Key="Loc.Settings.Covers">ОБЛОЖКИ</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDb">SteamGridDB</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbTip">Альтернативный источник обложек</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbBadge">RU · нужен VPN</sys:String>
+    <sys:String x:Key="Loc.Settings.SteamGridDbBadgeTip">В России SteamGridDB может открываться только через VPN или прокси.</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbKey">API-ключ</sys:String>
     <sys:String x:Key="Loc.Settings.SteamGridDbGetKey">Получить ключ</sys:String>
     <sys:String x:Key="Loc.Cover.NeedKey">Укажите API-ключ SteamGridDB в настройках.</sys:String>

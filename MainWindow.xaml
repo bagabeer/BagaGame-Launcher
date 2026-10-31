@@ -1662,9 +1662,22 @@
                                                        VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock FontSize="13"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="{DynamicResource Loc.Settings.SteamGridDb}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="13"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       Text="{DynamicResource Loc.Settings.SteamGridDb}" />
+                                            <Border Margin="8,0,0,0"
+                                                    Padding="6,1"
+                                                    VerticalAlignment="Center"
+                                                    Background="{DynamicResource AccentBrush}"
+                                                    CornerRadius="5"
+                                                    ToolTip="{DynamicResource Loc.Settings.SteamGridDbBadgeTip}">
+                                                <TextBlock FontSize="9"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource AccentForegroundBrush}"
+                                                           Text="{DynamicResource Loc.Settings.SteamGridDbBadge}" />
+                                            </Border>
+                                        </StackPanel>
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10.5"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"
