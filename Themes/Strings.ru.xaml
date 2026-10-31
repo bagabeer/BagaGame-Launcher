@@ -32,7 +32,7 @@
     <sys:String x:Key="Loc.Cover.Applying">Применяем обложку…</sys:String>
     <sys:String x:Key="Loc.Cover.Applied">Обложка обновлена</sys:String>
     <sys:String x:Key="Loc.Cover.Failed">Не удалось применить обложку</sys:String>
-    <sys:String x:Key="Loc.Cover.CropTitle">Настройте кадрирование</sys:String>
+    <sys:String x:Key="Loc.Cover.CropTitle">Кадрирование обложки</sys:String>
     <sys:String x:Key="Loc.Cover.CropHint">Перетаскивайте картинку, колесом мыши меняйте масштаб. Итоговая обложка всегда 2:3.</sys:String>
     <sys:String x:Key="Loc.Cover.Preview">Предпросмотр</sys:String>
     <sys:String x:Key="Loc.Cover.Back">Назад</sys:String>

@@ -31,7 +31,7 @@
     <sys:String x:Key="Loc.Cover.Applying">Applying cover…</sys:String>
     <sys:String x:Key="Loc.Cover.Applied">Cover updated</sys:String>
     <sys:String x:Key="Loc.Cover.Failed">Could not apply the cover</sys:String>
-    <sys:String x:Key="Loc.Cover.CropTitle">Adjust the crop</sys:String>
+    <sys:String x:Key="Loc.Cover.CropTitle">Cover crop</sys:String>
     <sys:String x:Key="Loc.Cover.CropHint">Drag the image, use the mouse wheel to zoom. The final cover is always 2:3.</sys:String>
     <sys:String x:Key="Loc.Cover.Preview">Preview</sys:String>
     <sys:String x:Key="Loc.Cover.Back">Back</sys:String>
