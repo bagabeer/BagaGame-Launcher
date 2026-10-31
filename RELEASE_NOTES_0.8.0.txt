@@ -41,6 +41,8 @@ BagaGame Launcher 0.8.0 — обновление обложек
 * Убраны светящаяся рамка окна и лишняя обводка диалогов.
 * Мелкие правки отступов, размеров кнопок и текста.
 * Портативная сборка в один файл: все зависимости встроены в BagaGame.exe.
+* Одиночный exe больше не создаёт BagaGameData рядом с собой; данные идут в %LOCALAPPDATA%\BagaGame, если папку не создать вручную.
+* Кэш обложек можно перенести в любую папку отдельно от BagaGameData.
 
 
 ==================================================
@@ -87,3 +89,5 @@ BagaGame Launcher 0.8.0 — cover update
 * Removed the glowing window border and the extra outline around dialogs.
 * Small fixes to spacing, button sizes and text.
 * Portable single-file build: every dependency is embedded into one BagaGame.exe.
+* A lone exe no longer creates BagaGameData next to itself; data goes to %LOCALAPPDATA%\BagaGame unless that folder is created manually.
+* The cover cache can be moved to any folder independently of BagaGameData.

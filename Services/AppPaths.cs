@@ -29,7 +29,11 @@ public static class AppPaths
         {
             var portable = Path.Combine(executableDirectory, PortableFolderName);
 
-            if (TryPrepare(portable))
+            // Portable mode is opt-in: only an existing BagaGameData folder next
+            // to the exe is used. A lone exe (for example on the Desktop) keeps
+            // its data in %LOCALAPPDATA%\BagaGame and does not create a folder
+            // next to itself.
+            if (Directory.Exists(portable) && TryPrepare(portable))
             {
                 return portable;
             }

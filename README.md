@@ -14,7 +14,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
-There is no installer — the app works right after unpacking. The build is a **single portable `BagaGame.exe`**: all managed dependencies are embedded, so no DLLs need to sit next to it. All data (library, covers, settings) is stored in the `BagaGameData` folder next to the `.exe`. If that folder is read-only (for example, under `Program Files`), the launcher automatically falls back to `%LOCALAPPDATA%\BagaGame`.
+There is no installer — the app works right after unpacking. The build is a **single portable `BagaGame.exe`**: all managed dependencies are embedded, so no DLLs need to sit next to it. If a `BagaGameData` folder already exists next to the `.exe`, the launcher uses it (portable mode). For a lone `.exe` on the Desktop or in `Program Files`, data goes to `%LOCALAPPDATA%\BagaGame` instead, so no folder appears next to the executable. Create `BagaGameData` next to the exe if you want fully portable data.
 
 > **Requirements:** Windows 10 version 1803+ or Windows 11. .NET Framework 4.7.2 is already included in the OS — nothing else needs to be installed.
 >
@@ -73,7 +73,7 @@ There is no installer — the app works right after unpacking. The build is a **
 <folder with BagaGame.exe>\BagaGameData\covers-custom\ — user-picked 600×900 posters
 ```
 
-If the folder next to the `.exe` is not writable, `%LOCALAPPDATA%\BagaGame` is used instead.
+If the folder next to the `.exe` is not writable, or it does not exist, `%LOCALAPPDATA%\BagaGame` is used instead. The cover cache can be moved to any folder independently in Settings → **Cover cache** → **Change**.
 
 | `library.json` key | Purpose |
 |---|---|
@@ -165,6 +165,7 @@ Compat/                             — polyfills for modern C# on net472
 * Removed the glowing window border and the extra outline around dialogs.
 * Small fixes to spacing, button sizes and text.
 * Portable single-file build: all managed dependencies are embedded into one `BagaGame.exe`.
+* A lone exe no longer creates `BagaGameData` next to itself; data goes to `%LOCALAPPDATA%\BagaGame` unless that folder is created manually.
 
 **Fixes**
 * SteamGridDB no longer mixes in artwork from other games.
