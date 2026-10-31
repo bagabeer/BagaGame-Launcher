@@ -14,7 +14,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
-There is no installer — the app works right after unpacking. All data (library, covers, settings) is stored in the `BagaGameData` folder next to the `.exe`. If that folder is read-only (for example, under `Program Files`), the launcher automatically falls back to `%LOCALAPPDATA%\BagaGame`.
+There is no installer — the app works right after unpacking. The build is a **single portable `BagaGame.exe`**: all managed dependencies are embedded, so no DLLs need to sit next to it. All data (library, covers, settings) is stored in the `BagaGameData` folder next to the `.exe`. If that folder is read-only (for example, under `Program Files`), the launcher automatically falls back to `%LOCALAPPDATA%\BagaGame`.
 
 > **Requirements:** Windows 10 version 1803+ or Windows 11. .NET Framework 4.7.2 is already included in the OS — nothing else needs to be installed.
 >
@@ -98,7 +98,7 @@ dotnet build BagaGame.csproj -c Release
 dotnet run --project BagaGame.csproj
 ```
 
-The ready `.exe` appears in `bin\Release\net472\`. No installer or portable publish step is required — copying the build folder is enough.
+The ready `.exe` appears in `bin\Release\net472\` and is **portable on its own**: Costura embeds every managed dependency, so the folder contains just `BagaGame.exe`. No installer or separate DLL set is required.
 
 ### Project structure
 
@@ -164,6 +164,7 @@ Compat/                             — polyfills for modern C# on net472
 * New green gamepad application icon.
 * Removed the glowing window border and the extra outline around dialogs.
 * Small fixes to spacing, button sizes and text.
+* Portable single-file build: all managed dependencies are embedded into one `BagaGame.exe`.
 
 **Fixes**
 * SteamGridDB no longer mixes in artwork from other games.

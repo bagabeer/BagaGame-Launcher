@@ -40,6 +40,7 @@ BagaGame Launcher 0.8.0 — обновление обложек
 * Новая иконка приложения — зелёный геймпад.
 * Убраны светящаяся рамка окна и лишняя обводка диалогов.
 * Мелкие правки отступов, размеров кнопок и текста.
+* Портативная сборка в один файл: все зависимости встроены в BagaGame.exe.
 
 
 ==================================================
@@ -85,3 +86,4 @@ BagaGame Launcher 0.8.0 — cover update
 * New green gamepad application icon.
 * Removed the glowing window border and the extra outline around dialogs.
 * Small fixes to spacing, button sizes and text.
+* Portable single-file build: every dependency is embedded into one BagaGame.exe.

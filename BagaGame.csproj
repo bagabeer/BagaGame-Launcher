@@ -35,6 +35,8 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <!-- The in-box framework has no JSON serializer for this API surface. -->
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <!-- Embeds the managed dependencies into BagaGame.exe for the portable build. -->
+    <PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
