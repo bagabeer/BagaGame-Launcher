@@ -148,6 +148,18 @@ Compat/                             — polyfills for modern C# on net472
 * The crop screen has one clear heading and a true 2:3 frame.
 * Removed extra labels and the green text selection when the window opens.
 
+**Tray, language and reliability**
+* The window hides to the tray when a game starts and **comes back automatically** when the game closes.
+* Starting the launcher again brings the running window to the front instead of opening a second copy.
+* RU/EN switches without a restart and is remembered.
+* The library is saved atomically with a backup; portable data lives in `BagaGameData`.
+
+**Community fixes**
+* Deleted games no longer return after the next scan.
+* Duplicate cards from several `.exe` files in one folder collapse into a single game.
+* The playtime tracker no longer counts a similarly named process or overlaps its own ticks.
+* TLS 1.2 is enforced, scans can be cancelled, and path checks no longer match `Foo` with `Foobar`.
+
 **Look and feel**
 * New green gamepad application icon.
 * Removed the glowing window border and the extra outline around dialogs.
