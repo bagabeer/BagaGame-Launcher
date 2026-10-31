@@ -1,0 +1,87 @@
+BagaGame Launcher 0.8.0 — обновление обложек
+==================================================
+
+**Выбор обложки**
+* Правый клик по карточке → «Сменить обложку».
+* До 36 обложек сообщества из SteamGridDB для выбранной игры.
+* Можно загрузить свою картинку: JPG, PNG или BMP до 12 МБ.
+* Картинку можно двигать мышью и масштабировать колесом в рамке 2:3.
+* Любая обложка сохраняется как постер 600×900, поэтому карточки не разъезжаются.
+* «Вернуть стандартную» убирает свою обложку и возвращает автоматическую.
+* Выбор сохраняется после перезапуска.
+* Старый поиск обложек через Steam убран из окна выбора — остались только своя картинка и SteamGridDB.
+
+**SteamGridDB**
+* Новый раздел в настройках: включение, поле API-ключа и кнопка «Получить ключ».
+* Показываются обложки только найденной игры, без чужих игр.
+* Зелёная плашка «RU · нужен VPN» напоминает, что в России SteamGridDB может требовать VPN.
+
+**Библиотека и карточки**
+* У игры без постера в правом верхнем углу появляется подсказка «Добавить обложку»; фон проявляется при наведении.
+* Скрытые игры можно восстанавливать по одной, список раскрывается маленькой стрелкой.
+* У скрытых игр показывается папка или магазин, как в основном списке.
+* Окно выбора обложки стало компактным: четыре обложки в ряд, без пустоты справа.
+* На экране кадрирования один понятный заголовок и настоящая рамка 2:3.
+* Убраны лишние подписи и зелёное выделение текста при открытии окна.
+
+**Трей, язык и надёжность**
+* Окно сворачивается в трей при запуске игры и автоматически возвращается, когда игра закрывается.
+* Повторный запуск лаунчера открывает уже работающее окно, а не вторую копию.
+* Переключение RU/EN без перезапуска с сохранением выбора.
+* Библиотека сохраняется атомарно с резервной копией; портативные данные лежат в BagaGameData.
+
+**Исправления по отзывам сообщества**
+* Удалённые игры больше не возвращаются после следующего сканирования.
+* Дубликаты из нескольких .exe одной папки схлопываются в одну карточку.
+* Трекер времени больше не засчитывает чужой процесс с похожим именем и не накладывает свои тики.
+* Принудительный TLS 1.2, отменяемое сканирование и проверка путей без ложных совпадений Foo → Foobar.
+
+**Внешний вид**
+* Новая иконка приложения — зелёный геймпад.
+* Убраны светящаяся рамка окна и лишняя обводка диалогов.
+* Мелкие правки отступов, размеров кнопок и текста.
+
+
+==================================================
+BagaGame Launcher 0.8.0 — cover update
+==================================================
+
+**Cover picker**
+* Right-click a game card → "Change cover".
+* Up to 36 community covers from SteamGridDB for the selected game.
+* Upload your own image: JPG, PNG or BMP up to 12 MB.
+* Move and zoom the image inside a fixed 2:3 frame.
+* Every cover is saved as a 600×900 poster, so cards always line up.
+* "Restore default" removes your cover and brings back the automatic one.
+* Your choice is kept after a restart.
+* The old Steam cover search was removed from the picker — only custom uploads and SteamGridDB remain.
+
+**SteamGridDB**
+* New section in Settings: enable it, paste an API key and use the "Get a key" button.
+* Only the matched game is shown — no artwork from other games.
+* A green "RU · VPN required" note reminds that SteamGridDB may need a VPN in Russia.
+
+**Library and cards**
+* Cards without a poster show a small "Add cover" hint in the top-right corner; the background appears on hover.
+* Hidden games can be restored one by one; the list expands with a small arrow.
+* Hidden entries show their folder or store, like the main library list.
+* The cover dialog is compact: four covers per row, no empty space on the right.
+* The crop screen has one clear heading and a true 2:3 frame.
+* Removed extra labels and the green text selection when the window opens.
+
+**Tray, language and reliability**
+* The window hides to the tray when a game starts and automatically comes back when the game closes.
+* Starting the launcher again brings the running window to the front instead of opening a second copy.
+* RU/EN switches without a restart and is remembered.
+* The library is saved atomically with a backup; portable data lives in BagaGameData.
+
+**Community fixes**
+* Deleted games no longer return after the next scan.
+* Duplicate cards from several .exe files in one folder collapse into a single game.
+* The playtime tracker no longer counts a similarly named process or overlaps its own ticks.
+* TLS 1.2 is enforced, scans can be cancelled, and path checks no longer match Foo with Foobar.
+
+**Look and feel**
+* New green gamepad application icon.
+* Removed the glowing window border and the extra outline around dialogs.
+* Small fixes to spacing, button sizes and text.
