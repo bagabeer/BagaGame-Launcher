@@ -123,12 +123,14 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     /// <summary>Controller battery, shown in the hero row next to the playtime.</summary>
     public bool HasBattery => _batteryWired || _batteryPercent >= 0;
 
-    public string BatteryText => _batteryWired || _batteryPercent < 0
-        ? string.Empty
-        : $"{_batteryPercent}%";
+    public string BatteryText => _batteryWired
+        ? Loc.T("Loc.BP.BatteryUsb")
+        : _batteryPercent < 0
+            ? string.Empty
+            : $"{_batteryPercent}%";
 
     public double BatteryFillWidth => _batteryWired
-        ? 30
+        ? 0
         : _batteryPercent <= 0
             ? 3
             : Math.Max(3, 32 * _batteryPercent / 100.0);

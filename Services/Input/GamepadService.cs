@@ -308,6 +308,23 @@ public sealed class GamepadService : IDisposable
             }
 
             BatteryWired = battery.BatteryType == 1;
+
+            if (BatteryWired && IsWirelessPad())
+            {
+                // Bluetooth pads often claim "wired" and report a full level;
+                // there is no usable charge value in that case.
+                BatteryWired = false;
+                BatteryPercent = -1;
+                return;
+            }
+
+            if (BatteryWired)
+            {
+                // A cabled pad is charging; no percentage is exposed.
+                BatteryPercent = 0;
+                return;
+            }
+
             BatteryPercent = battery.BatteryLevel switch
             {
                 0 => 5,
@@ -324,11 +341,42 @@ public sealed class GamepadService : IDisposable
         }
     }
 
+    /// <summary>True when XInput reports the pad as wireless (Bluetooth or adapter).</summary>
+    private bool IsWirelessPad()
+    {
+        try
+        {
+            return XInputGetCapabilities((uint)_padIndex, 0, out var capabilities) == 0 &&
+                   (capabilities.Flags & 0x0002) != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputBatteryInformation
     {
         public byte BatteryType;
         public byte BatteryLevel;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XInputCapabilities
+    {
+        public byte Type;
+        public byte SubType;
+        public ushort Flags;
+        public XInputGamepad Gamepad;
+        public XInputVibration Vibration;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XInputVibration
+    {
+        public ushort LeftMotorSpeed;
+        public ushort RightMotorSpeed;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -340,6 +388,12 @@ public sealed class GamepadService : IDisposable
 
     [DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
     private static extern int XInputGetState(uint index, out XInputState state);
+
+    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetCapabilities")]
+    private static extern int XInputGetCapabilities(
+        uint index,
+        uint flags,
+        out XInputCapabilities capabilities);
 
     [DllImport("xinput1_4.dll", EntryPoint = "XInputGetBatteryInformation")]
     private static extern int XInputGetBatteryInformation(

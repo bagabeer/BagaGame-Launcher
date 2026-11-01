@@ -19,6 +19,7 @@
     <sys:String x:Key="Loc.BP.GroupAll">Все игры</sys:String>
     <sys:String x:Key="Loc.BP.GroupAlpha">По алфавиту</sys:String>
     <sys:String x:Key="Loc.BP.GroupGenre">Жанры</sys:String>
+    <sys:String x:Key="Loc.BP.BatteryUsb">USB</sys:String>
     <sys:String x:Key="Loc.BP.AllGenres">Все жанры</sys:String>
     <sys:String x:Key="Loc.BP.PrevGenre">Предыдущий жанр</sys:String>
     <sys:String x:Key="Loc.BP.NextGenre">Следующий жанр</sys:String>
