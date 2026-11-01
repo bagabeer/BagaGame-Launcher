@@ -801,17 +801,49 @@
                         </TextBlock.Style>
                     </TextBlock>
 
-                    <Grid Margin="0,0,64,0" VerticalAlignment="Center">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
+                    <Border Margin="0,0,64,0"
+                            Padding="6,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource BpHeroPanelBrush}"
+                            BorderBrush="{DynamicResource BpAccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="18">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Collapsed" />
+                                <Setter Property="Opacity" Value="0" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsGenreGrouping}" Value="True">
                                         <Setter Property="Visibility" Value="Visible" />
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     To="1"
+                                                                     Duration="0:0:0.18">
+                                                        <DoubleAnimation.EasingFunction>
+                                                            <CubicEase EasingMode="EaseOut" />
+                                                        </DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     To="0"
+                                                                     Duration="0:0:0.12" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </Grid.Style>
+                        </Border.Style>
+
+                        <Grid>
 
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -835,13 +867,18 @@
                         <StackPanel Grid.Column="1"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
+                            <Border Width="3"
+                                    Height="18"
+                                    Margin="2,0,10,0"
+                                    Background="{DynamicResource BpAccentBrush}"
+                                    CornerRadius="2" />
                             <ui:SymbolIcon FontSize="15"
-                                           Foreground="{DynamicResource BpTextMutedBrush}"
+                                           Foreground="{DynamicResource BpAccentBrush}"
                                            Symbol="Grid24" />
                             <TextBlock Margin="8,0,14,0"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Foreground="{DynamicResource BpAccentBrush}"
                                        Text="{DynamicResource Loc.BP.GroupGenre}" />
                         </StackPanel>
 
@@ -882,7 +919,8 @@
                                            Foreground="{DynamicResource BpTextBrush}"
                                            Symbol="ChevronRight24" />
                         </Button>
-                    </Grid>
+                        </Grid>
+                    </Border>
 
                     <TextBlock HorizontalAlignment="Right"
                                VerticalAlignment="Center"
