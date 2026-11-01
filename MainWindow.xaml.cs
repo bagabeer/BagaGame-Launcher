@@ -914,6 +914,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             _ = _viewModel.SearchCoversAsync(game, game.Title);
             CoverSearchBox.Focus();
+            CoverSearchBox.CaretIndex = CoverSearchBox.Text.Length;
         }
     }
 
