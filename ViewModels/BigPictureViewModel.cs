@@ -262,6 +262,24 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ListTitle));
     }
 
+    public void MoveGenre(int direction)
+    {
+        if (GenreFilters.Count == 0)
+        {
+            return;
+        }
+
+        var current = SelectedGenreFilter ?? GenreFilters[0];
+        var index = GenreFilters.IndexOf(current);
+        if (index < 0)
+        {
+            index = 0;
+        }
+
+        var next = (index + direction + GenreFilters.Count) % GenreFilters.Count;
+        SelectedGenreFilter = GenreFilters[next];
+    }
+
     public string StatusText => _selectedGame is null
         ? Loc.T("Loc.BP.Idle")
         : Loc.Format("Loc.BP.Launch", _selectedGame.Title);

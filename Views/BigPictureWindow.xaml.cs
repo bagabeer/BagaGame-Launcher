@@ -467,11 +467,27 @@ public partial class BigPictureWindow : Window
             switch (command)
             {
                 case PadCommand.Left:
-                    _viewModel.Move(-1);
+                    if (GenreBar.IsKeyboardFocusWithin)
+                    {
+                        MoveGenre(-1);
+                    }
+                    else
+                    {
+                        _viewModel.Move(-1);
+                    }
+
                     break;
 
                 case PadCommand.Right:
-                    _viewModel.Move(1);
+                    if (GenreBar.IsKeyboardFocusWithin)
+                    {
+                        MoveGenre(1);
+                    }
+                    else
+                    {
+                        _viewModel.Move(1);
+                    }
+
                     break;
 
                 case PadCommand.ToggleGrid:
@@ -487,7 +503,11 @@ public partial class BigPictureWindow : Window
                     break;
 
                 case PadCommand.Down:
-                    if (_viewModel.IsGridMode)
+                    if (GenreBar.IsKeyboardFocusWithin)
+                    {
+                        FocusGames();
+                    }
+                    else if (_viewModel.IsGridMode)
                     {
                         MoveGridRows(1);
                     }
@@ -495,7 +515,17 @@ public partial class BigPictureWindow : Window
                     break;
 
                 case PadCommand.Up:
-                    if (_viewModel.IsGridMode)
+                    if (GenreBar.IsKeyboardFocusWithin)
+                    {
+                        break;
+                    }
+
+                    if (_viewModel.IsGenreGrouping &&
+                        (!_viewModel.IsGridMode || IsOnFirstGridRow()))
+                    {
+                        FocusGenreBar();
+                    }
+                    else if (_viewModel.IsGridMode)
                     {
                         MoveGridRows(-1);
                     }
@@ -565,6 +595,61 @@ public partial class BigPictureWindow : Window
             GamesList.SelectedItem = game;
             ScrollToSelection();
         }
+    }
+
+    private void GenrePrev_Click(object sender, RoutedEventArgs e) => MoveGenre(-1);
+
+    private void GenreNext_Click(object sender, RoutedEventArgs e) => MoveGenre(1);
+
+    private void MoveGenre(int direction)
+    {
+        _viewModel.MoveGenre(direction);
+
+        if (_viewModel.SelectedGenreFilter is { } filter)
+        {
+            GenreBar.SelectedItem = filter;
+            GenreBar.ScrollIntoView(filter);
+        }
+
+        GenreBar.Focus();
+    }
+
+    private void FocusGenreBar()
+    {
+        if (GenreBar.Items.Count == 0)
+        {
+            return;
+        }
+
+        GenreBar.SelectedItem = _viewModel.SelectedGenreFilter;
+        GenreBar.Focus();
+
+        if (_viewModel.SelectedGenreFilter is { } filter)
+        {
+            GenreBar.ScrollIntoView(filter);
+        }
+    }
+
+    private bool IsOnFirstGridRow()
+    {
+        if (_viewModel.SelectedGame is not { } game ||
+            GamesGrid.ItemContainerGenerator.ContainerFromItem(game) is not ListBoxItem selected)
+        {
+            return true;
+        }
+
+        var top = selected.TranslatePoint(new Point(0, 0), GamesGrid).Y;
+
+        foreach (var candidate in _viewModel.Games)
+        {
+            if (GamesGrid.ItemContainerGenerator.ContainerFromItem(candidate) is FrameworkElement item &&
+                item.TranslatePoint(new Point(0, 0), GamesGrid).Y < top - 1)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void FocusGames()
@@ -927,6 +1012,32 @@ public partial class BigPictureWindow : Window
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // Arrows walk the genre chips while that bar has the focus.
+        if (GenreBar.IsKeyboardFocusWithin)
+        {
+            switch (e.Key)
+            {
+                case Key.Left:
+                    e.Handled = true;
+                    MoveGenre(-1);
+                    return;
+
+                case Key.Right:
+                    e.Handled = true;
+                    MoveGenre(1);
+                    return;
+
+                case Key.Down:
+                    e.Handled = true;
+                    FocusGames();
+                    return;
+
+                case Key.Up:
+                    e.Handled = true;
+                    return;
+            }
+        }
+
         switch (e.Key)
         {
             case Key.Left:
@@ -939,6 +1050,23 @@ public partial class BigPictureWindow : Window
                 _viewModel.Move(1);
                 return;
 
+            case Key.Up:
+                if (_viewModel.IsGenreGrouping &&
+                    (!_viewModel.IsGridMode || IsOnFirstGridRow()))
+                {
+                    e.Handled = true;
+                    FocusGenreBar();
+                    return;
+                }
+
+                if (_viewModel.IsGridMode)
+                {
+                    e.Handled = true;
+                    MoveGridRows(-1);
+                }
+
+                return;
+
             case Key.Down:
                 e.Handled = true;
                 if (_viewModel.IsGridMode)
@@ -948,15 +1076,6 @@ public partial class BigPictureWindow : Window
                 else
                 {
                     EnterGrid();
-                }
-
-                return;
-
-            case Key.Up:
-                if (_viewModel.IsGridMode)
-                {
-                    e.Handled = true;
-                    MoveGridRows(-1);
                 }
 
                 return;

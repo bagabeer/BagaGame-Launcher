@@ -19,6 +19,8 @@
     <sys:String x:Key="Loc.BP.GroupAlpha">By alphabet</sys:String>
     <sys:String x:Key="Loc.BP.GroupGenre">Genres</sys:String>
     <sys:String x:Key="Loc.BP.AllGenres">All genres</sys:String>
+    <sys:String x:Key="Loc.BP.PrevGenre">Previous genre</sys:String>
+    <sys:String x:Key="Loc.BP.NextGenre">Next genre</sys:String>
     <sys:String x:Key="Loc.BP.Launch">Launching: {0}</sys:String>
     <sys:String x:Key="Loc.BP.Idle">Launcher ready</sys:String>
     <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>

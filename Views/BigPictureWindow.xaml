@@ -265,6 +265,30 @@
             </Setter>
         </Style>
 
+        <Style x:Key="BpArrowButton" TargetType="Button">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Background" Value="{DynamicResource BpHeroPanelBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource BpNavHoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="BpShoulderBadge" TargetType="Border">            <Setter Property="Height" Value="30" />
             <Setter Property="MinWidth" Value="34" />
             <Setter Property="Padding" Value="8,0" />
@@ -791,10 +815,26 @@
 
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <Button Grid.Column="0"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="{DynamicResource Loc.BP.PrevGenre}"
+                                Click="GenrePrev_Click"
+                                Style="{StaticResource BpArrowButton}"
+                                ToolTip="{DynamicResource Loc.BP.PrevGenre}">
+                            <ui:SymbolIcon FontSize="14"
+                                           Foreground="{DynamicResource BpTextBrush}"
+                                           Symbol="ChevronLeft24" />
+                        </Button>
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
                             <ui:SymbolIcon FontSize="15"
                                            Foreground="{DynamicResource BpTextMutedBrush}"
                                            Symbol="Grid24" />
@@ -806,9 +846,11 @@
                         </StackPanel>
 
                         <ListBox x:Name="GenreBar"
-                                 Grid.Column="1"
+                                 Grid.Column="2"
                                  Height="32"
+                                 MaxWidth="1000"
                                  Padding="0"
+                                 HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
                                  Background="Transparent"
                                  BorderThickness="0"
@@ -828,6 +870,18 @@
                                 <Style BasedOn="{StaticResource BpGenrePill}" TargetType="ListBoxItem" />
                             </ListBox.ItemContainerStyle>
                         </ListBox>
+
+                        <Button Grid.Column="3"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="{DynamicResource Loc.BP.NextGenre}"
+                                Click="GenreNext_Click"
+                                Style="{StaticResource BpArrowButton}"
+                                ToolTip="{DynamicResource Loc.BP.NextGenre}">
+                            <ui:SymbolIcon FontSize="14"
+                                           Foreground="{DynamicResource BpTextBrush}"
+                                           Symbol="ChevronRight24" />
+                        </Button>
                     </Grid>
 
                     <TextBlock HorizontalAlignment="Right"
