@@ -624,32 +624,32 @@ public partial class BigPictureWindow : Window
     }
 
     /// <summary>
-    /// Moves by whole rows in the grid. Up from the first row returns to the
-    /// carousel, so the same pad direction opens and closes the compact view.
+    /// Moves one row inside the grid. Edges simply stop: the stick never
+    /// changes the view, only the D-pad Down toggle does.
     /// </summary>
     private void MoveGridRows(int rows)
     {
-        if (rows < 0 && IsOnFirstGridRow())
-        {
-            ExitGrid();
-            return;
-        }
-
-        _viewModel.Move(rows * GridColumns);
-        _viewModel.EnsureSelection();
-
-        if (_viewModel.SelectedGame is { } game)
-        {
-            GamesGrid.ScrollIntoView(game);
-        }
-    }
-
-    private bool IsOnFirstGridRow()
-    {
+        var columns = GridColumns;
         var index = _viewModel.SelectedGame is { } game
             ? _viewModel.Games.IndexOf(game)
             : 0;
-        return index < GridColumns;
+
+        if (rows < 0 && index < columns)
+        {
+            return;
+        }
+
+        if (rows > 0 && index + columns >= _viewModel.Games.Count)
+        {
+            return;
+        }
+
+        _viewModel.Move(rows * columns);
+
+        if (_viewModel.SelectedGame is { } selected)
+        {
+            GamesGrid.ScrollIntoView(selected);
+        }
     }
 
     private int GridColumns
@@ -847,7 +847,15 @@ public partial class BigPictureWindow : Window
 
             case Key.Down:
                 e.Handled = true;
-                ToggleGridView();
+                if (_viewModel.IsGridMode)
+                {
+                    MoveGridRows(1);
+                }
+                else
+                {
+                    EnterGrid();
+                }
+
                 return;
 
             case Key.Up:
@@ -866,6 +874,10 @@ public partial class BigPictureWindow : Window
                 {
                     DetailsOverlay.Visibility = Visibility.Collapsed;
                     FocusGames();
+                }
+                else if (_viewModel.IsGridMode)
+                {
+                    ExitGrid();
                 }
                 else
                 {
