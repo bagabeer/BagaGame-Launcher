@@ -22,6 +22,8 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private readonly DispatcherTimer _clock;
     private Game? _selectedGame;
     private bool _isGridMode;
+    private GenreFilter? _selectedGenreFilter;
+    private bool _buildingGenreFilters;
     private bool _reloadQueued;
     private ImageSource? _heroImage;
     private int _batteryPercent = -1;
@@ -207,6 +209,29 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     public string GamesCountText => Loc.Format("Loc.Library.FoundGames", Games.Count);
 
+    /// <summary>Genre chips for the filter bar; only filled for the Genre grouping.</summary>
+    public ObservableCollection<GenreFilter> GenreFilters { get; } = new();
+
+    public bool IsGenreGrouping => Grouping == LibraryGrouping.Genre;
+
+    public bool HasGenreFilters => IsGenreGrouping && GenreFilters.Count > 1;
+
+    public GenreFilter? SelectedGenreFilter
+    {
+        get => _selectedGenreFilter;
+        set
+        {
+            if (_buildingGenreFilters || ReferenceEquals(_selectedGenreFilter, value))
+            {
+                return;
+            }
+
+            _selectedGenreFilter = value;
+            OnPropertyChanged();
+            RebuildGames();
+        }
+    }
+
     /// <summary>
     /// Grouping chosen in the library; Big Picture mirrors it. Series is a
     /// library-only grouping and falls back to the flat "All games" list here.
@@ -312,14 +337,28 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     private void Reload()
     {
+        RebuildGenreFilters();
+        RebuildGames();
+    }
+
+    private void RebuildGames()
+    {
         var currentId = _selectedGame?.Id;
         var grouping = Grouping;
 
+        IEnumerable<Game> source = _main.Games;
+
+        if (IsGenreGrouping && SelectedGenreFilter?.Genre is { } genre)
+        {
+            source = source.Where(game =>
+                string.Equals(GenreOf(game), genre, StringComparison.CurrentCultureIgnoreCase));
+        }
+
         IEnumerable<Game> ordered = grouping == LibraryGrouping.None
-            ? _main.Games
+            ? source
                 .OrderByDescending(game => _store.LastPlayed(game.Id))
                 .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
-            : _main.Games
+            : source
                 .OrderBy(game => GroupRank(game.Group))
                 .ThenBy(game => game.Group, StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase);
@@ -343,6 +382,63 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EmptyText));
     }
 
+    /// <summary>Builds the genre chips once per reload, keeping the chosen genre.</summary>
+    private void RebuildGenreFilters()
+    {
+        _buildingGenreFilters = true;
+        try
+        {
+            var previous = _selectedGenreFilter?.Genre;
+            GenreFilters.Clear();
+
+            if (!IsGenreGrouping)
+            {
+                _selectedGenreFilter = null;
+                return;
+            }
+
+            GenreFilters.Add(new GenreFilter(
+                Loc.T("Loc.BP.AllGenres"),
+                genre: null,
+                count: 0,
+                showCount: false));
+
+            var groups = _main.Games
+                .Select(GenreOf)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .GroupBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+                .OrderByDescending(group => group.Count())
+                .ThenBy(group => group.Key, StringComparer.CurrentCultureIgnoreCase);
+
+            foreach (var group in groups)
+            {
+                GenreFilters.Add(new GenreFilter(
+                    group.Key,
+                    group.Key,
+                    group.Count(),
+                    showCount: true));
+            }
+
+            _selectedGenreFilter = GenreFilters.FirstOrDefault(filter =>
+                    string.Equals(filter.Genre, previous, StringComparison.CurrentCultureIgnoreCase))
+                ?? GenreFilters[0];
+        }
+        finally
+        {
+            _buildingGenreFilters = false;
+            OnPropertyChanged(nameof(SelectedGenreFilter));
+            OnPropertyChanged(nameof(IsGenreGrouping));
+            OnPropertyChanged(nameof(HasGenreFilters));
+        }
+    }
+
+    /// <summary>Localized genre of a game, or an empty string when it is unknown.</summary>
+    private string GenreOf(Game game)
+    {
+        var stored = _store.GetGenre(game.Id);
+        return string.IsNullOrWhiteSpace(stored) ? string.Empty : Loc.GenreName(stored);
+    }
+
     /// <summary>Pushes the "Other genre" bucket to the end of the list.</summary>
     private int GroupRank(string? group) => Grouping switch
     {
@@ -352,6 +448,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     private void OnLanguageChanged()
     {
+        Reload();
         OnPropertyChanged(nameof(ListTitle));
         OnPropertyChanged(nameof(SelectedTitle));
         OnPropertyChanged(nameof(SelectedSubtitle));

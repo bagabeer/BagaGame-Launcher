@@ -230,8 +230,42 @@
             </Setter>
         </Style>
 
-        <Style x:Key="BpShoulderBadge" TargetType="Border">
+        <!-- Genre filter chips under the hero. -->
+        <Style x:Key="BpGenrePill" TargetType="ListBoxItem">
             <Setter Property="Height" Value="30" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextMutedBrush}" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Pill"
+                                Padding="{TemplateBinding Padding}"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="1.5"
+                                CornerRadius="15">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Pill" Property="Background" Value="{DynamicResource BpNavHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Pill" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource BpAccentBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BpShoulderBadge" TargetType="Border">            <Setter Property="Height" Value="30" />
             <Setter Property="MinWidth" Value="34" />
             <Setter Property="Padding" Value="8,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -726,13 +760,78 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,56,14">
+                <Grid Grid.Row="0" Margin="0,0,56,10">
                     <TextBlock FontSize="23"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource BpTextBrush}"
-                               Text="{Binding ListTitle}" />
+                               Text="{Binding ListTitle}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGenreGrouping}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <Grid Margin="0,0,64,0" VerticalAlignment="Center">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGenreGrouping}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <ui:SymbolIcon FontSize="15"
+                                           Foreground="{DynamicResource BpTextMutedBrush}"
+                                           Symbol="Grid24" />
+                            <TextBlock Margin="8,0,14,0"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Text="{DynamicResource Loc.BP.GroupGenre}" />
+                        </StackPanel>
+
+                        <ListBox x:Name="GenreBar"
+                                 Grid.Column="1"
+                                 Height="32"
+                                 Padding="0"
+                                 VerticalAlignment="Center"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 FocusVisualStyle="{x:Null}"
+                                 ItemsSource="{Binding GenreFilters}"
+                                 KeyboardNavigation.DirectionalNavigation="Contained"
+                                 ScrollViewer.CanContentScroll="False"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 SelectedItem="{Binding SelectedGenreFilter, Mode=TwoWay}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource BpGenrePill}" TargetType="ListBoxItem" />
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+
                     <TextBlock HorizontalAlignment="Right"
-                               VerticalAlignment="Bottom"
+                               VerticalAlignment="Center"
                                FontSize="12"
                                Foreground="{DynamicResource BpTextMutedBrush}"
                                Text="{Binding CounterText}" />
