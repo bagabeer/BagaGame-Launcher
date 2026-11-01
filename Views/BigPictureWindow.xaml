@@ -1219,9 +1219,16 @@
                         <Border Style="{DynamicResource BpKeyCap}">
                             <TextBlock Style="{DynamicResource BpKeyText}" Text="Esc" />
                         </Border>
-                        <TextBlock Margin="8,0,0,0"
+                        <TextBlock Margin="8,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Exit}" />
+
+                        <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Q  E" />
+                        </Border>
+                        <TextBlock Margin="8,0,0,0"
+                                   Style="{DynamicResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Section}" />
                     </StackPanel>
 
                     <StackPanel x:Name="PadHints"

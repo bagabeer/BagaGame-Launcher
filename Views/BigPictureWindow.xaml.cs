@@ -1124,6 +1124,16 @@ public partial class BigPictureWindow : Window
 
                 return;
 
+            case Key.Q:
+                e.Handled = true;
+                CycleGrouping(-1);
+                return;
+
+            case Key.E:
+                e.Handled = true;
+                CycleGrouping(1);
+                return;
+
             case Key.F11:
                 e.Handled = true;
                 ExitRequested?.Invoke(this, EventArgs.Empty);

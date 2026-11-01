@@ -27,6 +27,7 @@
     <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Move">выбор</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Grid">сетка</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Section">раздел</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Exit">выход</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Библиотека пуста</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Text">Добавьте папку с играми в основном окне — здесь они появятся с обложками.</sys:String>

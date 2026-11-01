@@ -26,6 +26,7 @@
     <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Move">select</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Grid">grid</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Section">section</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Exit">exit</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Library is empty</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Text">Add a games folder in the main window - games will appear here with their covers.</sys:String>
