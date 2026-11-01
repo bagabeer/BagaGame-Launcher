@@ -1200,7 +1200,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         RenameOverlay.Visibility = Visibility.Visible;
         RenameBox.Focus();
-        RenameBox.SelectAll();
+        RenameBox.CaretIndex = RenameBox.Text.Length;
     }
 
     private void RemoveGame_Click(object sender, RoutedEventArgs e)
