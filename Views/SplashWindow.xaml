@@ -20,14 +20,6 @@
             BorderBrush="{DynamicResource BpBorderBrush}"
             BorderThickness="1"
             CornerRadius="24">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="44"
-                              Direction="270"
-                              Opacity="0.55"
-                              ShadowDepth="8"
-                              Color="#000000" />
-        </Border.Effect>
-
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <Border x:Name="Logo"
                     Width="92"
