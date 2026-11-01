@@ -258,7 +258,8 @@ public sealed class GamepadService : IDisposable
 
         if (vertical)
         {
-            return stickY < 0 ? PadCommand.Up : PadCommand.Down;
+            // XInput reports a positive Y for "up", the opposite of screen axes.
+            return stickY > 0 ? PadCommand.Up : PadCommand.Down;
         }
 
         return null;

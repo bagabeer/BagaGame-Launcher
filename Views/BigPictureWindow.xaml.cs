@@ -39,9 +39,6 @@ public partial class BigPictureWindow : Window
     private bool _ready;
     private Game? _lastTickGame;
 
-    /// <summary>Must match WrapPanel.ItemWidth in the compact grid.</summary>
-    private const double GridCardWidth = 140;
-
     public BigPictureWindow(MainViewModel main, LibraryStore store)
     {
         InitializeComponent();
@@ -624,42 +621,58 @@ public partial class BigPictureWindow : Window
     }
 
     /// <summary>
-    /// Moves one row inside the grid. Edges simply stop: the stick never
-    /// changes the view, only the D-pad Down toggle does.
+    /// Moves one row inside the grid. The next card is picked by its actual
+    /// position, so a half-filled last row and any number of columns still
+    /// land on the nearest cover below or above. Edges simply stop.
     /// </summary>
-    private void MoveGridRows(int rows)
+    private void MoveGridRows(int direction)
     {
-        var columns = GridColumns;
-        var index = _viewModel.SelectedGame is { } game
-            ? _viewModel.Games.IndexOf(game)
-            : 0;
-
-        if (rows < 0 && index < columns)
+        if (_viewModel.SelectedGame is not { } current ||
+            GamesGrid.ItemContainerGenerator.ContainerFromItem(current) is not ListBoxItem currentItem)
         {
             return;
         }
 
-        if (rows > 0 && index + columns >= _viewModel.Games.Count)
+        var origin = currentItem.TranslatePoint(new Point(0, 0), GamesGrid);
+        var centerX = origin.X + currentItem.ActualWidth / 2;
+
+        Game? best = null;
+        var bestRowDistance = double.MaxValue;
+        var bestColumnDistance = double.MaxValue;
+
+        foreach (var game in _viewModel.Games)
         {
-            return;
+            if (ReferenceEquals(game, current) ||
+                GamesGrid.ItemContainerGenerator.ContainerFromItem(game) is not ListBoxItem item)
+            {
+                continue;
+            }
+
+            var position = item.TranslatePoint(new Point(0, 0), GamesGrid);
+            var rowDistance = position.Y - origin.Y;
+
+            if (direction > 0 ? rowDistance <= 1 : rowDistance >= -1)
+            {
+                continue;
+            }
+
+            rowDistance = Math.Abs(rowDistance);
+            var columnDistance = Math.Abs(position.X + item.ActualWidth / 2 - centerX);
+
+            if (rowDistance < bestRowDistance - 0.5 ||
+                (Math.Abs(rowDistance - bestRowDistance) <= 0.5 &&
+                 columnDistance < bestColumnDistance))
+            {
+                best = game;
+                bestRowDistance = rowDistance;
+                bestColumnDistance = columnDistance;
+            }
         }
 
-        _viewModel.Move(rows * columns);
-
-        if (_viewModel.SelectedGame is { } selected)
+        if (best is not null)
         {
-            GamesGrid.ScrollIntoView(selected);
-        }
-    }
-
-    private int GridColumns
-    {
-        get
-        {
-            var width = GamesGrid.ActualWidth;
-            return width > 0
-                ? Math.Max(1, (int)(width / GridCardWidth))
-                : 1;
+            _viewModel.SelectedGame = best;
+            GamesGrid.ScrollIntoView(best);
         }
     }
 
