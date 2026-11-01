@@ -32,6 +32,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private readonly GamepadService _gamepadWatcher;
     private DateTime _gamepadWatchStartedUtc;
     private bool _leavingBigPicture;
+    private bool _syncingGrouping;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
     private bool _cropDragging;
@@ -409,6 +410,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             window.CloseApproved();
             _bigPicture = null;
             _leavingBigPicture = false;
+
+            // Big Picture can switch the grouping; keep the library pills in sync.
+            SelectGrouping(_viewModel.Grouping);
 
             if (page is not null)
             {
@@ -1402,7 +1406,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private async void GroupMode_Checked(object sender, RoutedEventArgs e)
     {
-        if (!IsLoaded || GamesItems is null)
+        if (_syncingGrouping || !IsLoaded || GamesItems is null)
         {
             return;
         }
@@ -1419,20 +1423,28 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void SelectGrouping(LibraryGrouping grouping)
     {
-        switch (grouping)
+        _syncingGrouping = true;
+        try
         {
-            case LibraryGrouping.Alphabet:
-                GroupAlphaButton.IsChecked = true;
-                break;
-            case LibraryGrouping.Genre:
-                GroupGenreButton.IsChecked = true;
-                break;
-            case LibraryGrouping.Series:
-                GroupSeriesButton.IsChecked = true;
-                break;
-            default:
-                GroupAllButton.IsChecked = true;
-                break;
+            switch (grouping)
+            {
+                case LibraryGrouping.Alphabet:
+                    GroupAlphaButton.IsChecked = true;
+                    break;
+                case LibraryGrouping.Genre:
+                    GroupGenreButton.IsChecked = true;
+                    break;
+                case LibraryGrouping.Series:
+                    GroupSeriesButton.IsChecked = true;
+                    break;
+                default:
+                    GroupAllButton.IsChecked = true;
+                    break;
+            }
+        }
+        finally
+        {
+            _syncingGrouping = false;
         }
     }
 

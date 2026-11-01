@@ -38,6 +38,15 @@ public partial class BigPictureWindow : Window
     private bool _closeApproved;
     private bool _ready;
     private Game? _lastTickGame;
+    private bool _syncingGroupPills;
+
+    private static readonly LibraryGrouping[] Groupings =
+    {
+        LibraryGrouping.None,
+        LibraryGrouping.Alphabet,
+        LibraryGrouping.Genre,
+        LibraryGrouping.Series,
+    };
 
     public BigPictureWindow(MainViewModel main, LibraryStore store)
     {
@@ -275,6 +284,7 @@ public partial class BigPictureWindow : Window
         ApplyScale();
         _viewModel.EnsureSelection();
         SelectCurrent();
+        SyncGroupPills();
         FocusGames();
         _ready = true;
         _gamepad.Start();
@@ -469,6 +479,14 @@ public partial class BigPictureWindow : Window
                     ToggleGridView();
                     break;
 
+                case PadCommand.GroupPrevious:
+                    CycleGrouping(-1);
+                    break;
+
+                case PadCommand.GroupNext:
+                    CycleGrouping(1);
+                    break;
+
                 case PadCommand.Down:
                     if (_viewModel.IsGridMode)
                     {
@@ -559,6 +577,69 @@ public partial class BigPictureWindow : Window
         else
         {
             GamesList.Focus();
+        }
+    }
+
+    private async void GroupPill_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_syncingGroupPills || !IsLoaded ||
+            sender is not FrameworkElement { Tag: string tag } ||
+            !Enum.TryParse<LibraryGrouping>(tag, out var grouping))
+        {
+            return;
+        }
+
+        try
+        {
+            await ApplyGroupingAsync(grouping);
+        }
+        catch
+        {
+            // Switching a grouping must never take Big Picture down.
+        }
+    }
+
+    /// <summary>LB/RB walk through the same four sections as the library.</summary>
+    private async void CycleGrouping(int direction)
+    {
+        var index = Array.IndexOf(Groupings, _viewModel.Grouping);
+        if (index < 0)
+        {
+            index = 0;
+        }
+
+        var next = (index + direction + Groupings.Length) % Groupings.Length;
+
+        try
+        {
+            await ApplyGroupingAsync(Groupings[next]);
+        }
+        catch
+        {
+            // Keep the previous grouping if the switch failed.
+        }
+    }
+
+    private async Task ApplyGroupingAsync(LibraryGrouping grouping)
+    {
+        await _viewModel.SetGroupingAsync(grouping);
+        SyncGroupPills();
+        SelectCurrent();
+    }
+
+    private void SyncGroupPills()
+    {
+        _syncingGroupPills = true;
+        try
+        {
+            BpGroupAllButton.IsChecked = _viewModel.Grouping == LibraryGrouping.None;
+            BpGroupAlphaButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Alphabet;
+            BpGroupGenreButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Genre;
+            BpGroupSeriesButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Series;
+        }
+        finally
+        {
+            _syncingGroupPills = false;
         }
     }
 

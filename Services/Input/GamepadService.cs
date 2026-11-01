@@ -11,6 +11,8 @@ public enum PadCommand
     Up,
     Down,
     ToggleGrid,
+    GroupPrevious,
+    GroupNext,
     Play,
     Details,
     Menu,
@@ -153,7 +155,9 @@ public sealed class GamepadService : IDisposable
 
         if ((pressed & (LeftShoulder | RightShoulder)) != 0)
         {
-            Emit((pressed & RightShoulder) != 0 ? PadCommand.Right : PadCommand.Left);
+            Emit((pressed & RightShoulder) != 0
+                ? PadCommand.GroupNext
+                : PadCommand.GroupPrevious);
         }
 
         // The D-pad no longer walks the covers: its Down edge is the single

@@ -207,6 +207,33 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     public string GamesCountText => Loc.Format("Loc.Library.FoundGames", Games.Count);
 
+    /// <summary>Grouping chosen in the library; Big Picture mirrors it.</summary>
+    public LibraryGrouping Grouping => _main.Grouping;
+
+    /// <summary>List heading: "Recent games" or the active grouping.</summary>
+    public string ListTitle => _main.Grouping switch
+    {
+        LibraryGrouping.Alphabet => Loc.T("Loc.BP.GroupAlpha"),
+        LibraryGrouping.Genre => Loc.T("Loc.BP.GroupGenre"),
+        LibraryGrouping.Series => Loc.T("Loc.BP.GroupSeries"),
+        _ => Loc.T("Loc.BP.Recent"),
+    };
+
+    /// <summary>Switches the grouping and reorders the covers by group.</summary>
+    public async Task SetGroupingAsync(LibraryGrouping grouping)
+    {
+        if (_main.Grouping == grouping)
+        {
+            return;
+        }
+
+        await _main.SetGroupingAsync(grouping);
+        Reload();
+
+        OnPropertyChanged(nameof(Grouping));
+        OnPropertyChanged(nameof(ListTitle));
+    }
+
     public string StatusText => _selectedGame is null
         ? Loc.T("Loc.BP.Idle")
         : Loc.Format("Loc.BP.Launch", _selectedGame.Title);
@@ -283,11 +310,16 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private void Reload()
     {
         var currentId = _selectedGame?.Id;
+        var grouping = _main.Grouping;
 
-        var ordered = _main.Games
-            .OrderByDescending(game => _store.LastPlayed(game.Id))
-            .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
+        IEnumerable<Game> ordered = grouping == LibraryGrouping.None
+            ? _main.Games
+                .OrderByDescending(game => _store.LastPlayed(game.Id))
+                .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
+            : _main.Games
+                .OrderBy(game => GroupRank(game.Group))
+                .ThenBy(game => game.Group, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase);
 
         Games.Clear();
         foreach (var game in ordered)
@@ -308,8 +340,17 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EmptyText));
     }
 
+    /// <summary>Pushes "Other genre" and "No series" to the end of the list.</summary>
+    private int GroupRank(string? group) => _main.Grouping switch
+    {
+        LibraryGrouping.Series when group == LibraryGroupingHelper.NoSeries => 1,
+        LibraryGrouping.Genre when group == LibraryGroupingHelper.OtherGenre => 1,
+        _ => 0,
+    };
+
     private void OnLanguageChanged()
     {
+        OnPropertyChanged(nameof(ListTitle));
         OnPropertyChanged(nameof(SelectedTitle));
         OnPropertyChanged(nameof(SelectedSubtitle));
         OnPropertyChanged(nameof(SelectedFolder));

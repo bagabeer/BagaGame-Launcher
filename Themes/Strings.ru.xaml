@@ -16,6 +16,10 @@
     <sys:String x:Key="Loc.BP.Play">Играть</sys:String>
     <sys:String x:Key="Loc.BP.Details">Подробнее</sys:String>
     <sys:String x:Key="Loc.BP.Recent">Недавние игры</sys:String>
+    <sys:String x:Key="Loc.BP.GroupAll">Все игры</sys:String>
+    <sys:String x:Key="Loc.BP.GroupAlpha">По алфавиту</sys:String>
+    <sys:String x:Key="Loc.BP.GroupGenre">Жанры</sys:String>
+    <sys:String x:Key="Loc.BP.GroupSeries">Серии</sys:String>
     <sys:String x:Key="Loc.BP.Launch">Запуск: {0}</sys:String>
     <sys:String x:Key="Loc.BP.Idle">Лаунчер готов</sys:String>
     <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>
