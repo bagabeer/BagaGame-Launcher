@@ -309,6 +309,26 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>Stars or unstars the selected game; returns its new state.</summary>
+    public bool? ToggleFavorite()
+    {
+        if (_selectedGame is not { } game)
+        {
+            return null;
+        }
+
+        var favorite = !game.IsFavorite;
+        _main.ToggleFavorite(game);
+
+        // In the star section a removed game has to leave the list at once.
+        if (_favoritesOnly)
+        {
+            RebuildGames();
+        }
+
+        return favorite;
+    }
+
     /// <summary>Moves the selection; used by keyboard, mouse buttons and pads.</summary>
     public void Move(int delta)
     {

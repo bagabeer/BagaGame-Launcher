@@ -15,6 +15,7 @@ public enum PadCommand
     GroupNext,
     Play,
     Details,
+    Favorite,
     Menu,
     Back,
 }
@@ -128,6 +129,11 @@ public sealed class GamepadService : IDisposable
         if ((pressed & ButtonX) != 0)
         {
             Emit(PadCommand.Details);
+        }
+
+        if ((pressed & ButtonY) != 0)
+        {
+            Emit(PadCommand.Favorite);
         }
 
         if ((pressed & ButtonB) != 0)

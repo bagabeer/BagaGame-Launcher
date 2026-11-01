@@ -1255,6 +1255,13 @@
                                    Text="{DynamicResource Loc.BP.Details}" />
 
                         <Border Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="Y" />
+                        </Border>
+                        <TextBlock Margin="0,0,18,0"
+                                   Style="{DynamicResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Favorite}" />
+
+                        <Border Style="{StaticResource PadBadge}">
                             <Grid Width="16" Height="16">
                                 <Path Data="M6,1 H10 V6 H15 V10 H10 V15 H6 V10 H1 V6 H6 Z"
                                       Fill="{DynamicResource BpPadBadgeTextBrush}"
@@ -1285,6 +1292,39 @@
                 </Grid>
 
             </Grid>
+
+            <!-- Quiet confirmation after Y toggles a star. -->
+            <Border x:Name="FavoriteToast"
+                    Grid.RowSpan="3"
+                    Margin="0,0,0,100"
+                    Padding="16,10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Panel.ZIndex="50"
+                    Background="{DynamicResource BpHeroPanelBrush}"
+                    BorderBrush="{DynamicResource BpBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    IsHitTestVisible="False"
+                    Opacity="0"
+                    Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon x:Name="FavoriteToastAddedIcon"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource BpAccentBrush}"
+                                   Symbol="StarFill24" />
+                    <ui:SymbolIcon x:Name="FavoriteToastRemovedIcon"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
+                                   Symbol="Star24"
+                                   Visibility="Collapsed" />
+                    <TextBlock x:Name="FavoriteToastText"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="13.5"
+                               Foreground="{DynamicResource BpTextBrush}" />
+                </StackPanel>
+            </Border>
         </Grid>
 
         <!-- =========================== Details panel ======================== -->

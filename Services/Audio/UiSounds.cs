@@ -16,6 +16,8 @@ public static class UiSounds
     private static SoundPlayer? _enter;
     private static SoundPlayer? _exit;
     private static SoundPlayer? _move;
+    private static SoundPlayer? _favoriteAdd;
+    private static SoundPlayer? _favoriteRemove;
 
     public static void PlayEnter(bool enabled) => Play(ref _enter, "enter-v3.wav", BuildEnter, enabled);
 
@@ -23,6 +25,14 @@ public static class UiSounds
 
     /// <summary>A quiet tick while moving between cards.</summary>
     public static void PlayMove(bool enabled) => Play(ref _move, "move-v3.wav", BuildMove, enabled);
+
+    /// <summary>A short rising chime: the game was starred.</summary>
+    public static void PlayFavoriteAdd(bool enabled) =>
+        Play(ref _favoriteAdd, "favorite-add-v1.wav", BuildFavoriteAdd, enabled);
+
+    /// <summary>A short falling chime: the star was removed.</summary>
+    public static void PlayFavoriteRemove(bool enabled) =>
+        Play(ref _favoriteRemove, "favorite-remove-v1.wav", BuildFavoriteRemove, enabled);
 
     private static void Play(ref SoundPlayer? player, string fileName, Func<double[]> build, bool enabled)
     {
@@ -137,6 +147,50 @@ public static class UiSounds
         AddClick(samples, 0.00, 330, 0.35);
 
         return Normalize(samples, 0.11);
+    }
+
+    /// <summary>Two soft rising notes: the star fills in.</summary>
+    private static double[] BuildFavoriteAdd()
+    {
+        var samples = new double[(int)(SampleRate * 0.34)];
+
+        AddChime(samples, 0.000, 660, 0.22, 0.55);
+        AddChime(samples, 0.085, 990, 0.24, 0.62);
+
+        return Normalize(samples, 0.22);
+    }
+
+    /// <summary>The same two notes falling: the star goes out.</summary>
+    private static double[] BuildFavoriteRemove()
+    {
+        var samples = new double[(int)(SampleRate * 0.34)];
+
+        AddChime(samples, 0.000, 740, 0.22, 0.58);
+        AddChime(samples, 0.085, 494, 0.24, 0.55);
+
+        return Normalize(samples, 0.20);
+    }
+
+    /// <summary>A mellow sine note with a short attack and release.</summary>
+    private static void AddChime(double[] samples, double at, double frequency, double length, double amplitude)
+    {
+        var start = (int)(at * SampleRate);
+        var count = Math.Min(samples.Length - start, (int)(length * SampleRate));
+        var releaseSamples = Math.Max(1, (int)(SampleRate * 0.02));
+
+        for (var i = 0; i < count; i++)
+        {
+            var t = (double)i / SampleRate;
+            var attack = Math.Min(1, t / 0.008);
+            var decay = Math.Exp(-t * 11);
+            var release = Math.Min(1, (double)(count - i) / releaseSamples);
+
+            var tone = Math.Sin(2 * Math.PI * frequency * t) +
+                       Math.Sin(2 * Math.PI * frequency * 2 * t) * 0.16 +
+                       Math.Sin(2 * Math.PI * frequency * 3 * t) * 0.05;
+
+            samples[start + i] += tone * decay * attack * release * amplitude;
+        }
     }
 
     /// <summary>

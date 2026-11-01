@@ -28,11 +28,14 @@
     <sys:String x:Key="Loc.BP.Hint.Move">select</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Grid">grid</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Section">section</sys:String>
+    <sys:String x:Key="Loc.BP.Hint.Favorite">favorite</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Exit">exit</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Library is empty</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Text">Add a games folder in the main window - games will appear here with their covers.</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Favorites.Title">No favorites yet</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Favorites.Text">Mark games with a star in the main window - they will be collected here.</sys:String>
+    <sys:String x:Key="Loc.BP.Toast.FavoriteAdded">Added to favorites</sys:String>
+    <sys:String x:Key="Loc.BP.Toast.FavoriteRemoved">Removed from favorites</sys:String>
     <sys:String x:Key="Loc.BP.Details.Title">About the game</sys:String>
     <sys:String x:Key="Loc.BP.Details.Playtime">Source and playtime</sys:String>
     <sys:String x:Key="Loc.BP.Details.Path">Folder</sys:String>

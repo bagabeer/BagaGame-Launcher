@@ -40,6 +40,8 @@ public partial class BigPictureWindow : Window
     private string? _lastGenreKey;
     private bool _suppressGenreSound;
     private bool _syncingGroupPills;
+    private DispatcherTimer? _favoriteToastTimer;
+    private int _favoriteToastVersion;
 
     private static readonly BpSection[] Sections =
     {
@@ -533,6 +535,10 @@ public partial class BigPictureWindow : Window
                     ToggleDetails();
                     break;
 
+                case PadCommand.Favorite:
+                    ToggleFavorite();
+                    break;
+
                 case PadCommand.Menu:
                     NavigateRequested?.Invoke("Settings");
                     break;
@@ -992,6 +998,92 @@ public partial class BigPictureWindow : Window
         FocusGames();
     }
 
+    /// <summary>Y stars or unstars the selected game and confirms it quietly.</summary>
+    private void ToggleFavorite()
+    {
+        if (DetailsOverlay.Visibility == Visibility.Visible)
+        {
+            return;
+        }
+
+        if (_viewModel.ToggleFavorite() is not { } added)
+        {
+            return;
+        }
+
+        if (added)
+        {
+            UiSounds.PlayFavoriteAdd(_store.BigPictureSounds);
+        }
+        else
+        {
+            UiSounds.PlayFavoriteRemove(_store.BigPictureSounds);
+        }
+
+        ShowFavoriteToast(added);
+
+        if (_viewModel.Section == BpSection.Favorites)
+        {
+            SelectCurrent();
+        }
+    }
+
+    /// <summary>Fades a small message in above the hints, then lets it go.</summary>
+    private void ShowFavoriteToast(bool added)
+    {
+        _favoriteToastTimer?.Stop();
+        _favoriteToastTimer = null;
+
+        var version = ++_favoriteToastVersion;
+
+        FavoriteToastText.Text = Loc.T(added
+            ? "Loc.BP.Toast.FavoriteAdded"
+            : "Loc.BP.Toast.FavoriteRemoved");
+
+        FavoriteToastAddedIcon.Visibility = added ? Visibility.Visible : Visibility.Collapsed;
+        FavoriteToastRemovedIcon.Visibility = added ? Visibility.Collapsed : Visibility.Visible;
+
+        FavoriteToast.BeginAnimation(OpacityProperty, null);
+        FavoriteToast.Opacity = 0;
+        FavoriteToast.Visibility = Visibility.Visible;
+
+        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+        };
+
+        FavoriteToast.BeginAnimation(OpacityProperty, fadeIn);
+
+        _favoriteToastTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1500) };
+        _favoriteToastTimer.Tick += (_, _) =>
+        {
+            _favoriteToastTimer?.Stop();
+            _favoriteToastTimer = null;
+
+            if (version != _favoriteToastVersion)
+            {
+                return;
+            }
+
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(320))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn },
+            };
+
+            fadeOut.Completed += (_, _) =>
+            {
+                if (version == _favoriteToastVersion)
+                {
+                    FavoriteToast.Visibility = Visibility.Collapsed;
+                }
+            };
+
+            FavoriteToast.BeginAnimation(OpacityProperty, fadeOut);
+        };
+
+        _favoriteToastTimer.Start();
+    }
+
     private void DetailsOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (ReferenceEquals(e.OriginalSource, DetailsOverlay))
@@ -1192,6 +1284,9 @@ public partial class BigPictureWindow : Window
         _detailsToken?.Cancel();
         _detailsToken?.Dispose();
         _detailsToken = null;
+
+        _favoriteToastTimer?.Stop();
+        _favoriteToastTimer = null;
 
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
