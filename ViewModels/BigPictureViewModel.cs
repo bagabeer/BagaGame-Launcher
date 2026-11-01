@@ -348,16 +348,28 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
                 .ThenBy(game => game.Group, StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase);
 
+        var orderedGames = ordered.ToList();
+
+        // Keep the active cover selected and put it at the start of the list.
+        if (currentId is not null)
+        {
+            var active = orderedGames.FirstOrDefault(game =>
+                string.Equals(game.Id, currentId, StringComparison.Ordinal));
+
+            if (active is not null)
+            {
+                orderedGames.Remove(active);
+                orderedGames.Insert(0, active);
+            }
+        }
+
         Games.Clear();
-        foreach (var game in ordered)
+        foreach (var game in orderedGames)
         {
             Games.Add(game);
         }
 
-        SelectedGame = currentId is null
-            ? Games.FirstOrDefault()
-            : Games.FirstOrDefault(game => string.Equals(game.Id, currentId, StringComparison.Ordinal))
-              ?? Games.FirstOrDefault();
+        SelectedGame = Games.FirstOrDefault();
 
         OnPropertyChanged(nameof(HasGames));
         OnPropertyChanged(nameof(GamesCountText));
