@@ -638,11 +638,27 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource BpTextBrush}"
                                Text="{DynamicResource Loc.BP.Recent}" />
-                    <TextBlock HorizontalAlignment="Right"
-                               VerticalAlignment="Bottom"
-                               FontSize="12"
-                               Foreground="{DynamicResource BpTextMutedBrush}"
-                               Text="{Binding CounterText}" />
+                    <StackPanel HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"
+                                Orientation="Horizontal">
+                        <TextBlock Margin="0,0,14,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource BpTextMutedBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="{DynamicResource Loc.BP.ViewGrid}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsGridMode}" Value="True">
+                                            <Setter Property="Text" Value="{DynamicResource Loc.BP.ViewCarousel}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock FontSize="12"
+                                   Foreground="{DynamicResource BpTextMutedBrush}"
+                                   Text="{Binding CounterText}" />
+                    </StackPanel>
                 </Grid>
 
                 <ListBox x:Name="GamesList"
@@ -663,6 +679,17 @@
                          VerticalContentAlignment="Center"
                          VirtualizingStackPanel.IsVirtualizing="True"
                          VirtualizingStackPanel.VirtualizationMode="Recycling">
+                    <ListBox.Style>
+                        <Style TargetType="ListBox">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGridMode}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Style>
+
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <VirtualizingStackPanel Orientation="Horizontal" />
@@ -776,6 +803,112 @@
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <!-- Compact grid: Down opens it, Up on the first row returns. -->
+                <ListBox x:Name="GamesGrid"
+                         Grid.Row="1"
+                         Height="446"
+                         Padding="0,2,0,6"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         FocusVisualStyle="{x:Null}"
+                         ItemsSource="{Binding Games}"
+                         KeyboardNavigation.DirectionalNavigation="Contained"
+                         ScrollViewer.CanContentScroll="False"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         SelectedItem="{Binding SelectedGame, Mode=TwoWay}"
+                         SelectionChanged="GamesGrid_SelectionChanged">
+                    <ListBox.Style>
+                        <Style TargetType="ListBox">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGridMode}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Style>
+
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel ItemWidth="140" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <StackPanel Margin="5,4,5,8">
+                                            <Border x:Name="Frame"
+                                                    Height="170"
+                                                    Background="{DynamicResource BpCardBrush}"
+                                                    BorderBrush="{DynamicResource BpCardStrokeBrush}"
+                                                    BorderThickness="2"
+                                                    CornerRadius="10">
+                                                <Grid>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="24"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource BpTextMutedBrush}"
+                                                               Text="{Binding Initials}" />
+
+                                                    <Rectangle RadiusX="8"
+                                                               RadiusY="8"
+                                                               Stretch="Fill">
+                                                        <Rectangle.Fill>
+                                                            <ImageBrush AlignmentX="Center"
+                                                                        AlignmentY="Center"
+                                                                        ImageSource="{Binding Cover}"
+                                                                        Stretch="UniformToFill" />
+                                                        </Rectangle.Fill>
+                                                    </Rectangle>
+                                                </Grid>
+                                            </Border>
+
+                                            <TextBlock x:Name="Caption"
+                                                       Margin="1,6,1,0"
+                                                       MaxHeight="30"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource BpTextMutedBrush}"
+                                                       Text="{Binding Title}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
+                                                <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
+                                                <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
+                                                <Setter TargetName="Frame" Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="16"
+                                                                          Direction="0"
+                                                                          Opacity="0.45"
+                                                                          ShadowDepth="0"
+                                                                          Color="#A5F26B" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="Panel.ZIndex" Value="2" />
                                             </Trigger>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />

@@ -15,6 +15,8 @@
     <sys:String x:Key="Loc.BP.Play">Play</sys:String>
     <sys:String x:Key="Loc.BP.Details">Details</sys:String>
     <sys:String x:Key="Loc.BP.Recent">Recent games</sys:String>
+    <sys:String x:Key="Loc.BP.ViewGrid">↓ Grid</sys:String>
+    <sys:String x:Key="Loc.BP.ViewCarousel">↑ Carousel</sys:String>
     <sys:String x:Key="Loc.BP.Launch">Launching: {0}</sys:String>
     <sys:String x:Key="Loc.BP.Idle">Launcher ready</sys:String>
     <sys:String x:Key="Loc.BP.Counter">{0} / {1}</sys:String>

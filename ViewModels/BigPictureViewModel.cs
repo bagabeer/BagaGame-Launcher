@@ -21,6 +21,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private readonly LibraryStore _store;
     private readonly DispatcherTimer _clock;
     private Game? _selectedGame;
+    private bool _isGridMode;
     private bool _reloadQueued;
     private ImageSource? _heroImage;
     private int _batteryPercent = -1;
@@ -213,6 +214,25 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     public string EmptyTitle => Loc.T("Loc.BP.Empty.Title");
 
     public string EmptyText => Loc.T("Loc.BP.Empty.Text");
+
+    /// <summary>
+    /// Compact grid instead of the carousel. Down enters it from the carousel;
+    /// Up on the first row returns to the carousel.
+    /// </summary>
+    public bool IsGridMode
+    {
+        get => _isGridMode;
+        set
+        {
+            if (_isGridMode == value)
+            {
+                return;
+            }
+
+            _isGridMode = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>Moves the selection; used by keyboard, mouse buttons and pads.</summary>
     public void Move(int delta)

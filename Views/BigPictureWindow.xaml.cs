@@ -39,6 +39,9 @@ public partial class BigPictureWindow : Window
     private bool _ready;
     private Game? _lastTickGame;
 
+    /// <summary>Must match WrapPanel.ItemWidth in the compact grid.</summary>
+    private const double GridCardWidth = 140;
+
     public BigPictureWindow(MainViewModel main, LibraryStore store)
     {
         InitializeComponent();
@@ -60,6 +63,7 @@ public partial class BigPictureWindow : Window
 
         GamesList.PreviewMouseWheel += OnGamesListMouseWheel;
         GamesList.MouseDoubleClick += (_, _) => PlaySelected();
+        GamesGrid.MouseDoubleClick += (_, _) => PlaySelected();
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -125,7 +129,7 @@ public partial class BigPictureWindow : Window
             scale.BeginAnimation(ScaleTransform.ScaleYProperty, zoom);
         }
 
-        GamesList.Focus();
+        FocusGames();
     }
 
     /// <summary>
@@ -154,7 +158,7 @@ public partial class BigPictureWindow : Window
         Topmost = false;
 
         _ready = true;
-        GamesList.Focus();
+        FocusGames();
         _gamepad.Start();
         UpdateHints(_gamepad.IsConnected);
         UpdateBattery();
@@ -274,7 +278,7 @@ public partial class BigPictureWindow : Window
         ApplyScale();
         _viewModel.EnsureSelection();
         SelectCurrent();
-        GamesList.Focus();
+        FocusGames();
         _ready = true;
         _gamepad.Start();
         UpdateHints(_gamepad.IsConnected);
@@ -464,6 +468,26 @@ public partial class BigPictureWindow : Window
                     _viewModel.Move(1);
                     break;
 
+                case PadCommand.Down:
+                    if (_viewModel.IsGridMode)
+                    {
+                        MoveGridRows(1);
+                    }
+                    else
+                    {
+                        EnterGrid();
+                    }
+
+                    break;
+
+                case PadCommand.Up:
+                    if (_viewModel.IsGridMode)
+                    {
+                        MoveGridRows(-1);
+                    }
+
+                    break;
+
                 case PadCommand.Play:
                     PlaySelected();
                     break;
@@ -480,7 +504,7 @@ public partial class BigPictureWindow : Window
                     if (DetailsOverlay.Visibility == Visibility.Visible)
                     {
                         DetailsOverlay.Visibility = Visibility.Collapsed;
-                        GamesList.Focus();
+                        FocusGames();
                     }
                     else
                     {
@@ -512,10 +536,132 @@ public partial class BigPictureWindow : Window
 
     private void SelectCurrent()
     {
-        if (_viewModel.SelectedGame is { } game)
+        if (_viewModel.SelectedGame is not { } game)
+        {
+            return;
+        }
+
+        if (_viewModel.IsGridMode)
+        {
+            GamesGrid.SelectedItem = game;
+            GamesGrid.ScrollIntoView(game);
+        }
+        else
         {
             GamesList.SelectedItem = game;
             ScrollToSelection();
+        }
+    }
+
+    private void FocusGames()
+    {
+        if (_viewModel.IsGridMode)
+        {
+            GamesGrid.Focus();
+        }
+        else
+        {
+            GamesList.Focus();
+        }
+    }
+
+    /// <summary>Carousel to compact grid; the selection stays on the same game.</summary>
+    private void EnterGrid()
+    {
+        if (DetailsOverlay.Visibility == Visibility.Visible || _viewModel.IsGridMode)
+        {
+            return;
+        }
+
+        _viewModel.IsGridMode = true;
+
+        // The list is laid out only after the trigger made it visible.
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            GamesGrid.SelectedItem = _viewModel.SelectedGame;
+            GamesGrid.Focus();
+            if (_viewModel.SelectedGame is { } game)
+            {
+                GamesGrid.ScrollIntoView(game);
+            }
+        }), DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Grid back to the carousel, keeping the selected game.</summary>
+    private void ExitGrid()
+    {
+        if (!_viewModel.IsGridMode)
+        {
+            return;
+        }
+
+        _viewModel.IsGridMode = false;
+
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            GamesList.SelectedItem = _viewModel.SelectedGame;
+            FocusGames();
+            ScrollToSelection();
+        }), DispatcherPriority.Loaded);
+    }
+
+    /// <summary>
+    /// Moves by whole rows in the grid. Up from the first row returns to the
+    /// carousel, so the same pad direction opens and closes the compact view.
+    /// </summary>
+    private void MoveGridRows(int rows)
+    {
+        if (rows < 0 && IsOnFirstGridRow())
+        {
+            ExitGrid();
+            return;
+        }
+
+        _viewModel.Move(rows * GridColumns);
+        _viewModel.EnsureSelection();
+
+        if (_viewModel.SelectedGame is { } game)
+        {
+            GamesGrid.ScrollIntoView(game);
+        }
+    }
+
+    private bool IsOnFirstGridRow()
+    {
+        var index = _viewModel.SelectedGame is { } game
+            ? _viewModel.Games.IndexOf(game)
+            : 0;
+        return index < GridColumns;
+    }
+
+    private int GridColumns
+    {
+        get
+        {
+            var width = GamesGrid.ActualWidth;
+            return width > 0
+                ? Math.Max(1, (int)(width / GridCardWidth))
+                : 1;
+        }
+    }
+
+    private void GamesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_viewModel.IsGridMode)
+        {
+            return;
+        }
+
+        if (_viewModel.SelectedGame is { } game)
+        {
+            GamesGrid.ScrollIntoView(game);
+        }
+
+        if (_ready && GamesGrid.SelectedItem is Game selected &&
+            !ReferenceEquals(_lastTickGame, selected))
+        {
+            UiSounds.PlayMove(_store.BigPictureSounds);
+            _lastTickGame = selected;
         }
     }
 
@@ -530,7 +676,8 @@ public partial class BigPictureWindow : Window
 
     private void GamesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (GamesList.SelectedItem is not Game game)
+        // While the compact grid is shown it owns the focus, sound and scroll.
+        if (_viewModel.IsGridMode || GamesList.SelectedItem is not Game game)
         {
             return;
         }
@@ -602,14 +749,14 @@ public partial class BigPictureWindow : Window
         }
         else
         {
-            GamesList.Focus();
+            FocusGames();
         }
     }
 
     private void CloseDetails_Click(object sender, RoutedEventArgs e)
     {
         DetailsOverlay.Visibility = Visibility.Collapsed;
-        GamesList.Focus();
+        FocusGames();
     }
 
     private void DetailsOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -617,7 +764,7 @@ public partial class BigPictureWindow : Window
         if (ReferenceEquals(e.OriginalSource, DetailsOverlay))
         {
             DetailsOverlay.Visibility = Visibility.Collapsed;
-            GamesList.Focus();
+            FocusGames();
         }
     }
 
@@ -670,13 +817,45 @@ public partial class BigPictureWindow : Window
     {
         switch (e.Key)
         {
+            case Key.Left:
+                e.Handled = true;
+                _viewModel.Move(-1);
+                return;
+
+            case Key.Right:
+                e.Handled = true;
+                _viewModel.Move(1);
+                return;
+
+            case Key.Down:
+                e.Handled = true;
+                if (_viewModel.IsGridMode)
+                {
+                    MoveGridRows(1);
+                }
+                else
+                {
+                    EnterGrid();
+                }
+
+                return;
+
+            case Key.Up:
+                if (_viewModel.IsGridMode)
+                {
+                    e.Handled = true;
+                    MoveGridRows(-1);
+                }
+
+                return;
+
             case Key.Escape:
                 e.Handled = true;
 
                 if (DetailsOverlay.Visibility == Visibility.Visible)
                 {
                     DetailsOverlay.Visibility = Visibility.Collapsed;
-                    GamesList.Focus();
+                    FocusGames();
                 }
                 else
                 {
