@@ -166,6 +166,12 @@
             <Setter Property="Padding" Value="9,3" />
         </Style>
 
+        <Style x:Key="BpKeyText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
+        </Style>
+
         <Style x:Key="BpHintText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Foreground" Value="{DynamicResource BpTextMutedBrush}" />
@@ -1183,57 +1189,35 @@
                 <Grid VerticalAlignment="Center">
                     <StackPanel x:Name="KeyboardHints" Orientation="Horizontal">
                         <Border Style="{DynamicResource BpKeyCap}">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon FontSize="11"
-                                               Foreground="{DynamicResource BpTextBrush}"
-                                               Symbol="ChevronLeft24" />
-                                <ui:SymbolIcon Margin="2,0,0,0"
-                                               FontSize="11"
-                                               Foreground="{DynamicResource BpTextBrush}"
-                                               Symbol="ChevronRight24" />
-                            </StackPanel>
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="←  →" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Move}" />
 
                         <Border Style="{DynamicResource BpKeyCap}">
-                            <ui:SymbolIcon FontSize="11"
-                                           Foreground="{DynamicResource BpTextBrush}"
-                                           Symbol="Play24" />
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Enter" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Play}" />
 
                         <Border Style="{DynamicResource BpKeyCap}">
-                            <Border Width="20"
-                                    Height="4"
-                                    VerticalAlignment="Center"
-                                    Background="{DynamicResource BpTextBrush}"
-                                    CornerRadius="2" />
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Space" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Details}" />
 
                         <Border Style="{DynamicResource BpKeyCap}">
-                            <Grid Width="15" Height="15">
-                                <Path Data="M6,1 H9 V6 H14 V9 H9 V14 H6 V9 H1 V6 H6 Z"
-                                      Fill="{DynamicResource BpTextBrush}"
-                                      Opacity="0.5" />
-                                <Path Data="M6,9 H9 V14 H6 Z"
-                                      Fill="{DynamicResource BpAccentBrush}" />
-                            </Grid>
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="↓" />
                         </Border>
                         <TextBlock Margin="8,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Hint.Grid}" />
 
                         <Border Style="{DynamicResource BpKeyCap}">
-                            <ui:SymbolIcon FontSize="11"
-                                           Foreground="{DynamicResource BpTextBrush}"
-                                           Symbol="Dismiss24" />
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="Esc" />
                         </Border>
                         <TextBlock Margin="8,0,0,0"
                                    Style="{DynamicResource BpHintText}"
