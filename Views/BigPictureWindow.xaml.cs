@@ -615,8 +615,9 @@ public partial class BigPictureWindow : Window
         Dispatcher.BeginInvoke(new Action(() =>
         {
             GamesList.SelectedItem = _viewModel.SelectedGame;
-            FocusGames();
+            GamesList.UpdateLayout();
             ScrollToSelection();
+            FocusGames();
         }), DispatcherPriority.Loaded);
     }
 
@@ -698,10 +699,11 @@ public partial class BigPictureWindow : Window
 
     private void ScrollToSelection()
     {
-        if (GamesList.SelectedItem is { } item &&
-            GamesList.ItemContainerGenerator.ContainerFromItem(item) is ListBoxItem container)
+        if (GamesList.SelectedItem is { } item)
         {
-            container.BringIntoView();
+            // ScrollIntoView also works while the item container is still
+            // virtualized; ContainerFromItem would be null there.
+            GamesList.ScrollIntoView(item);
         }
     }
 
