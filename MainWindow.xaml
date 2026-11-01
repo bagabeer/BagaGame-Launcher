@@ -1407,11 +1407,11 @@
                 <Grid Grid.Row="2">
                     <ScrollViewer x:Name="ScrollHost"
                                   Style="{StaticResource OverlayScrollViewer}"
-                                  Padding="36,14,20,12"
+                                  Padding="36,14,30,12"
                                   HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="GamesItems"
-                                      Margin="0,14,0,0"
+                                      Margin="0,40,0,0"
                                       ItemsSource="{Binding GamesView}"
                                       ItemTemplate="{StaticResource GameCardTemplate}"
                                       ItemsPanel="{StaticResource GamesGridPanel}">
