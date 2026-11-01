@@ -837,24 +837,6 @@
                     <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
-                        <ui:BagaButton x:Name="CoverBadgeButton"
-                                       Width="26"
-                                       Height="26"
-                                       Margin="0,0,10,0"
-                                       Padding="0"
-                                       VerticalAlignment="Center"
-                                       AutomationProperties.Name="{DynamicResource Loc.Cover.AddBadge}"
-                                       Background="#CC1F1F1F"
-                                       BorderBrush="#66FFFFFF"
-                                       CornerRadius="13"
-                                       Appearance="Secondary"
-                                       Click="CoverBadge_Click"
-                                       ToolTip="{DynamicResource Loc.Cover.AddBadgeTip}"
-                                       Visibility="{Binding NeedsCover, Converter={StaticResource BoolToVisibility}}">
-                            <ui:SymbolIcon Symbol="Add24"
-                                           FontSize="12"
-                                           Foreground="White" />
-                        </ui:BagaButton>
                         <Border Margin="0,0,10,0"
                                 Padding="7,2"
                                 VerticalAlignment="Center"
