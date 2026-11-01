@@ -552,6 +552,12 @@
                                              GroupName="BpGrouping"
                                              Style="{StaticResource BpGroupPill}"
                                              Tag="Genre" />
+                                <RadioButton x:Name="BpGroupFavoritesButton"
+                                             Checked="GroupPill_Checked"
+                                             Content="{DynamicResource Loc.BP.GroupFavorites}"
+                                             GroupName="BpGrouping"
+                                             Style="{StaticResource BpGroupPill}"
+                                             Tag="Favorites" />
                             </StackPanel>
                         </Border>
 

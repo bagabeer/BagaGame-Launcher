@@ -41,11 +41,12 @@ public partial class BigPictureWindow : Window
     private bool _suppressGenreSound;
     private bool _syncingGroupPills;
 
-    private static readonly LibraryGrouping[] Groupings =
+    private static readonly BpSection[] Sections =
     {
-        LibraryGrouping.None,
-        LibraryGrouping.Alphabet,
-        LibraryGrouping.Genre,
+        BpSection.All,
+        BpSection.Alphabet,
+        BpSection.Genre,
+        BpSection.Favorites,
     };
 
     public BigPictureWindow(MainViewModel main, LibraryStore store)
@@ -673,51 +674,58 @@ public partial class BigPictureWindow : Window
     private async void GroupPill_Checked(object sender, RoutedEventArgs e)
     {
         if (_syncingGroupPills || !IsLoaded ||
-            sender is not FrameworkElement { Tag: string tag } ||
-            !Enum.TryParse<LibraryGrouping>(tag, out var grouping))
+            sender is not FrameworkElement { Tag: string tag })
         {
             return;
         }
 
+        var section = tag switch
+        {
+            "Alphabet" => BpSection.Alphabet,
+            "Genre" => BpSection.Genre,
+            "Favorites" => BpSection.Favorites,
+            _ => BpSection.All,
+        };
+
         try
         {
-            await ApplyGroupingAsync(grouping);
+            await ApplySectionAsync(section);
         }
         catch
         {
-            // Switching a grouping must never take Big Picture down.
+            // Switching a section must never take Big Picture down.
         }
     }
 
-    /// <summary>LB/RB walk through the same four sections as the library.</summary>
+    /// <summary>LB/RB and Q/E walk through the same four sections.</summary>
     private async void CycleGrouping(int direction)
     {
-        var index = Array.IndexOf(Groupings, _viewModel.Grouping);
+        var index = Array.IndexOf(Sections, _viewModel.Section);
         if (index < 0)
         {
             index = 0;
         }
 
-        var next = (index + direction + Groupings.Length) % Groupings.Length;
+        var next = (index + direction + Sections.Length) % Sections.Length;
 
         try
         {
-            await ApplyGroupingAsync(Groupings[next]);
+            await ApplySectionAsync(Sections[next]);
         }
         catch
         {
-            // Keep the previous grouping if the switch failed.
+            // Keep the previous section if the switch failed.
         }
     }
 
-    private async Task ApplyGroupingAsync(LibraryGrouping grouping)
+    private async Task ApplySectionAsync(BpSection section)
     {
-        var previous = _viewModel.Grouping;
+        var previous = _viewModel.Section;
 
         _suppressGenreSound = true;
         try
         {
-            await _viewModel.SetGroupingAsync(grouping);
+            await _viewModel.SetSectionAsync(section);
         }
         finally
         {
@@ -727,7 +735,7 @@ public partial class BigPictureWindow : Window
         // The rebuilt chip list must not replay a sound on its own.
         _lastGenreKey = _viewModel.SelectedGenreFilter?.Genre;
 
-        if (_ready && previous != _viewModel.Grouping)
+        if (_ready && previous != _viewModel.Section)
         {
             UiSounds.PlayMove(_store.BigPictureSounds);
         }
@@ -738,12 +746,15 @@ public partial class BigPictureWindow : Window
 
     private void SyncGroupPills()
     {
+        var section = _viewModel.Section;
+
         _syncingGroupPills = true;
         try
         {
-            BpGroupAllButton.IsChecked = _viewModel.Grouping == LibraryGrouping.None;
-            BpGroupAlphaButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Alphabet;
-            BpGroupGenreButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Genre;
+            BpGroupAllButton.IsChecked = section == BpSection.All;
+            BpGroupAlphaButton.IsChecked = section == BpSection.Alphabet;
+            BpGroupGenreButton.IsChecked = section == BpSection.Genre;
+            BpGroupFavoritesButton.IsChecked = section == BpSection.Favorites;
         }
         finally
         {

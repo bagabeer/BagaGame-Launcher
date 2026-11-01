@@ -18,6 +18,7 @@
     <sys:String x:Key="Loc.BP.GroupAll">All games</sys:String>
     <sys:String x:Key="Loc.BP.GroupAlpha">By alphabet</sys:String>
     <sys:String x:Key="Loc.BP.GroupGenre">Genres</sys:String>
+    <sys:String x:Key="Loc.BP.GroupFavorites">Favorites</sys:String>
     <sys:String x:Key="Loc.BP.AllGenres">All genres</sys:String>
     <sys:String x:Key="Loc.BP.PrevGenre">Previous genre</sys:String>
     <sys:String x:Key="Loc.BP.NextGenre">Next genre</sys:String>
@@ -30,6 +31,8 @@
     <sys:String x:Key="Loc.BP.Hint.Exit">exit</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Library is empty</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Text">Add a games folder in the main window - games will appear here with their covers.</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Favorites.Title">No favorites yet</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Favorites.Text">Mark games with a star in the main window - they will be collected here.</sys:String>
     <sys:String x:Key="Loc.BP.Details.Title">About the game</sys:String>
     <sys:String x:Key="Loc.BP.Details.Playtime">Source and playtime</sys:String>
     <sys:String x:Key="Loc.BP.Details.Path">Folder</sys:String>

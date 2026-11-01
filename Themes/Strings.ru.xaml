@@ -19,6 +19,7 @@
     <sys:String x:Key="Loc.BP.GroupAll">Все игры</sys:String>
     <sys:String x:Key="Loc.BP.GroupAlpha">По алфавиту</sys:String>
     <sys:String x:Key="Loc.BP.GroupGenre">Жанры</sys:String>
+    <sys:String x:Key="Loc.BP.GroupFavorites">Избранное</sys:String>
     <sys:String x:Key="Loc.BP.AllGenres">Все жанры</sys:String>
     <sys:String x:Key="Loc.BP.PrevGenre">Предыдущий жанр</sys:String>
     <sys:String x:Key="Loc.BP.NextGenre">Следующий жанр</sys:String>
@@ -31,6 +32,8 @@
     <sys:String x:Key="Loc.BP.Hint.Exit">выход</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Библиотека пуста</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Text">Добавьте папку с играми в основном окне — здесь они появятся с обложками.</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Favorites.Title">В избранном пока пусто</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Favorites.Text">Отметьте игры звёздочкой в основном окне — они соберутся здесь.</sys:String>
     <sys:String x:Key="Loc.BP.Details.Title">Об игре</sys:String>
     <sys:String x:Key="Loc.BP.Details.Playtime">Источник и время</sys:String>
     <sys:String x:Key="Loc.BP.Details.Path">Папка</sys:String>

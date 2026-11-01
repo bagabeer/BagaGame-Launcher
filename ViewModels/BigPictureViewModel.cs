@@ -22,6 +22,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private readonly DispatcherTimer _clock;
     private Game? _selectedGame;
     private bool _isGridMode;
+    private bool _favoritesOnly;
     private GenreFilter? _selectedGenreFilter;
     private bool _buildingGenreFilters;
     private bool _reloadQueued;
@@ -179,7 +180,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     /// <summary>Genre chips for the filter bar; only filled for the Genre grouping.</summary>
     public ObservableCollection<GenreFilter> GenreFilters { get; } = new();
 
-    public bool IsGenreGrouping => Grouping == LibraryGrouping.Genre;
+    public bool IsGenreGrouping => !_favoritesOnly && Grouping == LibraryGrouping.Genre;
 
     public bool HasGenreFilters => IsGenreGrouping && GenreFilters.Count > 1;
 
@@ -206,27 +207,57 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     public LibraryGrouping Grouping =>
         _main.Grouping == LibraryGrouping.Series ? LibraryGrouping.None : _main.Grouping;
 
-    /// <summary>List heading: "Recent games" or the active grouping.</summary>
-    public string ListTitle => Grouping switch
-    {
-        LibraryGrouping.Alphabet => Loc.T("Loc.BP.GroupAlpha"),
-        LibraryGrouping.Genre => Loc.T("Loc.BP.GroupGenre"),
-        _ => Loc.T("Loc.BP.Recent"),
-    };
+    /// <summary>List heading: "Recent games", the active grouping or favorites.</summary>
+    public string ListTitle => _favoritesOnly
+        ? Loc.T("Loc.BP.GroupFavorites")
+        : Grouping switch
+        {
+            LibraryGrouping.Alphabet => Loc.T("Loc.BP.GroupAlpha"),
+            LibraryGrouping.Genre => Loc.T("Loc.BP.GroupGenre"),
+            _ => Loc.T("Loc.BP.Recent"),
+        };
 
-    /// <summary>Switches the grouping and reorders the covers by group.</summary>
-    public async Task SetGroupingAsync(LibraryGrouping grouping)
+    /// <summary>Section highlighted in the top block.</summary>
+    public BpSection Section => _favoritesOnly
+        ? BpSection.Favorites
+        : Grouping switch
+        {
+            LibraryGrouping.Alphabet => BpSection.Alphabet,
+            LibraryGrouping.Genre => BpSection.Genre,
+            _ => BpSection.All,
+        };
+
+    /// <summary>Switches between the flat list, alphabet, genres and favorites.</summary>
+    public async Task SetSectionAsync(BpSection section)
     {
-        if (_main.Grouping == grouping)
+        if (Section == section)
         {
             return;
         }
 
-        await _main.SetGroupingAsync(grouping);
-        Reload();
+        // Favorites is a Big Picture section only: the library grouping is
+        // left untouched while it is open.
+        _favoritesOnly = section == BpSection.Favorites;
 
-        OnPropertyChanged(nameof(Grouping));
+        if (!_favoritesOnly)
+        {
+            var grouping = section switch
+            {
+                BpSection.Alphabet => LibraryGrouping.Alphabet,
+                BpSection.Genre => LibraryGrouping.Genre,
+                _ => LibraryGrouping.None,
+            };
+
+            if (_main.Grouping != grouping)
+            {
+                await _main.SetGroupingAsync(grouping);
+            }
+        }
+
+        OnPropertyChanged(nameof(Section));
         OnPropertyChanged(nameof(ListTitle));
+
+        Reload();
     }
 
     public void MoveGenre(int direction)
@@ -251,9 +282,13 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         ? Loc.T("Loc.BP.Idle")
         : Loc.Format("Loc.BP.Launch", _selectedGame.Title);
 
-    public string EmptyTitle => Loc.T("Loc.BP.Empty.Title");
+    public string EmptyTitle => Loc.T(_favoritesOnly
+        ? "Loc.BP.Empty.Favorites.Title"
+        : "Loc.BP.Empty.Title");
 
-    public string EmptyText => Loc.T("Loc.BP.Empty.Text");
+    public string EmptyText => Loc.T(_favoritesOnly
+        ? "Loc.BP.Empty.Favorites.Text"
+        : "Loc.BP.Empty.Text");
 
     /// <summary>
     /// Compact grid instead of the carousel. Down enters it from the carousel;
@@ -329,11 +364,15 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private void RebuildGames()
     {
         var currentId = _selectedGame?.Id;
-        var grouping = Grouping;
+        var grouping = _favoritesOnly ? LibraryGrouping.None : Grouping;
 
         IEnumerable<Game> source = _main.Games;
 
-        if (IsGenreGrouping && SelectedGenreFilter?.Genre is { } genre)
+        if (_favoritesOnly)
+        {
+            source = source.Where(game => game.IsFavorite);
+        }
+        else if (IsGenreGrouping && SelectedGenreFilter?.Genre is { } genre)
         {
             source = source.Where(game =>
                 string.Equals(GenreOf(game), genre, StringComparison.CurrentCultureIgnoreCase));
@@ -462,4 +501,13 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
+/// <summary>Sections of the Big Picture top block.</summary>
+public enum BpSection
+{
+    All,
+    Alphabet,
+    Genre,
+    Favorites,
 }
