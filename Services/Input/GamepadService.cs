@@ -43,7 +43,6 @@ public sealed class GamepadService : IDisposable
     private PadCommand? _direction;
     private DateTime _nextRepeat;
     private int _padIndex;
-    private int _batteryTicks;
     private bool _available = true;
     private bool _disposed;
 
@@ -61,12 +60,6 @@ public sealed class GamepadService : IDisposable
     public event Action<bool>? ConnectedChanged;
 
     public bool IsConnected { get; private set; }
-
-    /// <summary>Battery charge in percent, or -1 when the pad does not report it.</summary>
-    public int BatteryPercent { get; private set; } = -1;
-
-    /// <summary>True when the controller runs over USB and has no battery level.</summary>
-    public bool BatteryWired { get; private set; }
 
     public void Start()
     {
@@ -102,12 +95,6 @@ public sealed class GamepadService : IDisposable
         if (!TryReadState(out var state))
         {
             return;
-        }
-
-        if (++_batteryTicks >= 120)
-        {
-            _batteryTicks = 0;
-            UpdateBattery();
         }
 
         var now = DateTime.UtcNow;
@@ -232,16 +219,6 @@ public sealed class GamepadService : IDisposable
 
         IsConnected = connected;
 
-        if (connected)
-        {
-            UpdateBattery();
-        }
-        else
-        {
-            BatteryPercent = -1;
-            BatteryWired = false;
-        }
-
         ConnectedChanged?.Invoke(connected);
     }
 
@@ -296,89 +273,6 @@ public sealed class GamepadService : IDisposable
         public short RightThumbY;
     }
 
-    private void UpdateBattery()
-    {
-        try
-        {
-            if (XInputGetBatteryInformation((uint)_padIndex, 0, out var battery) != 0)
-            {
-                BatteryPercent = -1;
-                BatteryWired = false;
-                return;
-            }
-
-            BatteryWired = battery.BatteryType == 1;
-
-            if (BatteryWired && IsWirelessPad())
-            {
-                // Bluetooth pads often claim "wired" and report a full level;
-                // there is no usable charge value in that case.
-                BatteryWired = false;
-                BatteryPercent = -1;
-                return;
-            }
-
-            if (BatteryWired)
-            {
-                // A cabled pad is charging; no percentage is exposed.
-                BatteryPercent = 0;
-                return;
-            }
-
-            BatteryPercent = battery.BatteryLevel switch
-            {
-                0 => 5,
-                1 => 25,
-                2 => 60,
-                3 => 100,
-                _ => -1,
-            };
-        }
-        catch
-        {
-            BatteryPercent = -1;
-            BatteryWired = false;
-        }
-    }
-
-    /// <summary>True when XInput reports the pad as wireless (Bluetooth or adapter).</summary>
-    private bool IsWirelessPad()
-    {
-        try
-        {
-            return XInputGetCapabilities((uint)_padIndex, 0, out var capabilities) == 0 &&
-                   (capabilities.Flags & 0x0002) != 0;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputBatteryInformation
-    {
-        public byte BatteryType;
-        public byte BatteryLevel;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputCapabilities
-    {
-        public byte Type;
-        public byte SubType;
-        public ushort Flags;
-        public XInputGamepad Gamepad;
-        public XInputVibration Vibration;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputVibration
-    {
-        public ushort LeftMotorSpeed;
-        public ushort RightMotorSpeed;
-    }
-
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputState
     {
@@ -388,16 +282,4 @@ public sealed class GamepadService : IDisposable
 
     [DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
     private static extern int XInputGetState(uint index, out XInputState state);
-
-    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetCapabilities")]
-    private static extern int XInputGetCapabilities(
-        uint index,
-        uint flags,
-        out XInputCapabilities capabilities);
-
-    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetBatteryInformation")]
-    private static extern int XInputGetBatteryInformation(
-        uint index,
-        byte deviceType,
-        out XInputBatteryInformation battery);
 }

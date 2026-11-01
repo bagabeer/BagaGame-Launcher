@@ -29,7 +29,6 @@ public partial class BigPictureWindow : Window
     private readonly LibraryStore _store;
     private readonly BigPictureViewModel _viewModel;
     private readonly GamepadService _gamepad = new();
-    private readonly DispatcherTimer _batteryTimer;
     private readonly Dictionary<string, GameMetadata?> _metadataCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ImageSource?> _heroCache = new(StringComparer.Ordinal);
     private CancellationTokenSource? _detailsToken;
@@ -79,11 +78,7 @@ public partial class BigPictureWindow : Window
         _gamepad.ConnectedChanged += connected => Dispatcher.BeginInvoke(new Action(() =>
         {
             UpdateHints(connected);
-            UpdateBattery();
         }));
-
-        _batteryTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        _batteryTimer.Tick += (_, _) => UpdateBattery();
     }
 
     /// <summary>The user pressed Esc, F11 or closed the window: leave the mode.</summary>
@@ -168,8 +163,6 @@ public partial class BigPictureWindow : Window
         FocusGames();
         _gamepad.Start();
         UpdateHints(_gamepad.IsConnected);
-        UpdateBattery();
-        _batteryTimer.Start();
         ScheduleDetailsLoad();
     }
 
@@ -178,7 +171,6 @@ public partial class BigPictureWindow : Window
     {
         ShowCursor();
         _gamepad.Stop();
-        _batteryTimer.Stop();
         _detailsToken?.Cancel();
         _introTimer?.Stop();
         _introTimer = null;
@@ -290,8 +282,6 @@ public partial class BigPictureWindow : Window
         _ready = true;
         _gamepad.Start();
         UpdateHints(_gamepad.IsConnected);
-        UpdateBattery();
-        _batteryTimer.Start();
         ScheduleDetailsLoad();
     }
 
@@ -564,14 +554,6 @@ public partial class BigPictureWindow : Window
         {
             // A pad event must never take the window down.
         }
-    }
-
-    private void UpdateBattery()
-    {
-        var connected = _gamepad.IsConnected;
-        _viewModel.SetBattery(
-            connected ? _gamepad.BatteryPercent : -1,
-            connected && _gamepad.BatteryWired);
     }
 
     private void UpdateHints(bool padConnected)

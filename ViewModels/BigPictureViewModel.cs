@@ -26,8 +26,6 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private bool _buildingGenreFilters;
     private bool _reloadQueued;
     private ImageSource? _heroImage;
-    private int _batteryPercent = -1;
-    private bool _batteryWired;
     private string _description = string.Empty;
     private string _genres = string.Empty;
 
@@ -119,39 +117,6 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     public string PlaytimePillText => _selectedGame is null
         ? string.Empty
         : Loc.Format("Loc.BP.PlayedFor", _selectedGame.PlaytimeText);
-
-    /// <summary>Controller battery, shown in the hero row next to the playtime.</summary>
-    public bool HasBattery => _batteryWired || _batteryPercent >= 0;
-
-    public string BatteryText => _batteryWired
-        ? Loc.T("Loc.BP.BatteryUsb")
-        : _batteryPercent < 0
-            ? string.Empty
-            : $"{_batteryPercent}%";
-
-    public double BatteryFillWidth => _batteryWired
-        ? 0
-        : _batteryPercent <= 0
-            ? 3
-            : Math.Max(3, 32 * _batteryPercent / 100.0);
-
-    public bool IsBatteryLow => !_batteryWired && _batteryPercent is >= 0 and <= 25;
-
-    public void SetBattery(int percent, bool wired)
-    {
-        if (_batteryPercent == percent && _batteryWired == wired)
-        {
-            return;
-        }
-
-        _batteryPercent = percent;
-        _batteryWired = wired;
-
-        OnPropertyChanged(nameof(HasBattery));
-        OnPropertyChanged(nameof(BatteryText));
-        OnPropertyChanged(nameof(BatteryFillWidth));
-        OnPropertyChanged(nameof(IsBatteryLow));
-    }
 
     /// <summary>Wide banner art from Steam or SteamGridDB; null uses the poster.</summary>
     public ImageSource? HeroImage => _heroImage;
