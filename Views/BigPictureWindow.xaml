@@ -519,13 +519,12 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Game information -->
-                <StackPanel Margin="56,0,56,42"
-                            MaxWidth="900"
+                <!-- Grouping: fixed to the hero, independent of the game text. -->
+                <StackPanel Margin="56,84,0,0"
                             HorizontalAlignment="Left"
-                            VerticalAlignment="Bottom">
-                    <!-- Grouping: LB/RB cycle, pills also click with the mouse. -->
-                    <StackPanel Margin="2,0,0,20" Orientation="Horizontal">
+                            VerticalAlignment="Top"
+                            Orientation="Horizontal">
+                    <!-- LB/RB cycle, pills also click with the mouse. -->
                         <Border Margin="0,0,10,0" Style="{StaticResource BpShoulderBadge}">
                             <TextBlock Style="{StaticResource BpShoulderText}" Text="LB" />
                         </Border>
@@ -564,8 +563,13 @@
                         <Border Margin="10,0,0,0" Style="{StaticResource BpShoulderBadge}">
                             <TextBlock Style="{StaticResource BpShoulderText}" Text="RB" />
                         </Border>
-                    </StackPanel>
+                </StackPanel>
 
+                <!-- Game information -->
+                <StackPanel Margin="56,0,56,42"
+                             MaxWidth="900"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Bottom">
                     <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
                                FontSize="54"
                                FontWeight="Bold"
