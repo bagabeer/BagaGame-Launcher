@@ -1288,6 +1288,7 @@ public partial class BigPictureWindow : Window
         _favoriteToastTimer?.Stop();
         _favoriteToastTimer = null;
 
+        _viewModel.Detach();
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
         base.OnClosed(e);

@@ -38,6 +38,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
         Loc.Changed += OnLanguageChanged;
         _main.Games.CollectionChanged += OnGamesChanged;
+        _main.GenresUpdated += OnGenresUpdated;
 
         _clock = new DispatcherTimer(DispatcherPriority.Background)
         {
@@ -252,6 +253,12 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ListTitle));
 
         Reload();
+
+        if (IsGenreGrouping)
+        {
+            // New games may not have a genre yet: fetch it and refresh the chips.
+            _ = _main.EnsureGenresAsync();
+        }
     }
 
     public void MoveGenre(int direction)
@@ -353,6 +360,24 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     /// <summary>Re-applies the "recent first" order, e.g. after a game was played.</summary>
     public void RefreshOrder() => Reload();
 
+    /// <summary>Stops listening to shared state when the Big Picture window closes.</summary>
+    public void Detach()
+    {
+        _clock.Stop();
+        Loc.Changed -= OnLanguageChanged;
+        _main.Games.CollectionChanged -= OnGamesChanged;
+        _main.GenresUpdated -= OnGenresUpdated;
+    }
+
+    /// <summary>Genre values arrived from the store: rebuild the chips and order.</summary>
+    private void OnGenresUpdated()
+    {
+        if (IsGenreGrouping)
+        {
+            Reload();
+        }
+    }
+
     private void OnGamesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // A scan raises one event per game; coalesce them into a single rebuild.
@@ -366,6 +391,12 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         {
             _reloadQueued = false;
             Reload();
+
+            if (IsGenreGrouping)
+            {
+                // A scan added games whose genre may still be missing.
+                _ = _main.EnsureGenresAsync();
+            }
         }), DispatcherPriority.Background);
     }
 

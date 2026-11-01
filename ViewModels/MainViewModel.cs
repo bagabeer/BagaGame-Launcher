@@ -111,6 +111,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>Raised when a launched game closes; the window leaves the tray.</summary>
     public event Action<string>? GameStopped;
 
+    /// <summary>New genre values were fetched and stored for one or more games.</summary>
+    public event Action? GenresUpdated;
+
     public ObservableCollection<Game> Games { get; } = new();
 
     public ObservableCollection<string> Folders { get; } = new();
@@ -1374,7 +1377,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// Steam genres are fetched once per game and remembered in library.json.
     /// Group headers appear immediately and fill in as answers arrive.
     /// </summary>
-    private async Task LoadGenresAsync()
+    private async Task LoadGenresAsync(bool showStatus = true)
     {
         if (_genresLoading)
         {
@@ -1395,7 +1398,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _genresLoading = true;
         var total = missing.Count;
         var finished = 0;
-        SetStatus("Loc.Status.GenresLoading", 0, total);
+        var changed = false;
+
+        if (showStatus)
+        {
+            SetStatus("Loc.Status.GenresLoading", 0, total);
+        }
 
         try
         {
@@ -1405,10 +1413,14 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 if (!string.IsNullOrWhiteSpace(genre))
                 {
                     _store.SetGenre(game.Id, genre);
+                    changed = true;
                 }
 
                 finished++;
-                SetStatus("Loc.Status.GenresLoading", finished, total);
+                if (showStatus)
+                {
+                    SetStatus("Loc.Status.GenresLoading", finished, total);
+                }
             });
 
             await Task.WhenAll(tasks);
@@ -1426,13 +1438,25 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             _genresLoading = false;
         }
 
+        if (changed)
+        {
+            GenresUpdated?.Invoke();
+        }
+
         if (_grouping == LibraryGrouping.Genre)
         {
             ApplyGroups();
             RefreshView();
-            SetStatus("Loc.Status.GenresDone");
+
+            if (showStatus)
+            {
+                SetStatus("Loc.Status.GenresDone");
+            }
         }
     }
+
+    /// <summary>Fetches genres without touching the library status line (Big Picture).</summary>
+    public Task EnsureGenresAsync() => LoadGenresAsync(showStatus: false);
 
     private int GroupRank(string? group) => _grouping switch
     {
