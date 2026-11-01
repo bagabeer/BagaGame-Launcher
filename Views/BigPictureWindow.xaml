@@ -551,12 +551,6 @@
                                              GroupName="BpGrouping"
                                              Style="{StaticResource BpGroupPill}"
                                              Tag="Genre" />
-                                <RadioButton x:Name="BpGroupSeriesButton"
-                                             Checked="GroupPill_Checked"
-                                             Content="{DynamicResource Loc.BP.GroupSeries}"
-                                             GroupName="BpGrouping"
-                                             Style="{StaticResource BpGroupPill}"
-                                             Tag="Series" />
                             </StackPanel>
                         </Border>
 

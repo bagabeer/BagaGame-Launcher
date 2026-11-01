@@ -207,15 +207,18 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     public string GamesCountText => Loc.Format("Loc.Library.FoundGames", Games.Count);
 
-    /// <summary>Grouping chosen in the library; Big Picture mirrors it.</summary>
-    public LibraryGrouping Grouping => _main.Grouping;
+    /// <summary>
+    /// Grouping chosen in the library; Big Picture mirrors it. Series is a
+    /// library-only grouping and falls back to the flat "All games" list here.
+    /// </summary>
+    public LibraryGrouping Grouping =>
+        _main.Grouping == LibraryGrouping.Series ? LibraryGrouping.None : _main.Grouping;
 
     /// <summary>List heading: "Recent games" or the active grouping.</summary>
-    public string ListTitle => _main.Grouping switch
+    public string ListTitle => Grouping switch
     {
         LibraryGrouping.Alphabet => Loc.T("Loc.BP.GroupAlpha"),
         LibraryGrouping.Genre => Loc.T("Loc.BP.GroupGenre"),
-        LibraryGrouping.Series => Loc.T("Loc.BP.GroupSeries"),
         _ => Loc.T("Loc.BP.Recent"),
     };
 
@@ -310,7 +313,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private void Reload()
     {
         var currentId = _selectedGame?.Id;
-        var grouping = _main.Grouping;
+        var grouping = Grouping;
 
         IEnumerable<Game> ordered = grouping == LibraryGrouping.None
             ? _main.Games
@@ -340,10 +343,9 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EmptyText));
     }
 
-    /// <summary>Pushes "Other genre" and "No series" to the end of the list.</summary>
-    private int GroupRank(string? group) => _main.Grouping switch
+    /// <summary>Pushes the "Other genre" bucket to the end of the list.</summary>
+    private int GroupRank(string? group) => Grouping switch
     {
-        LibraryGrouping.Series when group == LibraryGroupingHelper.NoSeries => 1,
         LibraryGrouping.Genre when group == LibraryGroupingHelper.OtherGenre => 1,
         _ => 0,
     };

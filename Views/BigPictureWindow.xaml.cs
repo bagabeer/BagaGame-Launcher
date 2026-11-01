@@ -45,7 +45,6 @@ public partial class BigPictureWindow : Window
         LibraryGrouping.None,
         LibraryGrouping.Alphabet,
         LibraryGrouping.Genre,
-        LibraryGrouping.Series,
     };
 
     public BigPictureWindow(MainViewModel main, LibraryStore store)
@@ -635,7 +634,6 @@ public partial class BigPictureWindow : Window
             BpGroupAllButton.IsChecked = _viewModel.Grouping == LibraryGrouping.None;
             BpGroupAlphaButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Alphabet;
             BpGroupGenreButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Genre;
-            BpGroupSeriesButton.IsChecked = _viewModel.Grouping == LibraryGrouping.Series;
         }
         finally
         {
