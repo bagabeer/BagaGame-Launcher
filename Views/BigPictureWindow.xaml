@@ -897,7 +897,8 @@
                                  ScrollViewer.CanContentScroll="False"
                                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 SelectedItem="{Binding SelectedGenreFilter, Mode=TwoWay}">
+                                 SelectedItem="{Binding SelectedGenreFilter, Mode=TwoWay}"
+                                 SelectionChanged="GenreBar_SelectionChanged">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" />

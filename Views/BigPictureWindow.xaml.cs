@@ -38,6 +38,7 @@ public partial class BigPictureWindow : Window
     private bool _closeApproved;
     private bool _ready;
     private Game? _lastTickGame;
+    private string? _lastGenreKey;
     private bool _syncingGroupPills;
 
     private static readonly LibraryGrouping[] Groupings =
@@ -594,6 +595,26 @@ public partial class BigPictureWindow : Window
         {
             GamesList.SelectedItem = game;
             ScrollToSelection();
+        }
+    }
+
+    private void GenreBar_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_viewModel.IsGenreGrouping || GenreBar.SelectedItem is not GenreFilter filter)
+        {
+            return;
+        }
+
+        if (string.Equals(_lastGenreKey, filter.Genre, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _lastGenreKey = filter.Genre;
+
+        if (_ready)
+        {
+            UiSounds.PlayMove(_store.BigPictureSounds);
         }
     }
 
