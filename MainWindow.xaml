@@ -21,6 +21,34 @@
         <!-- Shown only for settings rows that have a non-default value. -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
+        <!-- Replaces the built-in light cut/copy/paste menu of every TextBox. -->
+        <ContextMenu x:Key="EditMenu" x:Shared="False">
+            <MenuItem Command="Cut"
+                      CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                      Header="{DynamicResource Loc.Menu.Cut}"
+                      InputGestureText="Ctrl+X">
+                <MenuItem.Icon>
+                    <ui:SymbolIcon FontSize="13" Symbol="Cut24" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Command="Copy"
+                      CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                      Header="{DynamicResource Loc.Menu.Copy}"
+                      InputGestureText="Ctrl+C">
+                <MenuItem.Icon>
+                    <ui:SymbolIcon FontSize="13" Symbol="Copy24" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Command="Paste"
+                      CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                      Header="{DynamicResource Loc.Menu.Paste}"
+                      InputGestureText="Ctrl+V">
+                <MenuItem.Icon>
+                    <ui:SymbolIcon FontSize="13" Symbol="Paste24" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+
         <!-- ============================== Styles =============================== -->
 
         <Style x:Key="EyebrowStyle" TargetType="TextBlock">
@@ -1255,6 +1283,7 @@
                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                      SelectionBrush="{DynamicResource AccentBrush}"
                                      Style="{x:Null}"
+                                     ContextMenu="{StaticResource EditMenu}"
                                      Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
 
                             <TextBlock Grid.Column="1"
@@ -2038,6 +2067,7 @@
                                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                                      SelectionBrush="{DynamicResource AccentBrush}"
                                                      Style="{x:Null}"
+                                                     ContextMenu="{StaticResource EditMenu}"
                                                      Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=LostFocus}" />
                                         </Border>
                                         <ui:BagaButton Margin="8,0,0,0"
@@ -2554,6 +2584,7 @@
                                      KeyDown="CoverSearchBox_KeyDown"
                                      SelectionBrush="{DynamicResource AccentBrush}"
                                      Style="{x:Null}"
+                                     ContextMenu="{StaticResource EditMenu}"
                                      ToolTip="{DynamicResource Loc.Cover.SearchPlaceholder}" />
                         </Border>
 
@@ -2754,6 +2785,7 @@
                              BorderThickness="1"
                              CaretBrush="{DynamicResource AccentBrush}"
                              Foreground="{DynamicResource TextPrimaryBrush}"
+                             ContextMenu="{StaticResource EditMenu}"
                              KeyDown="RenameBox_KeyDown"
                              MaxLength="120"
                              SelectionBrush="{DynamicResource AccentBrush}" />

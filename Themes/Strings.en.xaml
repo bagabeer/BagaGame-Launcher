@@ -32,6 +32,9 @@
 
     <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="Loc.Menu.Cut">Cut</sys:String>
+    <sys:String x:Key="Loc.Menu.Copy">Copy</sys:String>
+    <sys:String x:Key="Loc.Menu.Paste">Paste</sys:String>
     <sys:String x:Key="Loc.Menu.AddFavorite">Add to favorites</sys:String>
     <sys:String x:Key="Loc.Menu.RemoveFavorite">Remove from favorites</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Rename</sys:String>

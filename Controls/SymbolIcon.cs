@@ -47,6 +47,9 @@ public sealed class SymbolIcon : TextBlock
         ["StarFill24"] = "\uE735",
         ["Delete24"] = "\uE74D",
         ["Rename24"] = "\uE8AC",
+        ["Cut24"] = "\uE8C6",
+        ["Copy24"] = "\uE8C8",
+        ["Paste24"] = "\uE77F",
     };
 
     public SymbolIcon()

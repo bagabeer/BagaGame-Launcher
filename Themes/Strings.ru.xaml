@@ -33,6 +33,9 @@
 
     <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Открыть папку</sys:String>
+    <sys:String x:Key="Loc.Menu.Cut">Вырезать</sys:String>
+    <sys:String x:Key="Loc.Menu.Copy">Копировать</sys:String>
+    <sys:String x:Key="Loc.Menu.Paste">Вставить</sys:String>
     <sys:String x:Key="Loc.Menu.AddFavorite">Добавить в избранное</sys:String>
     <sys:String x:Key="Loc.Menu.RemoveFavorite">Убрать из избранного</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Переименовать</sys:String>
