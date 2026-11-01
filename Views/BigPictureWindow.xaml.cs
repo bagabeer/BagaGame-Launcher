@@ -468,14 +468,14 @@ public partial class BigPictureWindow : Window
                     _viewModel.Move(1);
                     break;
 
+                case PadCommand.ToggleGrid:
+                    ToggleGridView();
+                    break;
+
                 case PadCommand.Down:
                     if (_viewModel.IsGridMode)
                     {
                         MoveGridRows(1);
-                    }
-                    else
-                    {
-                        EnterGrid();
                     }
 
                     break;
@@ -562,6 +562,24 @@ public partial class BigPictureWindow : Window
         else
         {
             GamesList.Focus();
+        }
+    }
+
+    /// <summary>One button (D-pad Down or Down) flips between both views.</summary>
+    private void ToggleGridView()
+    {
+        if (DetailsOverlay.Visibility == Visibility.Visible)
+        {
+            return;
+        }
+
+        if (_viewModel.IsGridMode)
+        {
+            ExitGrid();
+        }
+        else
+        {
+            EnterGrid();
         }
     }
 
@@ -829,15 +847,7 @@ public partial class BigPictureWindow : Window
 
             case Key.Down:
                 e.Handled = true;
-                if (_viewModel.IsGridMode)
-                {
-                    MoveGridRows(1);
-                }
-                else
-                {
-                    EnterGrid();
-                }
-
+                ToggleGridView();
                 return;
 
             case Key.Up:

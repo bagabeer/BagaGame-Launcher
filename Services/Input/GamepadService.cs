@@ -10,6 +10,7 @@ public enum PadCommand
     Right,
     Up,
     Down,
+    ToggleGrid,
     Play,
     Details,
     Menu,
@@ -23,10 +24,7 @@ public enum PadCommand
 /// </summary>
 public sealed class GamepadService : IDisposable
 {
-    private const ushort DPadUp = 0x0001;
     private const ushort DPadDown = 0x0002;
-    private const ushort DPadLeft = 0x0004;
-    private const ushort DPadRight = 0x0008;
     private const ushort StartButton = 0x0010;
     private const ushort BackButton = 0x0020;
     private const ushort LeftShoulder = 0x0100;
@@ -115,7 +113,7 @@ public sealed class GamepadService : IDisposable
         var pressed = (ushort)(buttons & ~_previousButtons);
         _previousButtons = buttons;
 
-        var direction = ReadDirection(buttons, state.Gamepad.LeftThumbX, state.Gamepad.LeftThumbY);
+        var direction = ReadDirection(state.Gamepad.LeftThumbX, state.Gamepad.LeftThumbY);
 
         if (direction != _direction)
         {
@@ -156,6 +154,13 @@ public sealed class GamepadService : IDisposable
         if ((pressed & (LeftShoulder | RightShoulder)) != 0)
         {
             Emit((pressed & RightShoulder) != 0 ? PadCommand.Right : PadCommand.Left);
+        }
+
+        // The D-pad no longer walks the covers: its Down edge is the single
+        // switch between the carousel and the compact grid.
+        if ((pressed & DPadDown) != 0)
+        {
+            Emit(PadCommand.ToggleGrid);
         }
     }
 
@@ -236,28 +241,8 @@ public sealed class GamepadService : IDisposable
         ConnectedChanged?.Invoke(connected);
     }
 
-    private static PadCommand? ReadDirection(ushort buttons, short stickX, short stickY)
+    private static PadCommand? ReadDirection(short stickX, short stickY)
     {
-        if ((buttons & DPadLeft) != 0)
-        {
-            return PadCommand.Left;
-        }
-
-        if ((buttons & DPadRight) != 0)
-        {
-            return PadCommand.Right;
-        }
-
-        if ((buttons & DPadUp) != 0)
-        {
-            return PadCommand.Up;
-        }
-
-        if ((buttons & DPadDown) != 0)
-        {
-            return PadCommand.Down;
-        }
-
         // Cast before Abs: Math.Abs((short)-32768) overflows and crashed the
         // window whenever a stick was pushed fully to an edge.
         var horizontalDistance = Math.Abs((int)stickX);

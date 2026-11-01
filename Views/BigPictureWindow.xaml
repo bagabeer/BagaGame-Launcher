@@ -638,27 +638,11 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource BpTextBrush}"
                                Text="{DynamicResource Loc.BP.Recent}" />
-                    <StackPanel HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom"
-                                Orientation="Horizontal">
-                        <TextBlock Margin="0,0,14,0"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource BpTextMutedBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="{DynamicResource Loc.BP.ViewGrid}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsGridMode}" Value="True">
-                                            <Setter Property="Text" Value="{DynamicResource Loc.BP.ViewCarousel}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        <TextBlock FontSize="12"
-                                   Foreground="{DynamicResource BpTextMutedBrush}"
-                                   Text="{Binding CounterText}" />
-                    </StackPanel>
+                    <TextBlock HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               FontSize="12"
+                               Foreground="{DynamicResource BpTextMutedBrush}"
+                               Text="{Binding CounterText}" />
                 </Grid>
 
                 <ListBox x:Name="GamesList"
@@ -959,6 +943,13 @@
                                    Text="{DynamicResource Loc.BP.Details}" />
 
                         <Border Style="{DynamicResource BpKeyCap}">
+                            <TextBlock Style="{DynamicResource BpKeyText}" Text="↓" />
+                        </Border>
+                        <TextBlock Margin="8,0,18,0"
+                                   Style="{DynamicResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Grid}" />
+
+                        <Border Style="{DynamicResource BpKeyCap}">
                             <TextBlock Style="{DynamicResource BpKeyText}" Text="Esc" />
                         </Border>
                         <TextBlock Margin="8,0,0,0"
@@ -982,6 +973,13 @@
                         <TextBlock Margin="0,0,18,0"
                                    Style="{DynamicResource BpHintText}"
                                    Text="{DynamicResource Loc.BP.Details}" />
+
+                        <Border Style="{StaticResource PadBadge}">
+                            <TextBlock Style="{StaticResource PadBadgeText}" Text="↓" />
+                        </Border>
+                        <TextBlock Margin="0,0,18,0"
+                                   Style="{DynamicResource BpHintText}"
+                                   Text="{DynamicResource Loc.BP.Hint.Grid}" />
 
                         <Border Style="{StaticResource PadBadge}">
                             <TextBlock Style="{StaticResource PadBadgeText}" Text="☰" />
