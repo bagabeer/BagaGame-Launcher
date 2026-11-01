@@ -977,6 +977,15 @@
                                                 <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                                 <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
+                                                <Setter TargetName="Frame" Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="22"
+                                                                          Direction="0"
+                                                                          Opacity="0.5"
+                                                                          ShadowDepth="0"
+                                                                          Color="#A5F26B" />
+                                                    </Setter.Value>
+                                                </Setter>
                                                 <Setter Property="Panel.ZIndex" Value="2" />
                                                 <Trigger.EnterActions>
                                                     <BeginStoryboard>
@@ -1117,6 +1126,15 @@
                                                 <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                                 <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
+                                                <Setter TargetName="Frame" Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="16"
+                                                                          Direction="0"
+                                                                          Opacity="0.45"
+                                                                          ShadowDepth="0"
+                                                                          Color="#A5F26B" />
+                                                    </Setter.Value>
+                                                </Setter>
                                                 <Setter Property="Panel.ZIndex" Value="2" />
 
                                                 <Trigger.EnterActions>
