@@ -29,6 +29,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private bool _reloadQueued;
     private ImageSource? _heroImage;
     private string _description = string.Empty;
+    private string _details = string.Empty;
     private string _genres = string.Empty;
 
     public BigPictureViewModel(MainViewModel main, LibraryStore store)
@@ -134,6 +135,11 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
     public bool HasGenres => _genres.Length > 0;
 
+    /// <summary>Full store description for the details panel.</summary>
+    public string SelectedDetails => _details;
+
+    public bool HasDetails => _details.Length > 0;
+
     public void SetHero(ImageSource? image)
     {
         if (ReferenceEquals(_heroImage, image))
@@ -146,13 +152,16 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(HasHero));
     }
 
-    public void SetMetadata(string? description, IReadOnlyList<string>? genres)
+    public void SetMetadata(string? description, string? details, IReadOnlyList<string>? genres)
     {
         _description = string.IsNullOrWhiteSpace(description) ? string.Empty : description.Trim();
+        _details = string.IsNullOrWhiteSpace(details) ? string.Empty : details.Trim();
         _genres = genres is { Count: > 0 } ? string.Join("  ·  ", genres) : string.Empty;
 
         OnPropertyChanged(nameof(SelectedDescription));
         OnPropertyChanged(nameof(HasDescription));
+        OnPropertyChanged(nameof(SelectedDetails));
+        OnPropertyChanged(nameof(HasDetails));
         OnPropertyChanged(nameof(SelectedGenres));
         OnPropertyChanged(nameof(HasGenres));
     }

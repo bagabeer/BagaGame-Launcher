@@ -977,15 +977,6 @@
                                                 <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                                 <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
-                                                <Setter TargetName="Frame" Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect BlurRadius="22"
-                                                                          Direction="0"
-                                                                          Opacity="0.5"
-                                                                          ShadowDepth="0"
-                                                                          Color="#A5F26B" />
-                                                    </Setter.Value>
-                                                </Setter>
                                                 <Setter Property="Panel.ZIndex" Value="2" />
                                                 <Trigger.EnterActions>
                                                     <BeginStoryboard>
@@ -1126,15 +1117,6 @@
                                                 <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource BpAccentBrush}" />
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
                                                 <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
-                                                <Setter TargetName="Frame" Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect BlurRadius="16"
-                                                                          Direction="0"
-                                                                          Opacity="0.45"
-                                                                          ShadowDepth="0"
-                                                                          Color="#A5F26B" />
-                                                    </Setter.Value>
-                                                </Setter>
                                                 <Setter Property="Panel.ZIndex" Value="2" />
 
                                                 <Trigger.EnterActions>
@@ -1362,25 +1344,54 @@
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="1" Margin="0,26,0,0">
-                        <TextBlock FontSize="12"
-                                   Foreground="{DynamicResource BpTextMutedBrush}"
-                                   Text="{DynamicResource Loc.BP.Details.Playtime}" />
-                        <TextBlock Margin="0,4,0,0"
-                                   FontSize="16"
-                                   Foreground="{DynamicResource BpTextBrush}"
-                                   Text="{Binding SelectedPlaytimeText}" />
+                    <ScrollViewer Grid.Row="1"
+                                  Margin="0,24,0,0"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Style="{StaticResource OverlayScrollViewer}"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,10,0">
+                            <TextBlock FontSize="12"
+                                       Foreground="{DynamicResource BpTextMutedBrush}"
+                                       Text="{DynamicResource Loc.BP.Details.Playtime}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Text="{Binding SelectedPlaytimeText}" />
 
-                        <TextBlock Margin="0,20,0,0"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource BpTextMutedBrush}"
-                                   Text="{DynamicResource Loc.BP.Details.Path}" />
-                        <TextBlock Margin="0,4,0,0"
-                                   FontSize="13"
-                                   Foreground="{DynamicResource BpTextBrush}"
-                                   Text="{Binding SelectedFolder}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
+                            <StackPanel Margin="0,22,0,0">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasDetails}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <TextBlock FontSize="12"
+                                           Foreground="{DynamicResource BpTextMutedBrush}"
+                                           Text="{DynamicResource Loc.BP.Details.Description}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           FontSize="13.5"
+                                           Foreground="{DynamicResource BpTextBrush}"
+                                           LineHeight="20"
+                                           Text="{Binding SelectedDetails}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <TextBlock Margin="0,22,0,0"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource BpTextMutedBrush}"
+                                       Text="{DynamicResource Loc.BP.Details.Path}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource BpTextBrush}"
+                                       Text="{Binding SelectedFolder}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </ScrollViewer>
 
                     <Button Grid.Row="2"
                             Margin="0,24,0,0"

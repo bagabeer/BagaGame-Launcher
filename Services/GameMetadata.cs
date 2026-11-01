@@ -8,5 +8,8 @@ public sealed class GameMetadata
 {
     public string? Description { get; set; }
 
+    /// <summary>Full store description shown in the Big Picture details panel.</summary>
+    public string? Details { get; set; }
+
     public List<string> Genres { get; set; } = new();
 }

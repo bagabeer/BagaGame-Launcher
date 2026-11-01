@@ -326,7 +326,7 @@ public partial class BigPictureWindow : Window
         if (game is null)
         {
             _viewModel.SetHero(null);
-            _viewModel.SetMetadata(null, null);
+            _viewModel.SetMetadata(null, null, null);
             return;
         }
 
@@ -336,7 +336,7 @@ public partial class BigPictureWindow : Window
 
         if (hasMetadata)
         {
-            _viewModel.SetMetadata(cachedMetadata?.Description, cachedMetadata?.Genres);
+            _viewModel.SetMetadata(cachedMetadata?.Description, cachedMetadata?.Details, cachedMetadata?.Genres);
         }
 
         if (hasHero)
@@ -356,7 +356,7 @@ public partial class BigPictureWindow : Window
 
         if (!hasMetadata)
         {
-            _viewModel.SetMetadata(null, null);
+            _viewModel.SetMetadata(null, null, null);
         }
 
         _ = LoadDetailsAsync(game, token.Token);
@@ -377,7 +377,7 @@ public partial class BigPictureWindow : Window
                 if (!cancellationToken.IsCancellationRequested &&
                     ReferenceEquals(_viewModel.SelectedGame, game))
                 {
-                    _viewModel.SetMetadata(metadata?.Description, metadata?.Genres);
+                    _viewModel.SetMetadata(metadata?.Description, metadata?.Details, metadata?.Genres);
                 }
             }
 

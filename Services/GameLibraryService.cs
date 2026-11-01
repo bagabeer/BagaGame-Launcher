@@ -1908,7 +1908,7 @@ public sealed class GameLibraryService : IDisposable
         lock (_metadataLock)
         {
             if (_metadata.TryGetValue(cacheKey, out var cached) &&
-                (!string.IsNullOrWhiteSpace(cached.Description) || cached.Genres.Count > 0))
+                !string.IsNullOrWhiteSpace(cached.Details))
             {
                 return cached;
             }
@@ -1957,6 +1957,12 @@ public sealed class GameLibraryService : IDisposable
             }
 
             result.Description = CleanSteamText(GetJsonString(data, "short_description"));
+            result.Details = CleanSteamLongText(GetJsonString(data, "detailed_description"));
+
+            if (string.IsNullOrWhiteSpace(result.Details))
+            {
+                result.Details = result.Description;
+            }
 
             if (data.TryGetProperty("genres", out var genres) && genres.ValueKind == JsonValueKind.Array)
             {
@@ -1994,7 +2000,9 @@ public sealed class GameLibraryService : IDisposable
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(result.Description) && result.Genres.Count == 0)
+        if (string.IsNullOrWhiteSpace(result.Description) &&
+            string.IsNullOrWhiteSpace(result.Details) &&
+            result.Genres.Count == 0)
         {
             return null;
         }
@@ -2270,6 +2278,30 @@ public sealed class GameLibraryService : IDisposable
         var decoded = System.Net.WebUtility.HtmlDecode(text);
         var stripped = Regex.Replace(decoded, "<[^>]+>", " ");
         return Regex.Replace(stripped, @"\s+", " ").Trim();
+    }
+
+    /// <summary>
+    /// Full store description: keeps paragraph breaks from the HTML instead of
+    /// flattening everything into one long line.
+    /// </summary>
+    private static string? CleanSteamLongText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var decoded = System.Net.WebUtility.HtmlDecode(text).Replace('\u00A0', ' ');
+        decoded = Regex.Replace(decoded, @"<\s*br\s*/?\s*>", "\n", RegexOptions.IgnoreCase);
+        decoded = Regex.Replace(decoded, @"</\s*(p|div|li|h[1-6])\s*>", "\n", RegexOptions.IgnoreCase);
+        decoded = Regex.Replace(decoded, "<[^>]+>", " ");
+
+        var lines = decoded
+            .Split('\n')
+            .Select(line => Regex.Replace(line, @"[ \t]+", " ").Trim())
+            .Where(line => line.Length > 0);
+
+        return string.Join("\n", lines);
     }
 
     /// <summary>
@@ -3125,7 +3157,7 @@ public sealed class GameLibraryService : IDisposable
 
     private string StoreIdsPath => Path.Combine(_coverCacheDirectory, "storeids.json");
 
-    private string MetadataPath => Path.Combine(_coverCacheDirectory, "metadata-v2.json");
+    private string MetadataPath => Path.Combine(_coverCacheDirectory, "metadata-v3.json");
 
     private void EnsureMetadataLoaded()
     {

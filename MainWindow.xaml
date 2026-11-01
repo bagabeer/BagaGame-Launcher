@@ -632,15 +632,6 @@
                 <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
                     <Setter TargetName="PosterRing" Property="BorderBrush" Value="{DynamicResource AccentRingBrush}" />
                     <Setter TargetName="PosterRing" Property="BorderThickness" Value="2" />
-                    <Setter TargetName="PosterRing" Property="Effect">
-                        <Setter.Value>
-                            <DropShadowEffect BlurRadius="26"
-                                              Direction="0"
-                                              Opacity="0.9"
-                                              ShadowDepth="0"
-                                              Color="#A5F26B" />
-                        </Setter.Value>
-                    </Setter>
                     <Setter TargetName="Poster" Property="BorderBrush" Value="{DynamicResource CardStrokeHoverBrush}" />
 
                     <Trigger.EnterActions>
