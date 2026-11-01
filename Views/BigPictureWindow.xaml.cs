@@ -677,7 +677,7 @@ public partial class BigPictureWindow : Window
         }
     }
 
-    private async void GroupPill_Checked(object sender, RoutedEventArgs e)
+    private void GroupPill_Checked(object sender, RoutedEventArgs e)
     {
         if (_syncingGroupPills || !IsLoaded ||
             sender is not FrameworkElement { Tag: string tag })
@@ -695,7 +695,7 @@ public partial class BigPictureWindow : Window
 
         try
         {
-            await ApplySectionAsync(section);
+            ApplySection(section);
         }
         catch
         {
@@ -704,7 +704,7 @@ public partial class BigPictureWindow : Window
     }
 
     /// <summary>LB/RB and Q/E walk through the same four sections.</summary>
-    private async void CycleGrouping(int direction)
+    private void CycleGrouping(int direction)
     {
         var index = Array.IndexOf(Sections, _viewModel.Section);
         if (index < 0)
@@ -716,7 +716,7 @@ public partial class BigPictureWindow : Window
 
         try
         {
-            await ApplySectionAsync(Sections[next]);
+            ApplySection(Sections[next]);
         }
         catch
         {
@@ -724,14 +724,14 @@ public partial class BigPictureWindow : Window
         }
     }
 
-    private async Task ApplySectionAsync(BpSection section)
+    private void ApplySection(BpSection section)
     {
         var previous = _viewModel.Section;
 
         _suppressGenreSound = true;
         try
         {
-            await _viewModel.SetSectionAsync(section);
+            _viewModel.SetSection(section);
         }
         finally
         {

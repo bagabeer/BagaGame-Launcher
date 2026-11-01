@@ -22,6 +22,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     private readonly DispatcherTimer _clock;
     private Game? _selectedGame;
     private bool _isGridMode;
+    private LibraryGrouping _grouping = LibraryGrouping.None;
     private bool _favoritesOnly;
     private GenreFilter? _selectedGenreFilter;
     private bool _buildingGenreFilters;
@@ -201,11 +202,10 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Grouping chosen in the library; Big Picture mirrors it. Series is a
-    /// library-only grouping and falls back to the flat "All games" list here.
+    /// Section grouping owned by Big Picture. It starts at "All games" on every
+    /// open and never mirrors or changes the library window.
     /// </summary>
-    public LibraryGrouping Grouping =>
-        _main.Grouping == LibraryGrouping.Series ? LibraryGrouping.None : _main.Grouping;
+    public LibraryGrouping Grouping => _grouping;
 
     /// <summary>List heading: "Recent games", the active grouping or favorites.</summary>
     public string ListTitle => _favoritesOnly
@@ -228,32 +228,26 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         };
 
     /// <summary>Switches between the flat list, alphabet, genres and favorites.</summary>
-    public async Task SetSectionAsync(BpSection section)
+    public void SetSection(BpSection section)
     {
         if (Section == section)
         {
             return;
         }
 
-        // Favorites is a Big Picture section only: the library grouping is
-        // left untouched while it is open.
         _favoritesOnly = section == BpSection.Favorites;
 
         if (!_favoritesOnly)
         {
-            var grouping = section switch
+            _grouping = section switch
             {
                 BpSection.Alphabet => LibraryGrouping.Alphabet,
                 BpSection.Genre => LibraryGrouping.Genre,
                 _ => LibraryGrouping.None,
             };
-
-            if (_main.Grouping != grouping)
-            {
-                await _main.SetGroupingAsync(grouping);
-            }
         }
 
+        OnPropertyChanged(nameof(Grouping));
         OnPropertyChanged(nameof(Section));
         OnPropertyChanged(nameof(ListTitle));
 
@@ -403,8 +397,8 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
                 .OrderByDescending(game => _store.LastPlayed(game.Id))
                 .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
             : source
-                .OrderBy(game => GroupRank(game.Group))
-                .ThenBy(game => game.Group, StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(game => GroupRank(GroupOf(game)))
+                .ThenBy(GroupOf, StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase);
 
         var orderedGames = ordered.ToList();
@@ -494,6 +488,16 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         var stored = _store.GetGenre(game.Id);
         return string.IsNullOrWhiteSpace(stored) ? string.Empty : Loc.GenreName(stored);
     }
+
+    /// <summary>Header for the active section, computed without the library window.</summary>
+    private string GroupOf(Game game) => Grouping switch
+    {
+        LibraryGrouping.Alphabet => LibraryGroupingHelper.AlphabetGroup(game.Title),
+        LibraryGrouping.Genre => GenreOf(game) is { Length: > 0 } genre
+            ? genre
+            : LibraryGroupingHelper.OtherGenre,
+        _ => string.Empty,
+    };
 
     /// <summary>Pushes the "Other genre" bucket to the end of the list.</summary>
     private int GroupRank(string? group) => Grouping switch

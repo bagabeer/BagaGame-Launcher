@@ -411,9 +411,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             _bigPicture = null;
             _leavingBigPicture = false;
 
-            // Big Picture can switch the grouping; keep the library pills in sync.
-            SelectGrouping(_viewModel.Grouping);
-
             if (page is not null)
             {
                 OpenMainPage(page);
