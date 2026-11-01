@@ -259,6 +259,15 @@
                                 <Setter Property="Foreground" Value="{DynamicResource BpAccentBrush}" />
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}"
+                                               Value="True" />
+                                    <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                               Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter TargetName="Pill" Property="Background" Value="{DynamicResource BpAccentSoftBrush}" />
+                            </MultiDataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -850,25 +859,6 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-
-                        <!-- Gentle green fill while the genre list has the stick focus. -->
-                        <Rectangle Grid.ColumnSpan="4"
-                                   Fill="{DynamicResource BpAccentSoftBrush}"
-                                   RadiusX="14"
-                                   RadiusY="14"
-                                   IsHitTestVisible="False">
-                            <Rectangle.Style>
-                                <Style TargetType="Rectangle">
-                                    <Setter Property="Opacity" Value="0" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Border}}"
-                                                     Value="True">
-                                            <Setter Property="Opacity" Value="1" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Rectangle.Style>
-                        </Rectangle>
 
                         <Button Grid.Column="0"
                                 Margin="0,0,10,0"
