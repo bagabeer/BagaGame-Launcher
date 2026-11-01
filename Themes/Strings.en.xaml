@@ -32,6 +32,8 @@
 
     <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="Loc.Menu.AddFavorite">Add to favorites</sys:String>
+    <sys:String x:Key="Loc.Menu.RemoveFavorite">Remove from favorites</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Rename</sys:String>
     <sys:String x:Key="Loc.Menu.Hide">Hide from library</sys:String>
     <sys:String x:Key="Loc.Menu.HideTip">Remove the game from the library but keep its name and genre — bring it back in Settings with “Restore hidden”</sys:String>
@@ -79,6 +81,8 @@
     <sys:String x:Key="Loc.Library.Shown">Shown: {0}</sys:String>
     <sys:String x:Key="Loc.Library.GroupNone">No grouping</sys:String>
     <sys:String x:Key="Loc.Library.GroupAll">All</sys:String>
+    <sys:String x:Key="Loc.Library.Favorites">Favorites</sys:String>
+    <sys:String x:Key="Loc.Library.FavoritesTip">Show only favorites</sys:String>
     <sys:String x:Key="Loc.Library.GroupNoneTip">One shared grid</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlpha">By alphabet</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlphaShort">A–Z</sys:String>
@@ -185,8 +189,10 @@
 
     <sys:String x:Key="Loc.Empty.NoGames">No games found</sys:String>
     <sys:String x:Key="Loc.Empty.NoMatches">Nothing found</sys:String>
+    <sys:String x:Key="Loc.Empty.NoFavorites">No favorites yet</sys:String>
     <sys:String x:Key="Loc.Empty.NoGamesHint">Press “Rescan” or add a game with the “Add game” button.</sys:String>
     <sys:String x:Key="Loc.Empty.NoMatchesHint">Try another query or clear the search.</sys:String>
+    <sys:String x:Key="Loc.Empty.NoFavoritesHint">Right-click a game and choose “Add to favorites”.</sys:String>
 
     <sys:String x:Key="Loc.Folders.None">Add folders with games outside Steam, Epic and GOG</sys:String>
     <sys:String x:Key="Loc.Folders.Count">Folders added: {0}</sys:String>
@@ -195,6 +201,18 @@
     <sys:String x:Key="Loc.Playtime.Minutes">{0} min</sys:String>
     <sys:String x:Key="Loc.Playtime.TooltipHours">Played: {0} h {1} min</sys:String>
     <sys:String x:Key="Loc.Playtime.TooltipMinutes">Played: {0} min</sys:String>
+
+    <sys:String x:Key="Loc.Update.Available">Version {0} is available</sys:String>
+    <sys:String x:Key="Loc.Update.Tip">BagaGame {0} is out. Open the release page to download it.</sys:String>
+    <sys:String x:Key="Loc.Update.Dismiss">Hide this version</sys:String>
+    <sys:String x:Key="Loc.Update.Dismissed">Version {0} is hidden</sys:String>
+    <sys:String x:Key="Loc.Update.Checking">Checking for updates…</sys:String>
+    <sys:String x:Key="Loc.Update.UpToDate">You have the latest version</sys:String>
+    <sys:String x:Key="Loc.Update.Failed">Could not check for updates</sys:String>
+    <sys:String x:Key="Loc.Update.OpenFailed">Could not open the release page</sys:String>
+    <sys:String x:Key="Loc.Update.CheckNow">Check now</sys:String>
+    <sys:String x:Key="Loc.Settings.CheckUpdates">Check for updates</sys:String>
+    <sys:String x:Key="Loc.Settings.CheckUpdatesTip">Asks GitHub about a new release once every 12 hours</sys:String>
 
     <sys:String x:Key="Loc.App.Version">Version {0}</sys:String>
 

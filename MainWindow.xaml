@@ -126,6 +126,45 @@
             </Setter>
         </Style>
 
+        <!-- Star filter: outline when off, filled green when on. -->
+        <Style x:Key="FavoriteToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="Bg" Background="Transparent" CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Border x:Name="FocusRing"
+                                    BorderBrush="{DynamicResource AccentStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Opacity="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AccentStrokeBrush}" />
+                                <Setter TargetName="Bg" Property="BorderThickness" Value="1" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Big Picture entry point in the library header. -->
         <Style x:Key="HeaderChipButtonStyle" TargetType="Button">
             <Setter Property="Height" Value="36" />
@@ -356,21 +395,65 @@
                         <MenuItem Click="LaunchGame_Click"
                                   FontWeight="SemiBold"
                                   Header="{DynamicResource Loc.Menu.Launch}"
-                                  IsEnabled="{Binding CanLaunch}" />
-                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
-                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}" />
+                                  IsEnabled="{Binding CanLaunch}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Play24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Folder24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Click="ToggleFavorite_Click" Header="{Binding FavoriteActionText}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13">
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="ui:SymbolIcon">
+                                            <Setter Property="Symbol" Value="Star24" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                    <Setter Property="Symbol" Value="StarFill24" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Picture24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="ReassignGameFolder_Click"
                                   Header="{DynamicResource Loc.Menu.ReassignFolder}"
                                   ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
-                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}" />
+                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="ArrowClockwise24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator />
-                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}" />
+                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Rename24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="RemoveGame_Click"
                                   Header="{DynamicResource Loc.Menu.Hide}"
-                                  ToolTip="{DynamicResource Loc.Menu.HideTip}" />
+                                  ToolTip="{DynamicResource Loc.Menu.HideTip}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="EyeOff24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="DeleteGame_Click"
                                   Header="{DynamicResource Loc.Menu.Delete}"
-                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}" />
+                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Delete24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </ContextMenu>
                 </Grid.ContextMenu>
                 <Grid.RowDefinitions>
@@ -600,21 +683,65 @@
                         <MenuItem Click="LaunchGame_Click"
                                   FontWeight="SemiBold"
                                   Header="{DynamicResource Loc.Menu.Launch}"
-                                  IsEnabled="{Binding CanLaunch}" />
-                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}" />
-                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}" />
+                                  IsEnabled="{Binding CanLaunch}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Play24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Folder24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Click="ToggleFavorite_Click" Header="{Binding FavoriteActionText}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13">
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="ui:SymbolIcon">
+                                            <Setter Property="Symbol" Value="Star24" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                    <Setter Property="Symbol" Value="StarFill24" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="ChangeCoverMenuItem" Click="ChangeCover_Click" Header="{DynamicResource Loc.Menu.ChangeCover}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Picture24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="ReassignGameFolder_Click"
                                   Header="{DynamicResource Loc.Menu.ReassignFolder}"
                                   ToolTip="{DynamicResource Loc.Menu.ReassignFolderTip}"
-                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}" />
+                                  Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="ArrowClockwise24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator />
-                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}" />
+                        <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Rename24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="RemoveGame_Click"
                                   Header="{DynamicResource Loc.Menu.Hide}"
-                                  ToolTip="{DynamicResource Loc.Menu.HideTip}" />
+                                  ToolTip="{DynamicResource Loc.Menu.HideTip}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="EyeOff24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="DeleteGame_Click"
                                   Header="{DynamicResource Loc.Menu.Delete}"
-                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}" />
+                                  ToolTip="{DynamicResource Loc.Menu.DeleteTip}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Delete24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </ContextMenu>
                 </Border.ContextMenu>
                 <Grid>
@@ -890,42 +1017,101 @@
                     </RadioButton>
                 </StackPanel>
 
-                <!-- Status -->
-                <Border Grid.Row="2"
-                        Padding="12,11"
-                        Background="{DynamicResource CardFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
-                        BorderThickness="1"
-                        CornerRadius="10">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Grid Width="10"
-                                  Height="10"
-                                  Margin="0,3,0,0"
-                                  VerticalAlignment="Top">
-                                <Ellipse Width="10"
-                                         Height="10"
-                                         Style="{StaticResource StatusHaloStyle}" />
-                                <Ellipse Width="6"
-                                         Height="6"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"
-                                         Style="{StaticResource StatusDotStyle}" />
-                            </Grid>
+                <!-- Status and update notice -->
+                <StackPanel Grid.Row="2">
+                    <Border Padding="12,11"
+                            Background="{DynamicResource CardFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="10"
+                                      Height="10"
+                                      Margin="0,3,0,0"
+                                      VerticalAlignment="Top">
+                                    <Ellipse Width="10"
+                                             Height="10"
+                                             Style="{StaticResource StatusHaloStyle}" />
+                                    <Ellipse Width="6"
+                                             Height="6"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             Style="{StaticResource StatusDotStyle}" />
+                                </Grid>
 
-                            <TextBlock Margin="9,0,0,0"
+                                <TextBlock Margin="9,0,0,0"
+                                           FontSize="11.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Text="{Binding StatusText}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <TextBlock Margin="19,4,0,0"
                                        FontSize="11.5"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Text="{Binding StatusText}"
-                                       TextWrapping="Wrap" />
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Text="{Binding GamesCountText}" />
                         </StackPanel>
+                    </Border>
 
-                        <TextBlock Margin="19,4,0,0"
-                                   FontSize="11.5"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   Text="{Binding GamesCountText}" />
-                    </StackPanel>
-                </Border>
+                    <!-- New release: the whole card opens the release page. -->
+                    <Border Margin="0,8,0,0"
+                            Padding="12,10"
+                            Background="{DynamicResource AccentSoftBrush}"
+                            BorderBrush="{DynamicResource AccentStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Cursor="Hand"
+                            AutomationProperties.Name="{Binding UpdateVersionText}"
+                            MouseLeftButtonUp="UpdateCard_MouseLeftButtonUp"
+                            ToolTip="{Binding UpdateTipText}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasUpdate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Opacity" Value="0.85" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <ui:SymbolIcon FontSize="13"
+                                               Symbol="ArrowDownload24"
+                                               Foreground="{DynamicResource AccentBrush}" />
+                                <TextBlock Margin="7,0,0,0"
+                                           VerticalAlignment="Center"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Text="{Binding UpdateVersionText}" />
+                            </StackPanel>
+
+                            <ui:BagaButton Grid.Column="1"
+                                           Width="18"
+                                           Height="18"
+                                           Margin="8,0,0,0"
+                                           Padding="0"
+                                           Appearance="Secondary"
+                                           CornerRadius="5"
+                                           AutomationProperties.Name="{DynamicResource Loc.Update.Dismiss}"
+                                           Click="DismissUpdate_Click"
+                                           ToolTip="{DynamicResource Loc.Update.Dismiss}">
+                                <ui:SymbolIcon FontSize="8" Symbol="Dismiss24" />
+                            </ui:BagaButton>
+                        </Grid>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -1114,7 +1300,7 @@
                                    FontSize="11"
                                    Foreground="{DynamicResource TextTertiaryBrush}"
                                    Text="{Binding VisibleCountText}"
-                                   Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVisibility}}" />
+                                   Visibility="{Binding IsNarrowed, Converter={StaticResource BoolToVisibility}}" />
 
                         <Border Padding="3"
                                 Background="{DynamicResource ChipFillBrush}"
@@ -1156,6 +1342,35 @@
                                              Tag="Series"
                                              ToolTip="{DynamicResource Loc.Library.GroupSeriesTip}" />
                             </StackPanel>
+                        </Border>
+
+                        <!-- Star filter, aligned with the grouping pills. -->
+                        <Border Margin="8,0,0,0"
+                                Padding="3"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <ToggleButton x:Name="FavoritesButton"
+                                          AutomationProperties.Name="{DynamicResource Loc.Library.Favorites}"
+                                          IsChecked="{Binding FavoritesOnly, Mode=TwoWay}"
+                                          Style="{StaticResource FavoriteToggleStyle}"
+                                          ToolTip="{DynamicResource Loc.Library.FavoritesTip}">
+                                  <ui:SymbolIcon FontSize="14"
+                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}">
+                                        <ui:SymbolIcon.Style>
+                                            <Style TargetType="ui:SymbolIcon">
+                                                <Setter Property="Symbol" Value="Star24" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
+                                                              Value="True">
+                                                        <Setter Property="Symbol" Value="StarFill24" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:SymbolIcon.Style>
+                                  </ui:SymbolIcon>
+                            </ToggleButton>
                         </Border>
                     </StackPanel>
                 </Grid>
@@ -2018,35 +2233,96 @@
                                    Text="{DynamicResource Loc.Settings.About}" />
 
                         <Border Style="{StaticResource PanelCardStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <Border Width="42"
-                                        Height="42"
-                                        Background="{DynamicResource LogoBrush}"
-                                        CornerRadius="11">
-                                    <ui:SymbolIcon Symbol="Games24"
-                                                   FontSize="21"
-                                                   Foreground="#13200C"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center" />
-                                </Border>
+                                    <Border Width="42"
+                                            Height="42"
+                                            Background="{DynamicResource LogoBrush}"
+                                            CornerRadius="11">
+                                        <ui:SymbolIcon Symbol="Games24"
+                                                       FontSize="21"
+                                                       Foreground="#13200C"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
 
-                                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock FontSize="14"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="BagaGame" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               FontSize="11"
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="BagaGame" />
+                                        <TextBlock Margin="0,3,0,0"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{Binding VersionSummary}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Height="1" Margin="0,16,0,12" Background="{DynamicResource DividerBrush}" />
+
+                                <Grid Height="52">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Width="34"
+                                            Height="34"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource TileFillBrush}"
+                                            CornerRadius="9">
+                                        <ui:SymbolIcon Symbol="ArrowClockwise24"
+                                                       FontSize="17"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="13"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.CheckUpdates}" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   Text="{DynamicResource Loc.Settings.CheckUpdatesTip}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <ui:ToggleSwitch Grid.Column="2"
+                                                     VerticalAlignment="Center"
+                                                     AutomationProperties.Name="{DynamicResource Loc.Settings.CheckUpdates}"
+                                                     IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
+                                </Grid>
+
+                                <Grid Margin="46,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="10.5"
                                                Foreground="{DynamicResource TextTertiaryBrush}"
-                                               Text="{Binding VersionSummary}" />
-                                </StackPanel>
-                            </Grid>
+                                               Text="{Binding UpdateStatusText}"
+                                               TextTrimming="CharacterEllipsis" />
+
+                                    <ui:BagaButton Grid.Column="1"
+                                                   Padding="10,4"
+                                                   FontSize="11"
+                                                   CornerRadius="6"
+                                                   Content="{DynamicResource Loc.Update.CheckNow}"
+                                                   IsEnabled="{Binding CanCheckForUpdates}"
+                                                   Click="CheckUpdates_Click" />
+                                </Grid>
+                            </StackPanel>
                         </Border>
 
                     </StackPanel>

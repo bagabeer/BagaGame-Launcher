@@ -43,6 +43,10 @@ public sealed class SymbolIcon : TextBlock
         ["Gamepad24"] = "\uE7FC",
         ["Info24"] = "\uE946",
         ["Menu24"] = "\uE700",
+        ["Star24"] = "\uE734",
+        ["StarFill24"] = "\uE735",
+        ["Delete24"] = "\uE74D",
+        ["Rename24"] = "\uE8AC",
     };
 
     public SymbolIcon()

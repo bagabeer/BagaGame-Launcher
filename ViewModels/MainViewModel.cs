@@ -29,6 +29,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _genresLoading;
     private LibraryGrouping _grouping;
     private string _searchQuery = string.Empty;
+    private bool _favoritesOnly;
     private string _statusText = Loc.T("Loc.Status.Ready");
     private string _scanInfo = string.Empty;
     private DateTime? _lastScan;
@@ -36,6 +37,19 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     // The status keeps its resource key so a language switch re-renders it.
     private string? _statusKey;
     private object?[]? _statusArgs;
+
+    // Update check: the release number is cached in library.json, so the card
+    // appears immediately on the next launch without another request.
+    private const long UpdateCacheSeconds = 12 * 60 * 60;
+
+    private readonly UpdateService _updates = new();
+    private bool _updateAvailable;
+    private bool _checkingUpdate;
+    private string _updateVersion = string.Empty;
+    private string _updateUrl = string.Empty;
+    private string _updateStatusText = string.Empty;
+    private string? _updateStatusKey;
+    private object?[]? _updateStatusArgs;
 
     public MainViewModel(GameLibraryService libraryService, LibraryStore store)
     {
@@ -89,6 +103,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         RefreshHiddenGames();
+
+        // Show the cached release number before the first request finishes.
+        RestoreKnownUpdate();
     }
 
     /// <summary>Raised when a launched game closes; the window leaves the tray.</summary>
@@ -135,11 +152,33 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public bool IsFiltered => !string.IsNullOrWhiteSpace(_searchQuery);
 
+    /// <summary>True when the cards are narrowed by search or by favourites.</summary>
+    public bool IsNarrowed => IsFiltered || FavoritesOnly;
+
+    /// <summary>Star filter: show only games the user marked as favourites.</summary>
+    public bool FavoritesOnly
+    {
+        get => _favoritesOnly;
+        set
+        {
+            if (!SetField(ref _favoritesOnly, value))
+            {
+                return;
+            }
+
+            RefreshView();
+        }
+    }
+
     public string EmptyTitle => Loc.T(
-        GamesCount == 0 ? "Loc.Empty.NoGames" : "Loc.Empty.NoMatches");
+        FavoritesOnly && FavoriteCount == 0 ? "Loc.Empty.NoFavorites"
+        : GamesCount == 0 ? "Loc.Empty.NoGames" : "Loc.Empty.NoMatches");
 
     public string EmptyText => Loc.T(
-        GamesCount == 0 ? "Loc.Empty.NoGamesHint" : "Loc.Empty.NoMatchesHint");
+        FavoritesOnly && FavoriteCount == 0 ? "Loc.Empty.NoFavoritesHint"
+        : GamesCount == 0 ? "Loc.Empty.NoGamesHint" : "Loc.Empty.NoMatchesHint");
+
+    private int FavoriteCount => Games.Count(game => game.IsFavorite);
 
     /// <summary>Live search over titles, sources and group names.</summary>
     public string SearchQuery
@@ -277,6 +316,240 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             _store.BigPictureOnGamepad = value;
             OnPropertyChanged();
         }
+    }
+
+    /// <summary>True when GitHub reports a stable release newer than this build.</summary>
+    public bool HasUpdate
+    {
+        get => _updateAvailable;
+        private set
+        {
+            if (SetField(ref _updateAvailable, value))
+            {
+                OnPropertyChanged(nameof(UpdateVersionText));
+                OnPropertyChanged(nameof(UpdateTipText));
+            }
+        }
+    }
+
+    /// <summary>"Version 0.9.0 is available", re-rendered on a language switch.</summary>
+    public string UpdateVersionText => HasUpdate
+        ? Loc.Format("Loc.Update.Available", _updateVersion)
+        : string.Empty;
+
+    public string UpdateTipText => HasUpdate
+        ? Loc.Format("Loc.Update.Tip", _updateVersion)
+        : string.Empty;
+
+    /// <summary>Status shown in Settings next to the update toggle.</summary>
+    public string UpdateStatusText
+    {
+        get => _updateStatusText;
+        private set => SetField(ref _updateStatusText, value);
+    }
+
+    public bool IsCheckingUpdate
+    {
+        get => _checkingUpdate;
+        private set
+        {
+            if (SetField(ref _checkingUpdate, value))
+            {
+                OnPropertyChanged(nameof(CanCheckForUpdates));
+            }
+        }
+    }
+
+    public bool CanCheckForUpdates => _store.CheckForUpdates && !IsCheckingUpdate;
+
+    /// <summary>Automatic check for a newer release; on by default.</summary>
+    public bool CheckForUpdates
+    {
+        get => _store.CheckForUpdates;
+        set
+        {
+            if (_store.CheckForUpdates == value)
+            {
+                return;
+            }
+
+            _store.CheckForUpdates = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanCheckForUpdates));
+
+            if (!value)
+            {
+                ClearUpdateStatus();
+            }
+            else if (!HasUpdate)
+            {
+                _ = CheckForUpdatesAsync(force: true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Asks GitHub for the newest release. A success is cached for twelve
+    /// hours; a failure is not, so the next launch simply tries again.
+    /// </summary>
+    public async Task CheckForUpdatesAsync(bool force = false)
+    {
+        if (!_store.CheckForUpdates || IsCheckingUpdate)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var last = _store.LastUpdateCheckUtc;
+
+        if (!force && last > 0 && now - last < UpdateCacheSeconds)
+        {
+            RestoreKnownUpdate();
+            return;
+        }
+
+        IsCheckingUpdate = true;
+        SetUpdateStatus("Loc.Update.Checking");
+
+        try
+        {
+            var result = await _updates.CheckAsync(_lifetime.Token).ConfigureAwait(true);
+
+            if (!result.Success)
+            {
+                SetUpdateStatus("Loc.Update.Failed");
+                return;
+            }
+
+            _store.RecordUpdateCheck(
+                result.Update?.Version ?? string.Empty,
+                result.Update?.Url ?? string.Empty,
+                now);
+
+            RestoreKnownUpdate();
+
+            if (result.Update is null)
+            {
+                SetUpdateStatus("Loc.Update.UpToDate");
+            }
+            else if (HasUpdate)
+            {
+                SetUpdateStatus("Loc.Update.Available", result.Update.Version);
+            }
+            else
+            {
+                SetUpdateStatus("Loc.Update.Dismissed", result.Update.Version);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The window is closing; the next launch checks again.
+        }
+        catch
+        {
+            SetUpdateStatus("Loc.Update.Failed");
+        }
+        finally
+        {
+            IsCheckingUpdate = false;
+        }
+    }
+
+    /// <summary>Hides this exact release; a later one is shown again.</summary>
+    public void DismissUpdate()
+    {
+        if (!HasUpdate)
+        {
+            return;
+        }
+
+        var version = _updateVersion;
+        _store.DismissUpdate(version);
+
+        _updateVersion = string.Empty;
+        _updateUrl = string.Empty;
+        HasUpdate = false;
+        SetUpdateStatus("Loc.Update.Dismissed", version);
+
+        OnPropertyChanged(nameof(UpdateVersionText));
+        OnPropertyChanged(nameof(UpdateTipText));
+    }
+
+    /// <summary>Opens the release page in the default browser; never downloads.</summary>
+    public void OpenUpdatePage()
+    {
+        if (!HasUpdate || string.IsNullOrWhiteSpace(_updateUrl))
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _updateUrl,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            SetStatus("Loc.Update.OpenFailed");
+        }
+    }
+
+    private void RestoreKnownUpdate()
+    {
+        var known = _store.LatestKnownVersion;
+        var visible = UpdateService.IsNewer(known) &&
+                      !string.Equals(
+                          known,
+                          _store.DismissedUpdateVersion,
+                          StringComparison.OrdinalIgnoreCase);
+
+        _updateVersion = visible ? known : string.Empty;
+        _updateUrl = visible ? _store.LatestKnownUrl : string.Empty;
+
+        if (visible && string.IsNullOrWhiteSpace(_updateUrl))
+        {
+            _updateUrl = UpdateService.PageUrl;
+        }
+
+        HasUpdate = visible;
+
+        OnPropertyChanged(nameof(UpdateVersionText));
+        OnPropertyChanged(nameof(UpdateTipText));
+
+        // A cached check already has an answer for Settings; leave a running
+        // check's "Checking..." text alone.
+        if (_updateStatusKey is null && _store.LastUpdateCheckUtc > 0)
+        {
+            if (visible)
+            {
+                SetUpdateStatus("Loc.Update.Available", _updateVersion);
+            }
+            else if (UpdateService.IsNewer(known))
+            {
+                SetUpdateStatus("Loc.Update.Dismissed", known);
+            }
+            else
+            {
+                SetUpdateStatus("Loc.Update.UpToDate");
+            }
+        }
+    }
+
+    private void SetUpdateStatus(string key, params object?[] args)
+    {
+        _updateStatusKey = key;
+        _updateStatusArgs = args;
+        UpdateStatusText = Loc.Format(key, args);
+    }
+
+    private void ClearUpdateStatus()
+    {
+        _updateStatusKey = null;
+        _updateStatusArgs = null;
+        UpdateStatusText = string.Empty;
     }
 
     /// <summary>Beta source for the cover picker.</summary>
@@ -458,6 +731,18 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         Games.Remove(game);
         SetStatus("Loc.Status.Deleted", title);
+    }
+
+    /// <summary>Stars or unstars a game; an active star filter updates at once.</summary>
+    public void ToggleFavorite(Game game)
+    {
+        game.IsFavorite = !game.IsFavorite;
+        _store.SetFavorite(game.Id, game.IsFavorite);
+
+        if (FavoritesOnly)
+        {
+            RefreshView();
+        }
     }
 
     /// <summary>Starts the game with its executable or through the Steam client.</summary>
@@ -1050,6 +1335,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(VisibleCountText));
         OnPropertyChanged(nameof(HasVisibleGames));
         OnPropertyChanged(nameof(IsFiltered));
+        OnPropertyChanged(nameof(IsNarrowed));
         OnPropertyChanged(nameof(EmptyTitle));
         OnPropertyChanged(nameof(EmptyText));
         OnPropertyChanged(nameof(LibrarySummary));
@@ -1057,9 +1343,19 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private bool FilterGame(object item)
     {
-        if (item is not Game game || !IsFiltered)
+        if (item is not Game game)
         {
-            return item is Game;
+            return false;
+        }
+
+        if (FavoritesOnly && !game.IsFavorite)
+        {
+            return false;
+        }
+
+        if (!IsFiltered)
+        {
+            return true;
         }
 
         var query = _searchQuery.Trim();
@@ -1333,6 +1629,14 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             StatusText = Loc.Format(_statusKey, _statusArgs ?? Array.Empty<object>());
         }
+
+        if (_updateStatusKey is not null)
+        {
+            UpdateStatusText = Loc.Format(_updateStatusKey, _updateStatusArgs ?? Array.Empty<object>());
+        }
+
+        OnPropertyChanged(nameof(UpdateVersionText));
+        OnPropertyChanged(nameof(UpdateTipText));
 
         OnPropertyChanged(nameof(EmptyTitle));
         OnPropertyChanged(nameof(EmptyText));

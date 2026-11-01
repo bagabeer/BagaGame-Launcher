@@ -9,10 +9,14 @@ namespace BagaGame;
 /// </summary>
 public static class AppInfo
 {
+    /// <summary>Parsed assembly version, used to compare against a release tag.</summary>
+    public static Version Version { get; } =
+        Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+
     public static string VersionNumber { get; } =
-        Assembly.GetExecutingAssembly().GetName().Version is { } version
-            ? $"{version.Major}.{version.Minor}.{version.Build}"
-            : "0.0.0";
+        Version.Build >= 0
+            ? $"{Version.Major}.{Version.Minor}.{Version.Build}"
+            : $"{Version.Major}.{Version.Minor}";
 
     public static string Runtime => ".NET Framework 4.7.2 · WPF";
 }

@@ -144,6 +144,55 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>
+    /// Checks GitHub for a newer release on startup; on by default. A disabled
+    /// check keeps the last known result but never contacts the network.
+    /// </summary>
+    public bool CheckForUpdates
+    {
+        get => _data.CheckForUpdates;
+        set
+        {
+            if (_data.CheckForUpdates == value)
+            {
+                return;
+            }
+
+            _data.CheckForUpdates = value;
+            Save();
+        }
+    }
+
+    /// <summary>Unix seconds of the last successful release check.</summary>
+    public long LastUpdateCheckUtc => _data.LastUpdateCheckUtc;
+
+    public string LatestKnownVersion => _data.LatestKnownVersion ?? string.Empty;
+
+    public string LatestKnownUrl => _data.LatestKnownUrl ?? string.Empty;
+
+    /// <summary>Version the user hid from the sidebar; it stays hidden.</summary>
+    public string DismissedUpdateVersion => _data.DismissedUpdateVersion ?? string.Empty;
+
+    /// <summary>Saves one successful check, including "no newer release".</summary>
+    public void RecordUpdateCheck(string version, string url, long checkedUtc)
+    {
+        _data.LatestKnownVersion = version;
+        _data.LatestKnownUrl = url;
+        _data.LastUpdateCheckUtc = checkedUtc;
+        Save();
+    }
+
+    public void DismissUpdate(string version)
+    {
+        if (string.Equals(_data.DismissedUpdateVersion, version, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _data.DismissedUpdateVersion = version;
+        Save();
+    }
+
     /// <summary>Beta: use SteamGridDB instead of Steam for the cover picker.</summary>
     public bool UseSteamGridDb
     {
@@ -547,6 +596,10 @@ public sealed class LibraryStore
                 game.Title = title;
             }
 
+            game.IsFavorite = _data.Favorites.Contains(
+                game.Id,
+                StringComparer.OrdinalIgnoreCase);
+
             if (_data.Hidden.Contains(game.Id, StringComparer.OrdinalIgnoreCase))
             {
                 // Remember the title of games hidden by older builds, which
@@ -575,6 +628,32 @@ public sealed class LibraryStore
     public void Rename(string gameId, string title)
     {
         _data.CustomTitles[gameId] = title;
+        Save();
+    }
+
+    /// <summary>
+    /// Adds or removes a favourite. Ids are compared case-insensitively so a
+    /// rescan of the same Steam entry cannot create a duplicate.
+    /// </summary>
+    public void SetFavorite(string gameId, bool favorite)
+    {
+        var exists = _data.Favorites.Contains(gameId, StringComparer.OrdinalIgnoreCase);
+
+        if (favorite == exists)
+        {
+            return;
+        }
+
+        if (favorite)
+        {
+            _data.Favorites.Add(gameId);
+        }
+        else
+        {
+            _data.Favorites.RemoveAll(
+                id => string.Equals(id, gameId, StringComparison.OrdinalIgnoreCase));
+        }
+
         Save();
     }
 
@@ -811,9 +890,22 @@ public sealed class LibraryStore
 
         public Dictionary<string, long> LastPlayed { get; set; } = new();
 
+        /// <summary>Ids of games the user marked with a star.</summary>
+        public List<string> Favorites { get; set; } = new();
+
         public bool BigPictureSounds { get; set; } = true;
 
         public bool BigPictureOnGamepad { get; set; }
+
+        public bool CheckForUpdates { get; set; } = true;
+
+        public long LastUpdateCheckUtc { get; set; }
+
+        public string? LatestKnownVersion { get; set; }
+
+        public string? LatestKnownUrl { get; set; }
+
+        public string? DismissedUpdateVersion { get; set; }
 
         public bool DownloadCovers { get; set; } = true;
 

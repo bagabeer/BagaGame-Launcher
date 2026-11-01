@@ -15,6 +15,7 @@ public sealed class Game : INotifyPropertyChanged
     private string _title = string.Empty;
     private string _group = string.Empty;
     private long _playtimeSeconds;
+    private bool _isFavorite;
 
     /// <summary>Stable identifier used for renames and hidden games.</summary>
     public string Id { get; init; } = string.Empty;
@@ -128,6 +129,27 @@ public sealed class Game : INotifyPropertyChanged
     }
 
     public bool IsPathUnavailable => !IsPathAvailable;
+
+    /// <summary>Marked by the user; survives rescans through library.json.</summary>
+    public bool IsFavorite
+    {
+        get => _isFavorite;
+        set
+        {
+            if (_isFavorite == value)
+            {
+                return;
+            }
+
+            _isFavorite = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(FavoriteActionText));
+        }
+    }
+
+    /// <summary>Context menu label that mirrors the current state.</summary>
+    public string FavoriteActionText => Loc.T(
+        _isFavorite ? "Loc.Menu.RemoveFavorite" : "Loc.Menu.AddFavorite");
 
     public string PathUnavailableText => Loc.T("Loc.Game.PathUnavailable");
 
@@ -247,6 +269,7 @@ public sealed class Game : INotifyPropertyChanged
         OnPropertyChanged(nameof(PathUnavailableText));
         OnPropertyChanged(nameof(PathUnavailableTip));
         OnPropertyChanged(nameof(Details));
+        OnPropertyChanged(nameof(FavoriteActionText));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

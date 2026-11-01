@@ -317,6 +317,7 @@
     <Style TargetType="{x:Type ContextMenu}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ContextMenu}">
@@ -325,12 +326,13 @@
                             Background="{DynamicResource PopupFillBrush}"
                             BorderBrush="{DynamicResource PopupStrokeBrush}"
                             BorderThickness="1"
-                            CornerRadius="8">
+                            CornerRadius="10">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="18"
+                            <DropShadowEffect BlurRadius="20"
                                               Direction="270"
-                                              Opacity="0.35"
-                                              ShadowDepth="3" />
+                                              Opacity="0.4"
+                                              ShadowDepth="3"
+                                              Color="#000000" />
                         </Border.Effect>
                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
                     </Border>
@@ -339,24 +341,47 @@
         </Setter>
     </Style>
 
+    <!-- Rows mirror the sidebar: an icon, the label and an accent hover. -->
     <Style TargetType="{x:Type MenuItem}">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-        <Setter Property="FontSize" Value="12.5" />
-        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="8,4" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type MenuItem}">
                     <Border x:Name="Row"
                             Padding="{TemplateBinding Padding}"
                             Background="Transparent"
-                            CornerRadius="5">
-                        <ContentPresenter ContentSource="Header"
-                                          RecognizesAccessKey="True"
-                                          VerticalAlignment="Center" />
+                            CornerRadius="7">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ContentPresenter ContentSource="Icon"
+                                              Width="20"
+                                              Height="20"
+                                              Margin="0,0,8,0"
+                                              VerticalAlignment="Center" />
+
+                            <ContentPresenter Grid.Column="1"
+                                              ContentSource="Header"
+                                              RecognizesAccessKey="True"
+                                              VerticalAlignment="Center" />
+
+                            <TextBlock Grid.Column="2"
+                                       Margin="18,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       Text="{TemplateBinding InputGestureText}" />
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="Row" Property="Background" Value="{DynamicResource MenuHoverBrush}" />
+                            <Setter TargetName="Row" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Row" Property="Opacity" Value="0.4" />

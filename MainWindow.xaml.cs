@@ -102,6 +102,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         LanguageRuButton.IsChecked = Loc.Current == AppLanguage.Russian;
         LanguageEnButton.IsChecked = Loc.Current == AppLanguage.English;
 
+        // The release check runs next to the scan and never blocks it.
+        _ = _viewModel.CheckForUpdatesAsync();
+
         // Covers stream in after the window is already visible.
         await _viewModel.InitializeAsync();
     }
@@ -300,6 +303,19 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         SearchBox.Focus();
     }
 
+    /// <summary>The whole update card opens the release page in the browser.</summary>
+    private void UpdateCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _viewModel.OpenUpdatePage();
+        e.Handled = true;
+    }
+
+    private void DismissUpdate_Click(object sender, RoutedEventArgs e)
+        => _viewModel.DismissUpdate();
+
+    private void CheckUpdates_Click(object sender, RoutedEventArgs e)
+        => _ = _viewModel.CheckForUpdatesAsync(force: true);
+
     // ------------------------------------------------------------------
     // Launch / context menu
     // ------------------------------------------------------------------
@@ -330,10 +346,17 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
     }
 
+    private void ToggleFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is Game game)
+        {
+            _viewModel.ToggleFavorite(game);
+        }
+    }
+
     // ------------------------------------------------------------------
     // Big Picture (fullscreen television mode)
     // ------------------------------------------------------------------
-
     private void BigPicture_Click(object sender, RoutedEventArgs e) => OpenBigPicture();
 
     /// <summary>
@@ -1302,6 +1325,13 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             e.Handled = true;
             _viewModel.SearchQuery = string.Empty;
+            return;
+        }
+
+        if (e.Key == Key.Escape && _viewModel.FavoritesOnly)
+        {
+            e.Handled = true;
+            _viewModel.FavoritesOnly = false;
             return;
         }
 
