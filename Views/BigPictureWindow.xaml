@@ -1339,8 +1339,6 @@
                     Padding="34,32"
                     HorizontalAlignment="Right"
                     Background="{DynamicResource BpPanelBrush}"
-                    BorderBrush="{DynamicResource BpBorderBrush}"
-                    BorderThickness="1"
                     CornerRadius="18">
                 <Grid>
                     <Grid.RowDefinitions>
