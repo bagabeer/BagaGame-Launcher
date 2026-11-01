@@ -60,22 +60,6 @@ public sealed class LibraryStore
         }
     }
 
-    /// <summary>Last used grouping: None, Alphabet, Genre or Series.</summary>
-    public string Grouping
-    {
-        get => string.IsNullOrWhiteSpace(_data.Grouping) ? "None" : _data.Grouping;
-        set
-        {
-            if (string.Equals(_data.Grouping, value, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _data.Grouping = value;
-            Save();
-        }
-    }
-
     /// <summary>UI sounds when Big Picture opens and closes; on by default.</summary>
     public bool BigPictureSounds
     {
@@ -920,7 +904,5 @@ public sealed class LibraryStore
         public string? CacheDirectory { get; set; }
 
         public bool GridView { get; set; } = true;
-
-        public string Grouping { get; set; } = "None";
     }
 }

@@ -69,14 +69,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _view.CustomSort = new LibraryComparer(this);
         _view.Filter = FilterGame;
 
-        _grouping = Enum.TryParse<LibraryGrouping>(store.Grouping, out var grouping)
-            ? grouping
-            : LibraryGrouping.None;
-
-        if (_grouping != LibraryGrouping.None)
-        {
-            _view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(Game.Group)));
-        }
+        // The library always opens on "All games"; the grouping is a session
+        // choice and is not restored from library.json.
+        _grouping = LibraryGrouping.None;
 
         Games.CollectionChanged += (_, _) =>
         {
@@ -1046,7 +1041,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         return true;
     }
 
-    /// <summary>Switches the group headers and remembers the choice.</summary>
+    /// <summary>Switches the group headers for the current session.</summary>
     public async Task SetGroupingAsync(LibraryGrouping grouping)
     {
         if (_grouping == grouping)
@@ -1055,7 +1050,6 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         _grouping = grouping;
-        _store.Grouping = grouping.ToString();
         OnPropertyChanged(nameof(Grouping));
 
         _view.GroupDescriptions.Clear();
