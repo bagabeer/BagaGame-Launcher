@@ -39,6 +39,7 @@ public partial class BigPictureWindow : Window
     private bool _ready;
     private Game? _lastTickGame;
     private string? _lastGenreKey;
+    private bool _suppressGenreSound;
     private bool _syncingGroupPills;
 
     private static readonly LibraryGrouping[] Groupings =
@@ -600,7 +601,9 @@ public partial class BigPictureWindow : Window
 
     private void GenreBar_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_viewModel.IsGenreGrouping || GenreBar.SelectedItem is not GenreFilter filter)
+        if (_suppressGenreSound ||
+            !_viewModel.IsGenreGrouping ||
+            GenreBar.SelectedItem is not GenreFilter filter)
         {
             return;
         }
@@ -727,7 +730,26 @@ public partial class BigPictureWindow : Window
 
     private async Task ApplyGroupingAsync(LibraryGrouping grouping)
     {
-        await _viewModel.SetGroupingAsync(grouping);
+        var previous = _viewModel.Grouping;
+
+        _suppressGenreSound = true;
+        try
+        {
+            await _viewModel.SetGroupingAsync(grouping);
+        }
+        finally
+        {
+            _suppressGenreSound = false;
+        }
+
+        // The rebuilt chip list must not replay a sound on its own.
+        _lastGenreKey = _viewModel.SelectedGenreFilter?.Genre;
+
+        if (_ready && previous != _viewModel.Grouping)
+        {
+            UiSounds.PlayMove(_store.BigPictureSounds);
+        }
+
         SyncGroupPills();
         SelectCurrent();
     }

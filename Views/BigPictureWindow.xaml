@@ -844,13 +844,31 @@
                         </Border.Style>
 
                         <Grid>
-
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+
+                        <!-- Gentle green fill while the genre list has the stick focus. -->
+                        <Rectangle Grid.ColumnSpan="4"
+                                   Fill="{DynamicResource BpAccentSoftBrush}"
+                                   RadiusX="14"
+                                   RadiusY="14"
+                                   IsHitTestVisible="False">
+                            <Rectangle.Style>
+                                <Style TargetType="Rectangle">
+                                    <Setter Property="Opacity" Value="0" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Border}}"
+                                                     Value="True">
+                                            <Setter Property="Opacity" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Rectangle.Style>
+                        </Rectangle>
 
                         <Button Grid.Column="0"
                                 Margin="0,0,10,0"
@@ -954,6 +972,9 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsGridMode}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsKeyboardFocusWithin, ElementName=GenreBar}" Value="True">
+                                    <Setter Property="Opacity" Value="0.55" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -1105,6 +1126,9 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsGridMode}" Value="True">
                                     <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsKeyboardFocusWithin, ElementName=GenreBar}" Value="True">
+                                    <Setter Property="Opacity" Value="0.55" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
