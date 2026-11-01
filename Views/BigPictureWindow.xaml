@@ -846,7 +846,11 @@
                                                     Background="{DynamicResource BpCardBrush}"
                                                     BorderBrush="{DynamicResource BpCardStrokeBrush}"
                                                     BorderThickness="2"
-                                                    CornerRadius="10">
+                                                    CornerRadius="10"
+                                                    RenderTransformOrigin="0.5,0.5">
+                                                <Border.RenderTransform>
+                                                    <TranslateTransform x:Name="GridCardLift" Y="0" />
+                                                </Border.RenderTransform>
                                                 <Grid>
                                                     <TextBlock HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
@@ -893,6 +897,36 @@
                                                     </Setter.Value>
                                                 </Setter>
                                                 <Setter Property="Panel.ZIndex" Value="2" />
+
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="GridCardLift"
+                                                                             Storyboard.TargetProperty="Y"
+                                                                             To="-4"
+                                                                             Duration="0:0:0.16">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut" />
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="GridCardLift"
+                                                                             Storyboard.TargetProperty="Y"
+                                                                             To="0"
+                                                                             Duration="0:0:0.2">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut" />
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
                                             </Trigger>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource BpTextBrush}" />
