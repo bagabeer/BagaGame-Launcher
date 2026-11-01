@@ -402,6 +402,21 @@
         </Setter>
     </Style>
 
+    <!-- A menu item drawn as a divider: Separator gets wrapped in a MenuItem
+         container, which would indent it into the icon column. -->
+    <Style x:Key="MenuSeparatorStyle" TargetType="{x:Type MenuItem}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsEnabled" Value="False" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type MenuItem}">
+                    <Border Height="1" Margin="4,4" Background="{DynamicResource DividerBrush}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ============================== ToolTip ============================= -->
 
     <Style TargetType="{x:Type ToolTip}">

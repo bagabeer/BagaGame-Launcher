@@ -462,7 +462,7 @@
                                 <ui:SymbolIcon FontSize="13" Symbol="ArrowClockwise24" />
                             </MenuItem.Icon>
                         </MenuItem>
-                        <Separator />
+                        <MenuItem Style="{StaticResource MenuSeparatorStyle}" />
                         <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}">
                             <MenuItem.Icon>
                                 <ui:SymbolIcon FontSize="13" Symbol="Rename24" />
@@ -750,7 +750,7 @@
                                 <ui:SymbolIcon FontSize="13" Symbol="ArrowClockwise24" />
                             </MenuItem.Icon>
                         </MenuItem>
-                        <Separator />
+                        <MenuItem Style="{StaticResource MenuSeparatorStyle}" />
                         <MenuItem Click="RenameGame_Click" Header="{DynamicResource Loc.Menu.Rename}">
                             <MenuItem.Icon>
                                 <ui:SymbolIcon FontSize="13" Symbol="Rename24" />
