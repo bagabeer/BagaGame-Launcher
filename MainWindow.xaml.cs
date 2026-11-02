@@ -324,20 +324,40 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void GameCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is Game game &&
-            _viewModel.LaunchGame(game))
+        if ((sender as FrameworkElement)?.DataContext is Game game)
         {
-            HideInTray(game.Title);
+            LaunchGameFromLibrary(game);
         }
     }
 
     private void LaunchGame_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as MenuItem)?.DataContext is Game game &&
-            _viewModel.LaunchGame(game))
+        if ((sender as MenuItem)?.DataContext is Game game)
         {
-            HideInTray(game.Title);
+            LaunchGameFromLibrary(game);
         }
+    }
+
+    /// <summary>
+    /// Starts a game from the library window and makes sure its window lands
+    /// on the monitor the launcher is on, not on the primary display.
+    /// </summary>
+    private void LaunchGameFromLibrary(Game game)
+    {
+        var monitor = GetMonitorBounds(this);
+        StopGamePlacementWatch();
+
+        if (!_viewModel.LaunchGame(game))
+        {
+            return;
+        }
+
+        if (monitor is { } target)
+        {
+            StartGamePlacementWatch(game, target);
+        }
+
+        HideInTray(game.Title);
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -441,7 +461,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         // Remember the Big Picture monitor before the game starts: its window
         // must land there, not on the primary display.
-        var monitor = GetBigPictureMonitorBounds();
+        var monitor = _bigPicture is { } window ? GetMonitorBounds(window) : null;
         StopGamePlacementWatch();
 
         if (!_viewModel.LaunchGame(game))
@@ -466,15 +486,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
     }
 
-    private Rect? GetBigPictureMonitorBounds()
+    private static Rect? GetMonitorBounds(Window window)
     {
         try
         {
-            if (_bigPicture is not { } window)
-            {
-                return null;
-            }
-
             var handle = new WindowInteropHelper(window).Handle;
             if (handle == IntPtr.Zero)
             {
