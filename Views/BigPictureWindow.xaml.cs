@@ -34,6 +34,7 @@ public partial class BigPictureWindow : Window
     private CancellationTokenSource? _detailsToken;
     private DispatcherTimer? _introTimer;
     private bool _cursorHidden;
+    private Point _lastMousePosition;
     private bool _closeApproved;
     private bool _ready;
     private Game? _lastTickGame;
@@ -71,7 +72,20 @@ public partial class BigPictureWindow : Window
         PreviewKeyDown += OnPreviewKeyDown;
         IsVisibleChanged += OnVisibleChanged;
 
-        MouseMove += (_, _) => ShowCursor();
+        MouseMove += (_, e) =>
+        {
+            // WPF raises a move when a new overlay appears under a still
+            // pointer; that is not real movement, so a hidden cursor stays
+            // hidden when the details panel opens.
+            var position = e.GetPosition(this);
+            if (position == _lastMousePosition)
+            {
+                return;
+            }
+
+            _lastMousePosition = position;
+            ShowCursor();
+        };
 
         GamesList.PreviewMouseWheel += OnGamesListMouseWheel;
         GamesList.MouseDoubleClick += (_, _) => PlaySelected();
@@ -970,6 +984,7 @@ public partial class BigPictureWindow : Window
 
         _cursorHidden = true;
         Mouse.OverrideCursor = Cursors.None;
+        _lastMousePosition = Mouse.GetPosition(this);
     }
 
     private void ShowCursor()
