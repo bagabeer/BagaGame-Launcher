@@ -32,6 +32,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private readonly GamepadService _gamepadWatcher;
     private DateTime _gamepadWatchStartedUtc;
     private bool _leavingBigPicture;
+    private DispatcherTimer? _gamePlacementWatch;
     private bool _syncingGrouping;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
@@ -438,6 +439,11 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void LaunchFromBigPicture(Game game)
     {
+        // Remember the Big Picture monitor before the game starts: its window
+        // must land there, not on the primary display.
+        var monitor = GetBigPictureMonitorBounds();
+        StopGamePlacementWatch();
+
         if (!_viewModel.LaunchGame(game))
         {
             return;
@@ -453,6 +459,147 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _tray.Visible = true;
 
         StartBigPictureLaunchWatch();
+
+        if (monitor is { } target)
+        {
+            StartGamePlacementWatch(game, target);
+        }
+    }
+
+    private Rect? GetBigPictureMonitorBounds()
+    {
+        try
+        {
+            if (_bigPicture is not { } window)
+            {
+                return null;
+            }
+
+            var handle = new WindowInteropHelper(window).Handle;
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            var bounds = System.Windows.Forms.Screen.FromHandle(handle).Bounds;
+            return new Rect(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Pulls the started game onto the Big Picture monitor. The game itself
+    /// picks the primary display, so its window is moved right after it
+    /// appears; a few retries catch engines that recreate or reposition the
+    /// window while loading.
+    /// </summary>
+    private void StartGamePlacementWatch(Game game, Rect target)
+    {
+        var started = DateTime.UtcNow;
+        var watch = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+        _gamePlacementWatch = watch;
+
+        watch.Tick += (_, _) =>
+        {
+            if ((DateTime.UtcNow - started).TotalSeconds > 20)
+            {
+                StopGamePlacementWatch();
+                return;
+            }
+
+            var process = FindGameProcessWindow(game);
+            if (process is null)
+            {
+                return;
+            }
+
+            try
+            {
+                PlaceGameWindow(process.MainWindowHandle, target);
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        };
+
+        watch.Start();
+    }
+
+    private void StopGamePlacementWatch()
+    {
+        _gamePlacementWatch?.Stop();
+        _gamePlacementWatch = null;
+    }
+
+    private static void PlaceGameWindow(IntPtr handle, Rect target)
+    {
+        try
+        {
+            if (handle == IntPtr.Zero || !GetWindowRect(handle, out var window))
+            {
+                return;
+            }
+
+            var source = System.Windows.Forms.Screen.FromHandle(handle).Bounds;
+            if (source.Left == (int)target.Left && source.Top == (int)target.Top)
+            {
+                return;
+            }
+
+            if (window.Right <= window.Left || window.Bottom <= window.Top)
+            {
+                return;
+            }
+
+            const uint noSize = 0x0001;
+            const uint noZOrder = 0x0004;
+            const uint noActivate = 0x0010;
+
+            var width = window.Right - window.Left;
+            var height = window.Bottom - window.Top;
+
+            // A borderless or fullscreen window covers its monitor exactly:
+            // fill the target monitor. A smaller window is centered on it; an
+            // oversized window is shrunk to fit.
+            var fillsMonitor =
+                Math.Abs(window.Left - source.Left) <= 2 &&
+                Math.Abs(window.Top - source.Top) <= 2 &&
+                Math.Abs(window.Right - source.Right) <= 2 &&
+                Math.Abs(window.Bottom - source.Bottom) <= 2;
+
+            if (fillsMonitor ||
+                width > target.Width + 2 ||
+                height > target.Height + 2)
+            {
+                SetWindowPos(
+                    handle,
+                    IntPtr.Zero,
+                    (int)target.Left,
+                    (int)target.Top,
+                    (int)target.Width,
+                    (int)target.Height,
+                    noZOrder | noActivate);
+                return;
+            }
+
+            SetWindowPos(
+                handle,
+                IntPtr.Zero,
+                (int)target.Left + ((int)target.Width - width) / 2,
+                (int)target.Top + ((int)target.Height - height) / 2,
+                0,
+                0,
+                noSize | noZOrder | noActivate);
+        }
+        catch
+        {
+            // The window may have been recreated between the checks; the next
+            // tick tries again.
+        }
     }
 
     /// <summary>
@@ -1499,6 +1646,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     protected override void OnClosed(EventArgs e)
     {
         StopBigPictureLaunchWatch();
+        StopGamePlacementWatch();
 
         _bigPicture?.CloseApproved();
         _bigPicture = null;
@@ -1510,6 +1658,30 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _viewModel.Dispose();
         base.OnClosed(e);
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(
+        IntPtr hwnd,
+        IntPtr insertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();

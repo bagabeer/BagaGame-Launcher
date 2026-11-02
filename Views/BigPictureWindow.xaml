@@ -641,7 +641,8 @@
                     </Border>
 
                     <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
-                        <Button Click="Play_Click"
+                        <Button x:Name="PlayButton"
+                                Click="Play_Click"
                                 Style="{DynamicResource BpPrimaryButton}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon FontSize="16"
@@ -653,7 +654,8 @@
                             </StackPanel>
                         </Button>
 
-                        <Button Margin="12,0,0,0"
+                        <Button x:Name="DetailsButton"
+                                Margin="12,0,0,0"
                                 Click="Details_Click"
                                 Style="{DynamicResource BpSecondaryButton}">
                             <StackPanel Orientation="Horizontal">
