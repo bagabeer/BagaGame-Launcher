@@ -1360,8 +1360,10 @@
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1"
+                    <ScrollViewer x:Name="DetailsScroll"
+                                  Grid.Row="1"
                                   Margin="0,24,0,0"
+                                  Focusable="True"
                                   HorizontalScrollBarVisibility="Disabled"
                                   Style="{StaticResource OverlayScrollViewer}"
                                   VerticalScrollBarVisibility="Auto">

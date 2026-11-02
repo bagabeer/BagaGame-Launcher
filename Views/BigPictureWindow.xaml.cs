@@ -43,6 +43,9 @@ public partial class BigPictureWindow : Window
     private DispatcherTimer? _favoriteToastTimer;
     private int _favoriteToastVersion;
 
+    private const double DetailsScrollStep = 80;
+    private const double DetailsScrollPage = 280;
+
     private static readonly BpSection[] Sections =
     {
         BpSection.All,
@@ -459,6 +462,29 @@ public partial class BigPictureWindow : Window
 
         try
         {
+            // The details panel is modal: the stick scrolls its text while the
+            // covers, sections and grid stay put behind it.
+            if (IsDetailsOpen)
+            {
+                switch (command)
+                {
+                    case PadCommand.Up:
+                        ScrollDetails(-DetailsScrollStep);
+                        break;
+
+                    case PadCommand.Down:
+                        ScrollDetails(DetailsScrollStep);
+                        break;
+
+                    case PadCommand.Details:
+                    case PadCommand.Back:
+                        CloseDetails();
+                        break;
+                }
+
+                return;
+            }
+
             switch (command)
             {
                 case PadCommand.Left:
@@ -544,16 +570,7 @@ public partial class BigPictureWindow : Window
                     break;
 
                 case PadCommand.Back:
-                    if (DetailsOverlay.Visibility == Visibility.Visible)
-                    {
-                        DetailsOverlay.Visibility = Visibility.Collapsed;
-                        FocusGames();
-                    }
-                    else
-                    {
-                        ExitRequested?.Invoke(this, EventArgs.Empty);
-                    }
-
+                    ExitRequested?.Invoke(this, EventArgs.Empty);
                     break;
             }
         }
@@ -978,24 +995,32 @@ public partial class BigPictureWindow : Window
 
     private void ToggleDetails()
     {
-        DetailsOverlay.Visibility = DetailsOverlay.Visibility == Visibility.Visible
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        if (IsDetailsOpen)
+        {
+            CloseDetails();
+            return;
+        }
 
-        if (DetailsOverlay.Visibility == Visibility.Visible)
-        {
-            DetailsOverlay.Focus();
-        }
-        else
-        {
-            FocusGames();
-        }
+        // A fresh panel always starts at the top of the text.
+        DetailsOverlay.Visibility = Visibility.Visible;
+        DetailsScroll.ScrollToTop();
+        DetailsScroll.Focus();
     }
 
-    private void CloseDetails_Click(object sender, RoutedEventArgs e)
+    private void CloseDetails()
     {
         DetailsOverlay.Visibility = Visibility.Collapsed;
         FocusGames();
+    }
+
+    private void CloseDetails_Click(object sender, RoutedEventArgs e) => CloseDetails();
+
+    private bool IsDetailsOpen => DetailsOverlay.Visibility == Visibility.Visible;
+
+    /// <summary>Scrolls the right-hand details text without touching the covers.</summary>
+    private void ScrollDetails(double delta)
+    {
+        DetailsScroll.ScrollToVerticalOffset(DetailsScroll.VerticalOffset + delta);
     }
 
     /// <summary>Y stars or unstars the selected game and confirms it quietly.</summary>
@@ -1088,8 +1113,7 @@ public partial class BigPictureWindow : Window
     {
         if (ReferenceEquals(e.OriginalSource, DetailsOverlay))
         {
-            DetailsOverlay.Visibility = Visibility.Collapsed;
-            FocusGames();
+            CloseDetails();
         }
     }
 
@@ -1140,6 +1164,50 @@ public partial class BigPictureWindow : Window
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // The details panel is modal: arrows scroll its text instead of the
+        // covers, and section/launch keys do not leak through.
+        if (IsDetailsOpen)
+        {
+            switch (e.Key)
+            {
+                case Key.Up:
+                    e.Handled = true;
+                    ScrollDetails(-DetailsScrollStep);
+                    return;
+
+                case Key.Down:
+                    e.Handled = true;
+                    ScrollDetails(DetailsScrollStep);
+                    return;
+
+                case Key.PageUp:
+                    e.Handled = true;
+                    ScrollDetails(-DetailsScrollPage);
+                    return;
+
+                case Key.PageDown:
+                    e.Handled = true;
+                    ScrollDetails(DetailsScrollPage);
+                    return;
+
+                case Key.Escape:
+                case Key.Space:
+                case Key.Enter:
+                    e.Handled = true;
+                    CloseDetails();
+                    return;
+
+                case Key.Left:
+                case Key.Right:
+                case Key.Q:
+                case Key.E:
+                    e.Handled = true;
+                    return;
+            }
+
+            return;
+        }
+
         // Arrows walk the genre chips while that bar has the focus.
         if (GenreBar.IsKeyboardFocusWithin)
         {
@@ -1211,12 +1279,7 @@ public partial class BigPictureWindow : Window
             case Key.Escape:
                 e.Handled = true;
 
-                if (DetailsOverlay.Visibility == Visibility.Visible)
-                {
-                    DetailsOverlay.Visibility = Visibility.Collapsed;
-                    FocusGames();
-                }
-                else if (_viewModel.IsGridMode)
+                if (_viewModel.IsGridMode)
                 {
                     ExitGrid();
                 }
