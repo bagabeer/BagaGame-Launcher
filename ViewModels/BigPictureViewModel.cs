@@ -207,7 +207,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
             _selectedGenreFilter = value;
             OnPropertyChanged();
-            RebuildGames();
+            RebuildGames(restartAtStart: true);
         }
     }
 
@@ -261,7 +261,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Section));
         OnPropertyChanged(nameof(ListTitle));
 
-        Reload();
+        Reload(restartAtStart: true);
 
         if (IsGenreGrouping)
         {
@@ -409,13 +409,13 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         }), DispatcherPriority.Background);
     }
 
-    private void Reload()
+    private void Reload(bool restartAtStart = false)
     {
         RebuildGenreFilters();
-        RebuildGames();
+        RebuildGames(restartAtStart);
     }
 
-    private void RebuildGames()
+    private void RebuildGames(bool restartAtStart = false)
     {
         var currentId = _selectedGame?.Id;
         var grouping = _favoritesOnly ? LibraryGrouping.None : Grouping;
@@ -443,26 +443,21 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
 
         var orderedGames = ordered.ToList();
 
-        // Keep the active cover selected and put it at the start of the list.
-        if (currentId is not null)
-        {
-            var active = orderedGames.FirstOrDefault(game =>
-                string.Equals(game.Id, currentId, StringComparison.Ordinal));
-
-            if (active is not null)
-            {
-                orderedGames.Remove(active);
-                orderedGames.Insert(0, active);
-            }
-        }
-
         Games.Clear();
         foreach (var game in orderedGames)
         {
             Games.Add(game);
         }
 
-        SelectedGame = Games.FirstOrDefault();
+        // Switching a section or genre always lands on the first card of the
+        // natural order. Other reloads (a scan, a language change) keep the
+        // current card if it is still in the list.
+        var preferred = restartAtStart
+            ? null
+            : Games.FirstOrDefault(game =>
+                string.Equals(game.Id, currentId, StringComparison.Ordinal));
+
+        SelectedGame = preferred ?? Games.FirstOrDefault();
 
         OnPropertyChanged(nameof(HasGames));
         OnPropertyChanged(nameof(GamesCountText));
