@@ -150,33 +150,42 @@ Compat/                             — polyfills for modern C# on net472
 
 ### Version 0.9.0 (current) — Big Picture
 
-**Big Picture**
-* Full-screen TV mode with hero artwork, large covers, sound effects and an animated entry/exit with a launch splash.
-* Gamepad and keyboard: D-pad/stick navigate, **A** plays, **X** details, **Y** favorite, **B** exits; **Q/E** and **LB/RB** switch sections.
+**Big Picture — a full-screen TV mode**
+* Hero artwork, large covers, sound effects and an animated entry/exit with a launch splash.
+* Gamepad (XInput) and keyboard support; a connected controller can open Big Picture automatically.
+* Controls: D-pad/stick navigate, **A** plays, **X** opens details, **Y** toggles a favorite, **B** exits; **Q/E** and **LB/RB** switch sections.
 * Opens on the library monitor, scales for 4K and follows the light and dark theme.
-* Carousel and compact grid; D-pad Down switches the view, and the selected cover lifts out of the row.
-* A connected controller can open Big Picture automatically; the cursor hides on controller input.
+* Section pills float over the hero; the carousel and the compact grid share the same selection.
+* D-pad Down switches between carousel and grid, the stick walks the covers, and the selected cover lifts out of the row.
+* The grid scrolls to the selected card and keeps the stick inside the visible rows.
+* The mouse cursor hides on controller input and returns only when the mouse actually moves.
+* Gamepad and keyboard hints use vector glyphs for the D-pad and controller buttons.
 
 **Sections, genres and favorites**
-* **All games**, **By alphabet**, **Genres** and **Favorites** are independent of the library: the mode always starts on All games, and every switch starts from the first game in the natural order.
-* Genre bar with game counts, arrows and filtering; genres of new games are loaded automatically.
-* Press **Y** to star or unstar a game, with separate add/remove sounds and a fading toast. The Favorites section has its own empty state.
+* Sections **All games**, **By alphabet**, **Genres** and **Favorites**; switch with Q/E, LB/RB or the pills.
+* Big Picture sections are independent of the library, and the mode always starts on All games. The library keeps its own Series grouping.
+* Every section switch starts from the first game in the natural order — the list is not reordered around the previously selected game.
+* Genre bar with game counts, arrows and filtering; the active genre is highlighted and the switch has its own sound.
+* Genres of new games are loaded automatically in both Big Picture and the library.
+* Favorites: press **Y** to star or unstar the selected game, with separate add/remove sounds and a fading toast. The Favorites section has its own empty state.
 
 **Details panel**
-* Full store description, played time on top and the game folder below.
-* Scrolls with the stick, arrow keys and Page Up / Page Down.
-* Modal: covers and sections stay put; closes with **B**, **X**, **Space**, **Enter**, **Esc** or a click outside.
+* The full store description, played time on top and the game folder below.
+* The text scrolls with the stick, arrow keys and Page Up / Page Down.
+* The panel is modal: covers, sections and the grid stay put while it is open.
+* Always opens at the top of the text and closes with **B**, **X**, **Space**, **Enter**, **Esc** or a click outside.
+* A hidden cursor stays hidden when the panel opens.
 
-**Library and launch**
+**Library and launcher**
 * Favorites in the library with a star filter and a context-menu action.
 * Update checker with a dismissible sidebar card and a Settings toggle.
-* Games launched from Big Picture or the library open on the monitor where the launcher is running.
+* Games launched from Big Picture open on the Big Picture monitor; games launched from the library open on the launcher's monitor.
 * The library always opens on All games, and the grouping choice is no longer saved.
-
-**Look and feel**
 * Selected-cover glow restored and no longer clipped at the top, left or right.
-* List rows no longer show the round add-cover button.
-* The launch splash no longer casts an outer shadow.
+* List rows no longer show the round add-cover button; the text hint remains.
+* Themed context menu, including the text box cut/copy/paste menu.
+* The default window size fits two full rows of cards.
+* The launch splash no longer casts an outer shadow; its border and logo glow remain.
 
 ### Version 0.8.0 — cover update
 
