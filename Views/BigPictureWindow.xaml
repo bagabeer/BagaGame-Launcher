@@ -199,7 +199,7 @@
             <Setter Property="Height" Value="34" />
             <Setter Property="Margin" Value="3,0" />
             <Setter Property="Padding" Value="16,0" />
-            <Setter Property="Foreground" Value="{DynamicResource BpTextMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource BpTextBrush}" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
@@ -572,7 +572,7 @@
                              HorizontalAlignment="Left"
                              VerticalAlignment="Bottom">
                     <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
-                               FontSize="54"
+                               FontSize="46"
                                FontWeight="Bold"
                                Foreground="{DynamicResource BpTextBrush}"
                                Text="{Binding SelectedTitle}"
