@@ -42,6 +42,13 @@ public sealed class PlaytimeTracker : IDisposable
 
         public string? Executable { get; set; }
 
+        /// <summary>
+        /// Process id captured at launch. It is the only reliable link to a
+        /// game that runs elevated: such a process exists, but a normal
+        /// launcher cannot read its module path.
+        /// </summary>
+        public int ProcessId { get; set; }
+
         public bool Resolved { get; set; }
 
         public DateTime Started { get; init; }
@@ -75,8 +82,13 @@ public sealed class PlaytimeTracker : IDisposable
             PollInterval);
     }
 
-    /// <summary>Starts watching a game that was just launched from the launcher.</summary>
-    public void Track(Game game)
+    /// <summary>
+    /// Starts watching a game that was just launched from the launcher.
+    /// <paramref name="processId"/> is the process returned by
+    /// <see cref="Process.Start(ProcessStartInfo)"/>; zero when the launch went
+    /// through a protocol handler such as <c>steam://</c>.
+    /// </summary>
+    public void Track(Game game, int processId = 0)
     {
         if (_disposed || game is null || string.IsNullOrWhiteSpace(game.Id))
         {
@@ -95,6 +107,7 @@ public sealed class PlaytimeTracker : IDisposable
             _sessions[game.Id] = new Session
             {
                 Game = game,
+                ProcessId = processId,
                 Started = now,
                 LastTick = now,
             };
@@ -276,6 +289,51 @@ public sealed class PlaytimeTracker : IDisposable
             return false;
         }
 
+        // The id captured at launch is authoritative. It still works when the
+        // game runs elevated: the process exists, but its module path is not
+        // readable from a normal-integrity launcher.
+        if (session.ProcessId > 0)
+        {
+            try
+            {
+                using var tracked = Process.GetProcessById(session.ProcessId);
+
+                string? trackedName = null;
+                try
+                {
+                    trackedName = tracked.ProcessName;
+                }
+                catch
+                {
+                    // Details are hidden, but the process itself still exists.
+                }
+
+                if (string.IsNullOrWhiteSpace(trackedName) ||
+                    string.Equals(trackedName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                // The pid now belongs to another process: fall back to the scan.
+                session.ProcessId = 0;
+            }
+            catch (ArgumentException)
+            {
+                session.ProcessId = 0;
+            }
+            catch (InvalidOperationException)
+            {
+                session.ProcessId = 0;
+            }
+            catch
+            {
+                // Access denied while inspecting a process we started: it is
+                // still alive, so keep counting instead of restoring the
+                // launcher over the game.
+                return true;
+            }
+        }
+
         Process[] processes;
         try
         {
@@ -302,12 +360,27 @@ public sealed class PlaytimeTracker : IDisposable
                     catch
                     {
                         // An inaccessible process cannot be matched reliably by
-                        // its name alone: another game may use the same name.
+                        // its path; the fallback below uses its start time.
                     }
 
-                    if (!string.IsNullOrWhiteSpace(path) &&
-                        MatchesGameProcess(path, executable, installPath))
+                    if (!string.IsNullOrWhiteSpace(path))
                     {
+                        if (MatchesGameProcess(path, executable, installPath))
+                        {
+                            session.ProcessId = process.Id;
+                            return true;
+                        }
+
+                        continue;
+                    }
+
+                    // Elevated or protected process: accept it when it started
+                    // together with this session, or when it is the only
+                    // process with this name. This keeps games launched through
+                    // a wrapper (or through steam://) counted.
+                    if (StartsNearSession(session, process) || processes.Length == 1)
+                    {
+                        session.ProcessId = process.Id;
                         return true;
                     }
                 }
@@ -327,6 +400,24 @@ public sealed class PlaytimeTracker : IDisposable
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// True when the process appeared around the launch time. Processes whose
+    /// start time is hidden are handled by the single-candidate fallback.
+    /// </summary>
+    private static bool StartsNearSession(Session session, Process process)
+    {
+        try
+        {
+            var started = process.StartTime.ToUniversalTime();
+            return started >= session.Started.AddSeconds(-20) &&
+                   started <= session.Started.AddSeconds(180);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool MatchesGameProcess(string path, string executable, string? installPath)

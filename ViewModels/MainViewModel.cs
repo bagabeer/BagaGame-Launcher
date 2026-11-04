@@ -797,7 +797,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             if (!string.IsNullOrWhiteSpace(game.ExecutablePath) &&
                 File.Exists(game.ExecutablePath))
             {
-                Process.Start(new ProcessStartInfo
+                var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = game.ExecutablePath,
                     WorkingDirectory = Path.GetDirectoryName(game.ExecutablePath) ?? string.Empty,
@@ -806,7 +806,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
                 SetStatus("Loc.Status.Launching", game.Title);
                 _store.MarkPlayed(game.Id);
-                _playtime.Track(game);
+
+                // Keep the process id: a game started "as administrator" does
+                // not expose its module path to a normal launcher, so the name
+                // lookup alone would report it as stopped after the grace time.
+                _playtime.Track(game, process?.Id ?? 0);
                 return true;
             }
 

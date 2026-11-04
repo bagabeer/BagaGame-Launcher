@@ -244,32 +244,92 @@ public sealed class SteamAchievementsService
 
     private static string? GetSteamPath()
     {
-        string? path = null;
+        var candidates = new List<string?>();
 
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-            path = key?.GetValue("SteamPath") as string;
+            candidates.Add(key?.GetValue("SteamPath") as string);
+
+            // Some repack installers leave a fake SteamPath behind (pointing at
+            // a folder inside the game). SteamExe still points at the real
+            // client, so keep its folder as a separate candidate.
+            var steamExe = key?.GetValue("SteamExe") as string;
+            if (!string.IsNullOrWhiteSpace(steamExe))
+            {
+                candidates.Add(Path.GetDirectoryName(steamExe.Replace('/', '\\')));
+            }
         }
         catch
         {
-            // The registry is unavailable: try the machine-wide key below.
+            // The registry is unavailable: try the machine-wide keys below.
         }
 
-        if (string.IsNullOrWhiteSpace(path))
+        foreach (var subKey in new[]
+                 {
+                     @"SOFTWARE\WOW6432Node\Valve\Steam",
+                     @"SOFTWARE\Valve\Steam",
+                 })
         {
             try
             {
-                using var key = Registry.LocalMachine.OpenSubKey(
-                    @"SOFTWARE\WOW6432Node\Valve\Steam");
-                path = key?.GetValue("InstallPath") as string;
+                using var key = Registry.LocalMachine.OpenSubKey(subKey);
+                candidates.Add(key?.GetValue("InstallPath") as string);
             }
             catch
             {
-                // No Steam on this PC.
+                // No Steam under this key.
             }
         }
 
-        return string.IsNullOrWhiteSpace(path) ? null : path!.Replace('/', '\\');
+        var programFilesX86 = Environment.GetFolderPath(
+            Environment.SpecialFolder.ProgramFilesX86);
+        if (!string.IsNullOrWhiteSpace(programFilesX86))
+        {
+            candidates.Add(Path.Combine(programFilesX86, "Steam"));
+        }
+
+        var programFiles = Environment.GetFolderPath(
+            Environment.SpecialFolder.ProgramFiles);
+        if (!string.IsNullOrWhiteSpace(programFiles))
+        {
+            candidates.Add(Path.Combine(programFiles, "Steam"));
+        }
+
+        // A repack can overwrite SteamPath with a path that does not exist.
+        // Only accept a folder that really contains a Steam installation.
+        foreach (var candidate in candidates)
+        {
+            var path = NormalizeSteamPath(candidate);
+            if (path is null)
+            {
+                continue;
+            }
+
+            if (File.Exists(Path.Combine(path, "steam.exe")) ||
+                File.Exists(Path.Combine(path, "config", "loginusers.vdf")))
+            {
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeSteamPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Path.GetFullPath(path.Replace('/', '\\'));
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

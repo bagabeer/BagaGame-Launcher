@@ -96,6 +96,24 @@ public sealed class LocalAchievementsService
                     result);
             }
 
+            // Older CODEX/RUNE builds keep their stats under the roaming
+            // profile instead of Public Documents. Firewatch is one of them.
+            var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!string.IsNullOrWhiteSpace(roaming) && effectiveAppId > 0)
+            {
+                ReadSteamEmulatorIni(
+                    Path.Combine(roaming, "Steam", "CODEX", effectiveAppId.ToString(), "achievements.ini"),
+                    "CODEX",
+                    result,
+                    requireAchieved: true);
+
+                ReadSteamEmulatorIni(
+                    Path.Combine(roaming, "Steam", "RUNE", effectiveAppId.ToString(), "achievements.ini"),
+                    "RUNE",
+                    result,
+                    requireAchieved: true);
+            }
+
             // FreeTP and the game-save adapters do not need an AppID: they
             // know the game from the install path or the title.
             ReadFreeTp(game, result);

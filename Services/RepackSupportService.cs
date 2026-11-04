@@ -128,6 +128,16 @@ public static class RepackSupportService
                         continue;
                     }
 
+                    // CODEX keeps its loader next to the game as
+                    // steam_api64.cdx / steam_api.cdx even when the DLL itself
+                    // carries no usable version resource.
+                    if (name.EndsWith(".cdx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        kinds |= RepackKind.Codex;
+                        fixDirectory ??= directory;
+                        continue;
+                    }
+
                     if (name.Equals("steam_emu.ini", StringComparison.OrdinalIgnoreCase) ||
                         name.Equals("CODEX.ini", StringComparison.OrdinalIgnoreCase) ||
                         name.Equals("RUNE.ini", StringComparison.OrdinalIgnoreCase))
@@ -498,11 +508,16 @@ public static class RepackSupportService
         if ((info.Kind & RepackKind.Codex) != 0)
         {
             ProvisionSteamEmulator(appId, "CODEX");
+            EnsureSteamAppId(info.FixDirectory, appId);
+            EnsureSteamAppId(game.InstallPath, appId);
+            ActivateCodexDll(info.FixDirectory);
         }
 
         if ((info.Kind & RepackKind.Rune) != 0)
         {
             ProvisionSteamEmulator(appId, "RUNE");
+            EnsureSteamAppId(info.FixDirectory, appId);
+            EnsureSteamAppId(game.InstallPath, appId);
         }
 
         if ((info.Kind & RepackKind.Goldberg) != 0)
@@ -566,20 +581,177 @@ public static class RepackSupportService
 
     private static void ProvisionSteamEmulator(int appId, string emulator)
     {
-        var common = GetCommonDocuments();
-        if (common is null)
+        // Newer CODEX/RUNE builds use Public Documents, older ones use the
+        // roaming profile (Firewatch 2016, for example). Create both layouts:
+        // the emulator reads the one it was built for and ignores the other.
+        var roots = new[]
+        {
+            GetCommonDocuments(),
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        };
+
+        // CODEX writes its own sections and does not use the
+        // [SteamAchievements] header that the modern RUNE layout expects.
+        // Pre-creating the header can stop CODEX from saving unlocks, so its
+        // file is started empty and filled by the emulator.
+        var content = emulator.Equals("CODEX", StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : "[SteamAchievements]" + Environment.NewLine + "Count=0" + Environment.NewLine;
+
+        foreach (var baseDirectory in roots)
+        {
+            if (string.IsNullOrWhiteSpace(baseDirectory))
+            {
+                continue;
+            }
+
+            var root = Path.Combine(baseDirectory!, "Steam", emulator, appId.ToString());
+            EnsureDirectory(root);
+            EnsureFile(Path.Combine(root, "achievements.ini"), content);
+            EnsureFile(
+                Path.Combine(root, "leaderboards.ini"),
+                "[SteamLeaderboards]" + Environment.NewLine + "Count=0" + Environment.NewLine);
+        }
+    }
+
+    /// <summary>
+    /// CODEX/RUNE call SteamAPI_RestartAppIfNecessary and exit when the
+    /// app id file is missing. The repack may forget it, especially when the
+    /// crack DLL is applied by hand.
+    /// </summary>
+    private static void EnsureSteamAppId(string? fixDirectory, int appId)
+    {
+        if (string.IsNullOrWhiteSpace(fixDirectory))
         {
             return;
         }
 
-        var root = Path.Combine(common, "Steam", emulator, appId.ToString());
-        EnsureDirectory(root);
-        EnsureFile(
-            Path.Combine(root, "achievements.ini"),
-            "[SteamAchievements]" + Environment.NewLine + "Count=0" + Environment.NewLine);
-        EnsureFile(
-            Path.Combine(root, "leaderboards.ini"),
-            "[SteamLeaderboards]" + Environment.NewLine + "Count=0" + Environment.NewLine);
+        try
+        {
+            EnsureFile(
+                Path.Combine(fixDirectory!, "steam_appid.txt"),
+                appId.ToString() + Environment.NewLine);
+        }
+        catch
+        {
+            // A read-only game folder is skipped.
+        }
+    }
+
+    /// <summary>
+    /// Many CODEX repacks ship the emulator as steam_api64.cdx next to an
+    /// untouched Valve steam_api64.dll. Windows loads the Valve DLL, so the
+    /// game never writes achievements. Swap the emulator in and keep the
+    /// original as a backup. Only files that look like a real PE DLL of the
+    /// same architecture are touched.
+    /// </summary>
+    private static void ActivateCodexDll(string? fixDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(fixDirectory))
+        {
+            return;
+        }
+
+        try
+        {
+            TryActivateCodexDll(
+                Path.Combine(fixDirectory!, "steam_api64.cdx"),
+                Path.Combine(fixDirectory!, "steam_api64.dll"));
+
+            TryActivateCodexDll(
+                Path.Combine(fixDirectory!, "steam_api.cdx"),
+                Path.Combine(fixDirectory!, "steam_api.dll"));
+        }
+        catch
+        {
+            // A running game or a read-only folder is skipped until next time.
+        }
+    }
+
+    private static void TryActivateCodexDll(string crackPath, string dllPath)
+    {
+        if (!File.Exists(crackPath) || !File.Exists(dllPath))
+        {
+            return;
+        }
+
+        var crack = new FileInfo(crackPath);
+        var dll = new FileInfo(dllPath);
+        if (crack.Length == dll.Length)
+        {
+            return;
+        }
+
+        var crackMachine = GetPeMachine(crackPath);
+        if (crackMachine == 0 || crackMachine != GetPeMachine(dllPath))
+        {
+            return;
+        }
+
+        // The untouched Valve DLL reports 01.x. A CODEX DLL reports a higher
+        // version, so an already patched game is left alone.
+        if (!IsOriginalValveDll(dllPath))
+        {
+            return;
+        }
+
+        var backup = dllPath + ".bagagame-original.bak";
+        if (!File.Exists(backup))
+        {
+            File.Copy(dllPath, backup, false);
+        }
+
+        File.Copy(crackPath, dllPath, true);
+    }
+
+    private static bool IsOriginalValveDll(string path)
+    {
+        try
+        {
+            var info = FileVersionInfo.GetVersionInfo(path);
+            var version = info.FileVersion ?? string.Empty;
+
+            return version.StartsWith("01.", StringComparison.OrdinalIgnoreCase) ||
+                   (version.StartsWith("1.", StringComparison.OrdinalIgnoreCase) &&
+                    info.CompanyName?.IndexOf("Valve", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static ushort GetPeMachine(string path)
+    {
+        try
+        {
+            using var stream = File.OpenRead(path);
+            using var reader = new BinaryReader(stream);
+
+            if (stream.Length < 0x40)
+            {
+                return 0;
+            }
+
+            stream.Position = 0x3C;
+            var peOffset = reader.ReadInt32();
+            if (peOffset < 0 || peOffset + 6 > stream.Length)
+            {
+                return 0;
+            }
+
+            stream.Position = peOffset;
+            if (reader.ReadUInt32() != 0x00004550)
+            {
+                return 0;
+            }
+
+            return reader.ReadUInt16();
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     private static void ProvisionGoldberg(int appId, string? fixDirectory)
@@ -630,6 +802,7 @@ public static class RepackSupportService
                         ReadIniAppId(Path.Combine(directory, "OnlineFix.ini")) ??
                         ReadIniAppId(Path.Combine(directory, "SteamFix.ini")) ??
                         ReadIniAppId(Path.Combine(directory, "steam_emu.ini")) ??
+                        ReadIniAppId(Path.Combine(directory, "steam_api.ini")) ??
                         ReadIniAppId(Path.Combine(directory, "CODEX.ini")) ??
                         ReadIniAppId(Path.Combine(directory, "RUNE.ini")) ??
                         0;
