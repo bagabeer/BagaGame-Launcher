@@ -219,6 +219,22 @@ public sealed class GameLibraryService : IDisposable
 
     public string CoverCacheDirectory => _coverCacheDirectory;
 
+    /// <summary>Steam AppID already resolved for this game, or 0 when unknown.</summary>
+    public int GetCachedSteamAppId(Game game)
+    {
+        if (game.AppId > 0)
+        {
+            return game.AppId;
+        }
+
+        EnsureStoreIdsLoaded();
+
+        lock (_storeIdsLock)
+        {
+            return _storeIds.TryGetValue(game.Id, out var appId) ? appId : 0;
+        }
+    }
+
     /// <summary>
     /// Switches the cover cache to another folder (for example a drive with more
     /// free space), copying the existing posters so nothing is re-downloaded.
@@ -476,6 +492,12 @@ public sealed class GameLibraryService : IDisposable
             .Where(game => game.Source != FolderSource || chosenFolderIds.Contains(game.Id))
             .OrderBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+
+        // Repacks carry their real Steam AppID in the emulator config, and the
+        // emulators need a storage folder before they can write achievements.
+        // Doing it here means the card already has an AppID when it appears.
+        RepackSupportService.Prepare(unique, cancellationToken);
+        PlatformAchievementService.Prepare(unique, cancellationToken);
 
         var counts = unique
             .GroupBy(game => game.Source)

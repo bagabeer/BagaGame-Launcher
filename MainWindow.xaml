@@ -433,6 +433,11 @@
                                 <ui:SymbolIcon FontSize="13" Symbol="Folder24" />
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Click="SteamAchievements_Click" Header="{DynamicResource Loc.Achievements.Menu}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Info24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Click="ToggleFavorite_Click" Header="{Binding FavoriteActionText}">
                             <MenuItem.Icon>
                                 <ui:SymbolIcon FontSize="13">
@@ -719,6 +724,11 @@
                         <MenuItem Click="OpenFolder_Click" Header="{DynamicResource Loc.Menu.OpenFolder}">
                             <MenuItem.Icon>
                                 <ui:SymbolIcon FontSize="13" Symbol="Folder24" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Click="SteamAchievements_Click" Header="{DynamicResource Loc.Achievements.Menu}">
+                            <MenuItem.Icon>
+                                <ui:SymbolIcon FontSize="13" Symbol="Info24" />
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Click="ToggleFavorite_Click" Header="{Binding FavoriteActionText}">

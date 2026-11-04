@@ -281,4 +281,21 @@
     <sys:String x:Key="Loc.Genre.Web">Веб</sys:String>
     <sys:String x:Key="Loc.Genre.Accounting">Бухгалтерия</sys:String>
 
+    <sys:String x:Key="Loc.Achievements.Menu">Достижения Steam</sys:String>
+    <sys:String x:Key="Loc.Achievements.Title">Достижения Steam</sys:String>
+    <sys:String x:Key="Loc.Achievements.Progress">Открыто {0} из {1}</sys:String>
+    <sys:String x:Key="Loc.Achievements.Unlocked">Открыто</sys:String>
+    <sys:String x:Key="Loc.Achievements.Locked">Не открыто</sys:String>
+    <sys:String x:Key="Loc.Achievements.Loading">Загружаю достижения…</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteam">Steam не найден. Запустите Steam хотя бы раз.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Private">Профиль Steam закрыт. Включите «Сведения об играх» в настройках приватности Steam.</sys:String>
+    <sys:String x:Key="Loc.Achievements.None">У этой игры нет достижений Steam.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Error">Не удалось загрузить достижения. Проверьте подключение к Steam.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoAppId">Для этой игры не найден Steam AppID.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ToastTitle">Достижение открыто</sys:String>
+    <sys:String x:Key="Loc.Achievements.ToastMany">{0} и ещё {1}</sys:String>
+    <sys:String x:Key="Loc.Achievements.Refresh">Обновить</sys:String>
+    <sys:String x:Key="Loc.Achievements.Close">Закрыть</sys:String>
+    <sys:String x:Key="Loc.Achievements.LocalSource">Локально: {0}</sys:String>
+
 </ResourceDictionary>

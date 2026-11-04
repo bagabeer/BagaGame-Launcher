@@ -588,6 +588,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public string CoverCacheDirectory => _libraryService.CoverCacheDirectory;
 
+    /// <summary>Steam AppID used by the achievements window, or 0.</summary>
+    public int GetSteamAppId(Game game) => _libraryService.GetCachedSteamAppId(game);
+
     public bool IsCustomCoverCache => _store.CoverCacheDirectory is not null;
 
     /// <summary>
@@ -663,6 +666,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             NotifyHiddenChanged();
 
             await LoadCoversAsync(_lifetime.Token);
+
+            // Goldberg needs a schema before a game can enumerate achievements.
+            // It is downloaded after the library is usable, one game at a time.
+            _ = ProvisionRepackSchemasAsync(games, _lifetime.Token);
         }
         catch (OperationCanceledException)
         {
@@ -675,6 +682,45 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         finally
         {
             IsScanning = false;
+        }
+    }
+
+    private async Task ProvisionRepackSchemasAsync(
+        IEnumerable<Game> games,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            foreach (var game in games)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var appId = GetSteamAppId(game);
+                if (appId <= 0)
+                {
+                    continue;
+                }
+
+                await RepackSupportService.ProvisionAchievementSchemaAsync(
+                    game,
+                    appId,
+                    SteamAchievementsService.Shared,
+                    cancellationToken);
+
+                await PlatformAchievementService.ProvisionSchemaAsync(
+                    game,
+                    appId,
+                    SteamAchievementsService.Shared,
+                    cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The window closed while the schemas were downloading.
+        }
+        catch
+        {
+            // A schema is optional: the Steam list still shows the progress.
         }
     }
 

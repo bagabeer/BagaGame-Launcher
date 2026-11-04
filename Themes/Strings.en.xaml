@@ -280,4 +280,21 @@
     <sys:String x:Key="Loc.Genre.Web">Web</sys:String>
     <sys:String x:Key="Loc.Genre.Accounting">Accounting</sys:String>
 
+    <sys:String x:Key="Loc.Achievements.Menu">Steam achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.Title">Steam achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.Progress">{0} of {1} unlocked</sys:String>
+    <sys:String x:Key="Loc.Achievements.Unlocked">Unlocked</sys:String>
+    <sys:String x:Key="Loc.Achievements.Locked">Locked</sys:String>
+    <sys:String x:Key="Loc.Achievements.Loading">Loading achievements…</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteam">Steam was not found. Run Steam at least once.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Private">The Steam profile is private. Make game details public in Steam privacy settings.</sys:String>
+    <sys:String x:Key="Loc.Achievements.None">This game has no Steam achievements.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Error">Could not load achievements. Check the connection to Steam.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoAppId">No Steam AppID was found for this game.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ToastTitle">Achievement unlocked</sys:String>
+    <sys:String x:Key="Loc.Achievements.ToastMany">{0} and {1} more</sys:String>
+    <sys:String x:Key="Loc.Achievements.Refresh">Refresh</sys:String>
+    <sys:String x:Key="Loc.Achievements.Close">Close</sys:String>
+    <sys:String x:Key="Loc.Achievements.LocalSource">Local: {0}</sys:String>
+
 </ResourceDictionary>

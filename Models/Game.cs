@@ -20,8 +20,11 @@ public sealed class Game : INotifyPropertyChanged
     /// <summary>Stable identifier used for renames and hidden games.</summary>
     public string Id { get; init; } = string.Empty;
 
-    /// <summary>Steam AppID for cover downloads; 0 for other stores.</summary>
-    public int AppId { get; init; }
+    /// <summary>
+    /// Steam AppID for cover downloads and achievements; 0 for other stores.
+    /// A folder scan fills it in from the emulator config of a repack.
+    /// </summary>
+    public int AppId { get; set; }
 
     public string Source { get; init; } = string.Empty;
 

@@ -1,0 +1,161 @@
+<Window x:Class="BagaGame.Views.SteamAchievementsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:BagaGame.Controls"
+        Title="{DynamicResource Loc.Achievements.Title}"
+        Width="780"
+        Height="680"
+        MinWidth="560"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource WindowTintBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+
+    <Grid Margin="28,22,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextTertiaryBrush}"
+                       Text="{DynamicResource Loc.Achievements.Title}" />
+
+            <TextBlock Margin="0,5,0,0"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       Text="{Binding GameTitle}"
+                       TextWrapping="Wrap" />
+
+            <TextBlock Margin="0,7,0,0"
+                       FontSize="13"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Text="{Binding ProgressText}" />
+
+            <TextBlock Margin="0,4,0,0"
+                       FontSize="11"
+                       Foreground="{DynamicResource TextTertiaryBrush}"
+                       Text="{Binding SourceText}"
+                       Visibility="{Binding HasLocalSource, Converter={StaticResource BoolToVisibility}}" />
+
+            <ProgressBar Height="6"
+                         Margin="0,10,0,0"
+                         Maximum="{Binding Total, Mode=OneWay}"
+                         Value="{Binding UnlockedCount, Mode=OneWay}"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Background="{DynamicResource ChipFillBrush}"
+                         BorderThickness="0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,18,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Achievements}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="0,10"
+                                    BorderBrush="{DynamicResource DividerBrush}"
+                                    BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="44" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Width="36"
+                                            Height="36"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Background="{DynamicResource ChipFillBrush}"
+                                            CornerRadius="6">
+                                        <Image Width="36"
+                                               Height="36"
+                                               Source="{Binding IconUrl}"
+                                               Stretch="UniformToFill" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1"
+                                                Margin="12,0,12,0">
+                                        <TextBlock FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Name}"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Margin="0,3,0,0"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   Text="{Binding Description}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="2"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Text="{Binding StatusText}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource TextTertiaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Unlocked}" Value="True">
+                                                        <Setter Property="Foreground"
+                                                                Value="{DynamicResource AccentBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <TextBlock MaxWidth="460"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Text="{Binding StatusText}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasAchievements}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+
+        <StackPanel Grid.Row="2"
+                    Margin="0,16,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <ui:BagaButton Margin="0,0,10,0"
+                           Padding="18,8"
+                           Click="Refresh_Click"
+                           Content="{DynamicResource Loc.Achievements.Refresh}" />
+            <ui:BagaButton Padding="18,8"
+                           Click="Close_Click"
+                           Content="{DynamicResource Loc.Achievements.Close}" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -33,6 +33,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private DateTime _gamepadWatchStartedUtc;
     private bool _leavingBigPicture;
     private DispatcherTimer? _gamePlacementWatch;
+    private readonly SteamAchievementsService _steamAchievements = new();
+    private readonly LocalAchievementsService _localAchievements = new();
+    private SteamAchievementNotifier? _achievementNotifier;
     private bool _syncingGrouping;
     private Game? _coverTarget;
     private BitmapSource? _cropSource;
@@ -358,6 +361,56 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         HideInTray(game.Title);
+        StartAchievementNotifications(game);
+    }
+
+    private void StartAchievementNotifications(Game game)
+    {
+        var appId = _viewModel.GetSteamAppId(game);
+        if (appId <= 0)
+        {
+            return;
+        }
+
+        RepackSupportService.EnsureProvisioned(game, appId);
+        PlatformAchievementService.PrepareGame(game);
+
+        _achievementNotifier ??= new SteamAchievementNotifier(
+            _steamAchievements,
+            _localAchievements,
+            (title, text, icon) => Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var toast = new AchievementToastWindow(title, text, icon);
+                toast.Show();
+            })));
+        _achievementNotifier.Start(game, appId);
+    }
+
+    private void StopAchievementNotifications() => _achievementNotifier?.Stop();
+
+    private void SteamAchievements_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.DataContext is not Game game)
+        {
+            return;
+        }
+
+        var appId = _viewModel.GetSteamAppId(game);
+        if (appId <= 0)
+        {
+            MessageBox.Show(
+                this,
+                Loc.T("Loc.Achievements.NoAppId"),
+                Loc.T("Loc.Achievements.Title"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        RepackSupportService.EnsureProvisioned(game, appId);
+        PlatformAchievementService.PrepareGame(game);
+
+        new SteamAchievementsWindow(game, appId) { Owner = this }.ShowDialog();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -484,6 +537,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             StartGamePlacementWatch(game, target);
         }
+
+        StartAchievementNotifications(game);
     }
 
     private static Rect? GetMonitorBounds(Window window)
@@ -880,9 +935,25 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// so the window comes back on its own. A window the user already restored
     /// is left untouched.
     /// </summary>
-    private void ViewModel_GameStopped(string gameId)
+    private async void ViewModel_GameStopped(string gameId)
     {
         StopBigPictureLaunchWatch();
+
+        // The emulator or the game save often writes its last achievement when
+        // the process exits, after the previous poll.
+        if (_achievementNotifier is { } notifier)
+        {
+            try
+            {
+                await notifier.FlushLocalAsync();
+            }
+            catch
+            {
+                // A failed final read must not keep the library hidden.
+            }
+        }
+
+        StopAchievementNotifications();
 
         if (_tray is null || !_tray.Visible)
         {
@@ -1662,6 +1733,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         StopBigPictureLaunchWatch();
         StopGamePlacementWatch();
+        StopAchievementNotifications();
+        _achievementNotifier?.Dispose();
+        _achievementNotifier = null;
 
         _bigPicture?.CloseApproved();
         _bigPicture = null;

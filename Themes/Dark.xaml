@@ -4,6 +4,13 @@
     <!-- ============================== Surfaces ============================= -->
 
     <SolidColorBrush x:Key="WindowTintBrush" Color="#F21A1A1A" />
+
+    <LinearGradientBrush x:Key="ToastBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#F21A1A1A" />
+        <GradientStop Offset="0.55" Color="#F2191D18" />
+        <GradientStop Offset="1" Color="#F2131A10" />
+    </LinearGradientBrush>
+
     <SolidColorBrush x:Key="CardFillBrush" Color="#0AFFFFFF" />
     <SolidColorBrush x:Key="CardFillHoverBrush" Color="#14FFFFFF" />
     <SolidColorBrush x:Key="CardStrokeBrush" Color="#1FFFFFFF" />
