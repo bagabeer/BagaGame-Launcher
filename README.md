@@ -156,6 +156,8 @@ Compat/                             — polyfills for modern C# on net472
 * Local CODEX, RUNE, Goldberg, GSE, OnlineFix and FreeTP progress, Steam profile and platform emulators.
 * New-achievement toasts, cached icons and the Supported status only after a real toast.
 * A clear note for private Steam profiles, clean cards and tooltips.
+* Recent achievements of the selected game in the Big Picture sidebar, up to five.
+* Unlock date and time in achievement cards and Big Picture.
 
 **Emulator manager**
 * A separate window per game: local files, Goldberg, Nemirtingas and UniverseLAN.
