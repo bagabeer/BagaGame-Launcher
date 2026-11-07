@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -139,6 +140,25 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
     public string SelectedDetails => _details;
 
     public bool HasDetails => _details.Length > 0;
+
+    /// <summary>Latest unlocked achievements of the selected game.</summary>
+    public ObservableCollection<RecentAchievementItem> RecentAchievements { get; } = new();
+
+    public bool HasRecentAchievements => RecentAchievements.Count > 0;
+
+    public string RecentAchievementsTitle => Loc.T("Loc.BP.RecentAchievements");
+
+    public void SetRecentAchievements(IReadOnlyList<RecentAchievementItem> items)
+    {
+        RecentAchievements.Clear();
+        foreach (var item in items)
+        {
+            RecentAchievements.Add(item);
+        }
+
+        OnPropertyChanged(nameof(HasRecentAchievements));
+        OnPropertyChanged(nameof(RecentAchievementsTitle));
+    }
 
     public void SetHero(ImageSource? image)
     {
@@ -556,6 +576,7 @@ public sealed class BigPictureViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EmptyTitle));
         OnPropertyChanged(nameof(EmptyText));
         OnPropertyChanged(nameof(CounterText));
+        OnPropertyChanged(nameof(RecentAchievementsTitle));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

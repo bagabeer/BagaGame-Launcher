@@ -14,6 +14,9 @@ namespace BagaGame.Services;
 /// </summary>
 public sealed class LibraryStore
 {
+    private static readonly IReadOnlyDictionary<string, long> EmptyUnlockTimes =
+        new Dictionary<string, long>();
+
     private readonly string _filePath;
     private readonly LibraryData _data;
 
@@ -27,6 +30,7 @@ public sealed class LibraryStore
         Directory.CreateDirectory(directory);
         _filePath = Path.Combine(directory, "library.json");
         _data = Load(_filePath);
+        PruneCustomArt();
     }
 
     /// <summary>Folder that holds library.json, covers and the backups.</summary>
@@ -34,6 +38,9 @@ public sealed class LibraryStore
 
     /// <summary>User-picked covers live outside the movable download cache.</summary>
     public string CustomCoverDirectory => Path.Combine(DataDirectory, "covers-custom");
+
+    /// <summary>User-picked Big Picture banners, kept apart from the covers.</summary>
+    public string CustomHeroDirectory => Path.Combine(DataDirectory, "heroes-custom");
 
     public IReadOnlyList<string> Folders => _data.Folders;
 
@@ -500,6 +507,58 @@ public sealed class LibraryStore
         Save();
     }
 
+    /// <summary>Stored unlock times for one game, keyed by API or display name.</summary>
+    public IReadOnlyDictionary<string, long> GetAchievementUnlockTimes(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) ||
+            !_data.AchievementUnlockTimes.TryGetValue(gameId, out var times))
+        {
+            return EmptyUnlockTimes;
+        }
+
+        return times;
+    }
+
+    /// <summary>
+    /// Remembers the first moment an achievement was seen unlocked. Existing
+    /// entries are never overwritten, so a real Steam or emulator time wins.
+    /// </summary>
+    public bool RecordAchievementUnlocks(
+        string gameId,
+        IReadOnlyDictionary<string, DateTimeOffset> unlocks)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) || unlocks.Count == 0)
+        {
+            return false;
+        }
+
+        if (!_data.AchievementUnlockTimes.TryGetValue(gameId, out var times))
+        {
+            times = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            _data.AchievementUnlockTimes[gameId] = times;
+        }
+
+        var changed = false;
+
+        foreach (var pair in unlocks)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Key) || times.ContainsKey(pair.Key))
+            {
+                continue;
+            }
+
+            times[pair.Key] = pair.Value.ToUnixTimeSeconds();
+            changed = true;
+        }
+
+        if (changed)
+        {
+            Save();
+        }
+
+        return changed;
+    }
+
     public void SetGenre(string gameId, string genre)
     {
         if (string.IsNullOrWhiteSpace(gameId) || string.IsNullOrWhiteSpace(genre))
@@ -635,8 +694,9 @@ public sealed class LibraryStore
     }
 
     /// <summary>
-    /// Stores an already normalized 600x900 JPEG and remembers it for the game.
-    /// Returns the path so the caller can update the card immediately.
+    /// Stores an already normalized poster JPEG and remembers it for the game.
+    /// An older file for the same game is removed, so one game never keeps a
+    /// pile of covers. Returns the path so the caller can update the card.
     /// </summary>
     public string? SaveCustomCover(string gameId, byte[] jpeg)
     {
@@ -664,6 +724,14 @@ public sealed class LibraryStore
             else
             {
                 File.Move(tempPath, path);
+            }
+
+            // Only after the new file is in place: a failed write must not
+            // destroy the cover the user already had.
+            if (_data.CustomCovers.TryGetValue(gameId, out var previousName) &&
+                !string.Equals(previousName, fileName, StringComparison.OrdinalIgnoreCase))
+            {
+                TryDeleteCustomCover(previousName);
             }
 
             _data.CustomCovers[gameId] = fileName;
@@ -727,6 +795,191 @@ public sealed class LibraryStore
         using var sha = SHA1.Create();
         var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(gameId));
         return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant() + ".jpg";
+    }
+
+    /// <summary>Absolute path of the user's Big Picture banner, if it still exists.</summary>
+    public string? GetCustomHeroPath(string gameId)
+    {
+        if (!_data.CustomHeroes.TryGetValue(gameId, out var fileName) ||
+            string.IsNullOrWhiteSpace(fileName))
+        {
+            return null;
+        }
+
+        try
+        {
+            var path = Path.Combine(CustomHeroDirectory, fileName);
+            return File.Exists(path) ? path : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Stores a normalized wide banner JPEG for the Big Picture hero. An older
+    /// banner for the same game is removed before the new file is written.
+    /// </summary>
+    public string? SaveCustomHero(string gameId, byte[] jpeg)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) || jpeg.Length < 512)
+        {
+            return null;
+        }
+
+        var tempPath = string.Empty;
+
+        try
+        {
+            Directory.CreateDirectory(CustomHeroDirectory);
+
+            var fileName = CustomCoverFileName(gameId);
+            var path = Path.Combine(CustomHeroDirectory, fileName);
+            tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+
+            File.WriteAllBytes(tempPath, jpeg);
+
+            if (File.Exists(path))
+            {
+                File.Replace(tempPath, path, null);
+            }
+            else
+            {
+                File.Move(tempPath, path);
+            }
+
+            // Only after the new banner is in place: a failed write must not
+            // destroy the banner the user already had.
+            if (_data.CustomHeroes.TryGetValue(gameId, out var previousName) &&
+                !string.Equals(previousName, fileName, StringComparison.OrdinalIgnoreCase))
+            {
+                TryDeleteCustomHero(previousName);
+            }
+
+            _data.CustomHeroes[gameId] = fileName;
+            Save();
+            return path;
+        }
+        catch (Exception ex) when (ex is IOException
+                                       or UnauthorizedAccessException
+                                       or System.Security.SecurityException)
+        {
+            Trace.TraceError($"BagaGame: could not save custom hero: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(tempPath) && File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+            catch
+            {
+                // Best effort; the temporary file has a unique name.
+            }
+        }
+    }
+
+    /// <summary>Drops the user's banner and lets the downloaded hero return.</summary>
+    public void RemoveCustomHero(string gameId)
+    {
+        if (!_data.CustomHeroes.TryGetValue(gameId, out var fileName))
+        {
+            return;
+        }
+
+        _data.CustomHeroes.Remove(gameId);
+        TryDeleteCustomHero(fileName);
+        Save();
+    }
+
+    private void TryDeleteCustomHero(string fileName)
+    {
+        try
+        {
+            var path = Path.Combine(CustomHeroDirectory, fileName);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // A leftover image is harmless.
+        }
+    }
+
+    /// <summary>
+    /// Keeps exactly the files referenced by <c>library.json</c>: stale covers
+    /// and banners from older runs, changed paths or interrupted writes are
+    /// deleted. A game therefore keeps one main file and one selected file.
+    /// </summary>
+    public void PruneCustomArt()
+    {
+        var changed = PruneCustomImages(_data.CustomCovers, CustomCoverDirectory);
+        changed |= PruneCustomImages(_data.CustomHeroes, CustomHeroDirectory);
+
+        if (changed)
+        {
+            Save();
+        }
+    }
+
+    private static bool PruneCustomImages(
+        Dictionary<string, string> entries,
+        string directory)
+    {
+        var changed = false;
+        var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var pair in entries.ToList())
+        {
+            if (string.IsNullOrWhiteSpace(pair.Value) ||
+                !File.Exists(Path.Combine(directory, pair.Value)))
+            {
+                entries.Remove(pair.Key);
+                changed = true;
+                continue;
+            }
+
+            referenced.Add(pair.Value);
+        }
+
+        try
+        {
+            if (!Directory.Exists(directory))
+            {
+                return changed;
+            }
+
+            foreach (var path in Directory.GetFiles(directory))
+            {
+                if (referenced.Contains(Path.GetFileName(path)))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    File.Delete(path);
+                    changed = true;
+                }
+                catch
+                {
+                    // A locked leftover is retried on the next start.
+                }
+            }
+        }
+        catch
+        {
+            // A missing or unavailable folder is not an error.
+        }
+
+        return changed;
     }
 
     /// <summary>Applies saved renames and drops games the user deleted.</summary>
@@ -917,6 +1170,20 @@ public sealed class LibraryStore
             changed = true;
         }
 
+        if (_data.CustomHeroes.TryGetValue(gameId, out var heroName))
+        {
+            _data.CustomHeroes.Remove(gameId);
+            TryDeleteCustomHero(heroName);
+            changed = true;
+        }
+
+        foreach (var key in _data.AchievementUnlockTimes.Keys
+                     .Where(key => string.Equals(key, gameId, StringComparison.OrdinalIgnoreCase))
+                     .ToList())
+        {
+            changed |= _data.AchievementUnlockTimes.Remove(key);
+        }
+
         if (changed)
         {
             Save();
@@ -1055,6 +1322,9 @@ public sealed class LibraryStore
         /// <summary>Game id to file name in <c>covers-custom</c>.</summary>
         public Dictionary<string, string> CustomCovers { get; set; } = new();
 
+        /// <summary>Game id to file name in <c>heroes-custom</c>.</summary>
+        public Dictionary<string, string> CustomHeroes { get; set; } = new();
+
         public Dictionary<string, string> CustomTitles { get; set; } = new();
 
         /// <summary>Optional extra command-line arguments per game.</summary>
@@ -1072,6 +1342,10 @@ public sealed class LibraryStore
 
         /// <summary>Ids of games that produced a real achievement toast.</summary>
         public List<string> AchievementVerified { get; set; } = new();
+
+        /// <summary>Game id to achievement key and Unix seconds of the unlock.</summary>
+        public Dictionary<string, Dictionary<string, long>> AchievementUnlockTimes { get; set; } =
+            new();
 
         /// <summary>Ids of games the user marked with a star.</summary>
         public List<string> Favorites { get; set; } = new();

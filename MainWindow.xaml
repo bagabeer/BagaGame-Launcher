@@ -307,6 +307,15 @@
             </Setter>
         </Style>
 
+        <!-- Wide banner tile: the width comes from the two-column grid. -->
+        <Style x:Key="HeroTileButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource CoverTileButtonStyle}">
+            <Setter Property="Width" Value="Auto" />
+            <Setter Property="Height" Value="Auto" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
         <Style x:Key="GroupToggleStyle" TargetType="RadioButton">
             <Setter Property="Height" Value="28" />
             <Setter Property="Padding" Value="11,0" />
@@ -1919,8 +1928,8 @@
                                                         VerticalAlignment="Top"
                                                         Background="{DynamicResource ChipFillBrush}"
                                                         ClipToBounds="True"
-                                                        CornerRadius="9">
-                                                    <Border ClipToBounds="True" CornerRadius="9">
+                                                        CornerRadius="0">
+                                                    <Border ClipToBounds="True" CornerRadius="0">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Opacity" Value="0.45" />
@@ -1953,21 +1962,6 @@
                                                                Text="{Binding Description}"
                                                                TextWrapping="Wrap"
                                                                ToolTip="{Binding Description}" />
-                                                    <TextBlock Margin="0,4,0,0"
-                                                               FontSize="10.5"
-                                                               FontWeight="SemiBold"
-                                                               Text="{Binding StatusText}">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Unlocked}" Value="True">
-                                                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
                                                 </StackPanel>
 
                                                 <Border Grid.Column="1"
@@ -1988,6 +1982,74 @@
                                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                                Text="?" />
                                                 </Border>
+
+                                                <Border Grid.Column="0"
+                                                        Width="16"
+                                                        Height="16"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Bottom"
+                                                        Background="{DynamicResource ChipFillBrush}"
+                                                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="8"
+                                                        Cursor="Help"
+                                                        ToolTip="{Binding UnlockTimeText}">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasUnlockTime}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Canvas Width="9"
+                                                            Height="9"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center">
+                                                        <Ellipse Canvas.Left="0"
+                                                                 Canvas.Top="0"
+                                                                 Width="9"
+                                                                 Height="9"
+                                                                 Stroke="{DynamicResource TextSecondaryBrush}"
+                                                                 StrokeThickness="1" />
+                                                        <Line X1="4.5"
+                                                              Y1="4.5"
+                                                              X2="4.5"
+                                                              Y2="2"
+                                                              Stroke="{DynamicResource TextSecondaryBrush}"
+                                                              StrokeThickness="1"
+                                                              StrokeStartLineCap="Round"
+                                                              StrokeEndLineCap="Round" />
+                                                        <Line X1="4.5"
+                                                              Y1="4.5"
+                                                              X2="6.4"
+                                                              Y2="5.3"
+                                                              Stroke="{DynamicResource TextSecondaryBrush}"
+                                                              StrokeThickness="1"
+                                                              StrokeStartLineCap="Round"
+                                                              StrokeEndLineCap="Round" />
+                                                    </Canvas>
+                                                </Border>
+
+                                                <TextBlock Grid.ColumnSpan="2"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Bottom"
+                                                           FontSize="10.5"
+                                                           FontWeight="SemiBold"
+                                                           Text="{Binding StatusText}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Unlocked}" Value="True">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -3341,6 +3403,35 @@
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
 
+                        <Border x:Name="CoverModeSwitch"
+                                Margin="0,12,0,0"
+                                Padding="3"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource ChipFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9">
+                            <UniformGrid Rows="1" Columns="2" Width="300">
+                                <RadioButton x:Name="CoverModePosterButton"
+                                             AutomationProperties.Name="{DynamicResource Loc.Cover.ModePoster}"
+                                             Checked="CoverMode_Checked"
+                                             Content="{DynamicResource Loc.Cover.ModePoster}"
+                                             GroupName="CoverMode"
+                                             IsChecked="True"
+                                             Style="{StaticResource CompactGroupToggleStyle}"
+                                             Tag="Poster"
+                                             ToolTip="{DynamicResource Loc.Cover.ModePosterTip}" />
+                                <RadioButton x:Name="CoverModeHeroButton"
+                                             AutomationProperties.Name="{DynamicResource Loc.Cover.ModeHero}"
+                                             Checked="CoverMode_Checked"
+                                             Content="{DynamicResource Loc.Cover.ModeHero}"
+                                             GroupName="CoverMode"
+                                             Style="{StaticResource CompactGroupToggleStyle}"
+                                             Tag="Hero"
+                                             ToolTip="{DynamicResource Loc.Cover.ModeHeroTip}" />
+                            </UniformGrid>
+                        </Border>
+
                         <Border x:Name="SgdbHintPanel"
                                 Margin="0,12,0,0"
                                 Padding="14"
@@ -3471,14 +3562,46 @@
                             </ItemsControl>
                         </ScrollViewer>
 
+                        <ScrollViewer x:Name="CoverGalleryHeroPanel"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Visibility="Collapsed">
+                            <ItemsControl ItemsSource="{Binding HeroResults}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="2" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="0,0,12,12"
+                                                AutomationProperties.AutomationId="HeroCandidateButton"
+                                                Click="CoverCandidate_Click"
+                                                Style="{StaticResource HeroTileButtonStyle}"
+                                                Tag="{Binding}">
+                                            <Border Height="96"
+                                                    HorizontalAlignment="Stretch"
+                                                    CornerRadius="7">
+                                                <Border.Background>
+                                                    <ImageBrush ImageSource="{Binding Preview}"
+                                                                Stretch="UniformToFill" />
+                                                </Border.Background>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
                         <Grid x:Name="CoverCropPanel" Visibility="Collapsed">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock HorizontalAlignment="Center"
+                                <TextBlock x:Name="CropTitleText"
+                                           HorizontalAlignment="Center"
                                            FontSize="16"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimaryBrush}"
                                            Text="{DynamicResource Loc.Cover.CropTitle}" />
-                                <TextBlock Margin="0,8,0,0"
+                                <TextBlock x:Name="CropHintText"
+                                           Margin="0,8,0,0"
                                            MaxWidth="560"
                                            HorizontalAlignment="Center"
                                            FontSize="11.5"
@@ -3500,7 +3623,8 @@
                                         MouseMove="CropViewport_MouseMove"
                                         MouseWheel="CropViewport_MouseWheel">
                                     <Border.Clip>
-                                        <RectangleGeometry Rect="0,0,280,420"
+                                        <RectangleGeometry x:Name="CropClip"
+                                                           Rect="0,0,280,420"
                                                            RadiusX="8"
                                                            RadiusY="8" />
                                     </Border.Clip>

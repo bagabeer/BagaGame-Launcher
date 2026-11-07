@@ -25,6 +25,7 @@ public enum SteamAchievementsStatus
 public sealed class SteamAchievement : INotifyPropertyChanged
 {
     private double? _globalPercent;
+    private DateTimeOffset? _unlockTime;
 
     public string ApiName { get; init; } = string.Empty;
 
@@ -40,7 +41,23 @@ public sealed class SteamAchievement : INotifyPropertyChanged
 
     public string IconLocked { get; init; } = string.Empty;
 
-    public DateTimeOffset? UnlockTime { get; init; }
+    public DateTimeOffset? UnlockTime
+    {
+        get => _unlockTime;
+        set
+        {
+            if (Nullable.Equals(_unlockTime, value))
+            {
+                return;
+            }
+
+            _unlockTime = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(UnlockTimeText));
+            OnPropertyChanged(nameof(HasUnlockTime));
+        }
+    }
 
     /// <summary>Share of all Steam players who unlocked this achievement.</summary>
     public double? GlobalPercent
@@ -62,6 +79,13 @@ public sealed class SteamAchievement : INotifyPropertyChanged
     public string StatusText => Loc.T(Unlocked
         ? "Loc.Achievements.Unlocked"
         : "Loc.Achievements.Locked");
+
+    /// <summary>The exact unlock date and time, or an empty string.</summary>
+    public string UnlockTimeText => UnlockTime is { } time
+        ? time.ToLocalTime().ToString("dd.MM.yyyy HH:mm", CultureInfo.CurrentCulture)
+        : string.Empty;
+
+    public bool HasUnlockTime => UnlockTime is not null;
 
     public string GlobalPercentText => GlobalPercent.HasValue
         ? Loc.Format(

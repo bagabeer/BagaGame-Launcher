@@ -126,6 +126,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>Online covers shown in the cover picker.</summary>
     public ObservableCollection<CoverCandidate> CoverResults { get; } = new();
 
+    /// <summary>Wide Big Picture banners shown in the cover picker.</summary>
+    public ObservableCollection<CoverCandidate> HeroResults { get; } = new();
+
     /// <summary>Games that can show achievements, bound to the Achievements tab.</summary>
     public ObservableCollection<AchievementGameItem> AchievementGames { get; } = new();
 
@@ -366,40 +369,14 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             }
 
             var local = new LocalAchievementsService().Get(item.Game, appId);
-            var byApi = result.Achievements
-                .Where(achievement => !string.IsNullOrWhiteSpace(achievement.ApiName))
-                .GroupBy(achievement => achievement.ApiName, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
-
             var hasCatalog = catalog.Count > 0;
-            var source = hasCatalog ? catalog : result.Achievements;
 
-            var merged = source
-                .Select(achievement =>
-                {
-                    var baseItem = achievement;
-
-                    if (hasCatalog && byApi.TryGetValue(achievement.ApiName, out var steam))
-                    {
-                        baseItem = new SteamAchievement
-                        {
-                            ApiName = achievement.ApiName,
-                            Name = achievement.Name,
-                            Description = achievement.Description,
-                            Unlocked = steam.Unlocked,
-                            IconOpen = achievement.IconOpen,
-                            IconLocked = achievement.IconLocked,
-                            IconUrl = steam.Unlocked && !string.IsNullOrWhiteSpace(achievement.IconOpen)
-                                ? achievement.IconOpen
-                                : achievement.IconLocked,
-                            UnlockTime = steam.UnlockTime,
-                        };
-                    }
-
-                    return SteamAchievementsViewModel.Merge(baseItem, local);
-                })
+            var merged = AchievementMergeService
+                .BuildAchievements(result, local, catalog)
                 .OrderByDescending(achievement => achievement.Unlocked)
                 .ToList();
+
+            AchievementTimeService.Apply(item.Game, merged, _store);
 
             AchievementTiles.Clear();
             foreach (var achievement in merged)
@@ -1626,6 +1603,46 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Searches SteamGridDB for wide Big Picture banners.</summary>
+    public async Task SearchHeroesAsync(Game game, string query)
+    {
+        HeroResults.Clear();
+
+        if (!IsSteamGridDbConfigured)
+        {
+            CoverStatusText = Loc.T("Loc.Cover.NeedKey");
+            return;
+        }
+
+        CoverStatusText = Loc.T("Loc.Cover.Searching");
+
+        try
+        {
+            var results = await _libraryService.SearchSteamGridDbHeroesAsync(
+                game,
+                query,
+                SteamGridDbApiKey,
+                _lifetime.Token);
+
+            foreach (var candidate in results)
+            {
+                HeroResults.Add(candidate);
+            }
+
+            CoverStatusText = results.Count == 0
+                ? Loc.T("Loc.Cover.SgdbNotFound")
+                : Loc.Format("Loc.Cover.Found", results.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            // Window closing.
+        }
+        catch
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+        }
+    }
+
     /// <summary>Downloads and applies a cover chosen from the online results.</summary>
     public async Task<bool> ApplyCoverAsync(Game game, CoverCandidate candidate)
     {
@@ -1650,6 +1667,53 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             CoverStatusText = Loc.T("Loc.Cover.Failed");
             return false;
         }
+    }
+
+    /// <summary>Downloads and applies a wide banner chosen from the online results.</summary>
+    public async Task<bool> ApplyHeroAsync(Game game, CoverCandidate candidate)
+    {
+        CoverStatusText = Loc.T("Loc.Cover.Applying");
+
+        try
+        {
+            var bytes = await _libraryService.DownloadCoverBytesAsync(
+                candidate.Url,
+                _lifetime.Token);
+
+            var image = bytes is null ? null : CoverImage.LoadBytes(bytes);
+            var hero = image is null ? null : CoverImage.CenterCropHero(image);
+            return SaveHero(game, hero);
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+    }
+
+    /// <summary>Applies a user image as the wide Big Picture banner.</summary>
+    public bool ApplyCustomHero(
+        Game game,
+        BitmapSource source,
+        double zoom,
+        double offsetX,
+        double offsetY,
+        double viewportWidth,
+        double viewportHeight)
+    {
+        var hero = CoverImage.CropToHero(
+            source,
+            zoom,
+            offsetX,
+            offsetY,
+            viewportWidth,
+            viewportHeight);
+
+        return SaveHero(game, hero);
     }
 
     /// <summary>Applies a user image using the pan/zoom from the crop dialog.</summary>
@@ -1679,6 +1743,41 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _store.RemoveCustomCover(game.Id);
         game.Cover = null;
         await LoadCoverAsync(game, _lifetime.Token, DownloadCovers);
+    }
+
+    /// <summary>Removes the user banner and restores the store artwork.</summary>
+    public void ResetHero(Game game)
+    {
+        if (_store.GetCustomHeroPath(game.Id) is null)
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Applied");
+            return;
+        }
+
+        _store.RemoveCustomHero(game.Id);
+        _libraryService.InvalidateHeroArtwork(game.Id);
+        CoverStatusText = Loc.T("Loc.Cover.Applied");
+    }
+
+    private bool SaveHero(Game game, BitmapSource? hero)
+    {
+        if (hero is null)
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+
+        var jpeg = CoverImage.ToJpeg(hero);
+        var path = jpeg is null ? null : _store.SaveCustomHero(game.Id, jpeg);
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            CoverStatusText = Loc.T("Loc.Cover.Failed");
+            return false;
+        }
+
+        CoverStatusText = Loc.T("Loc.Cover.Applied");
+        return true;
     }
 
     private bool SaveCover(Game game, BitmapSource? poster)

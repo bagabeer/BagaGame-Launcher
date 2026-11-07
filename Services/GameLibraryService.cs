@@ -1805,7 +1805,7 @@ public sealed class GameLibraryService : IDisposable
 
                 var preview = bytes is null
                     ? null
-                    : CoverImage.LoadBytes(bytes, 220);
+                    : CoverImage.LoadBytes(bytes, 320);
 
                 return preview is null
                     ? null
@@ -1831,6 +1831,213 @@ public sealed class GameLibraryService : IDisposable
         }
 
         return results;
+    }
+
+    /// <summary>
+    /// Wide banner variants for the Big Picture hero. Mirrors the cover search:
+    /// autocomplete picks the closest game, then every usable hero is offered.
+    /// </summary>
+    public async Task<IReadOnlyList<CoverCandidate>> SearchSteamGridDbHeroesAsync(
+        Game game,
+        string? query,
+        string apiKey,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<CoverCandidate>();
+
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return results;
+        }
+
+        var term = string.IsNullOrWhiteSpace(query) ? game.Title : query.Trim();
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            return results;
+        }
+
+        try
+        {
+            var searchUrl =
+                "https://www.steamgriddb.com/api/v2/search/autocomplete/"
+                + Uri.EscapeDataString(term);
+
+            using var searchResponse = await GetWithRetryAsync(
+                    searchUrl,
+                    cancellationToken,
+                    bearerToken: apiKey)
+                .ConfigureAwait(false);
+
+            if (searchResponse is null || !searchResponse.IsSuccessStatusCode)
+            {
+                return results;
+            }
+
+            using var searchStream = await searchResponse.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            using var searchDocument = await JsonDocument.ParseAsync(
+                    searchStream,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!searchDocument.RootElement.TryGetProperty("data", out var games) ||
+                games.ValueKind != JsonValueKind.Array)
+            {
+                return results;
+            }
+
+            var gameId = 0;
+            var name = string.Empty;
+
+            foreach (var item in games.EnumerateArray())
+            {
+                var id = GetJsonInt(item, "id");
+                var title = GetJsonString(item, "name") ?? string.Empty;
+
+                if (id > 0 && title.Length > 0)
+                {
+                    gameId = id;
+                    name = title;
+                    break;
+                }
+            }
+
+            if (gameId <= 0)
+            {
+                return results;
+            }
+
+            var found = new List<(string Url, string Thumb)>();
+            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            for (var page = 0; page < 2 && found.Count < 30; page++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var heroesUrl =
+                    "https://www.steamgriddb.com/api/v2/heroes/game/"
+                    + gameId
+                    + "?page="
+                    + page
+                    + "&types=static&nsfw=false&humor=false&epilepsy=false";
+
+                using var heroResponse = await GetWithRetryAsync(
+                        heroesUrl,
+                        cancellationToken,
+                        bearerToken: apiKey)
+                    .ConfigureAwait(false);
+
+                if (heroResponse is null || !heroResponse.IsSuccessStatusCode)
+                {
+                    break;
+                }
+
+                using var heroStream = await heroResponse.Content
+                    .ReadAsStreamAsync()
+                    .ConfigureAwait(false);
+
+                using var heroDocument = await JsonDocument.ParseAsync(
+                        heroStream,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!heroDocument.RootElement.TryGetProperty("data", out var heroes) ||
+                    heroes.ValueKind != JsonValueKind.Array ||
+                    heroes.GetArrayLength() == 0)
+                {
+                    break;
+                }
+
+                foreach (var hero in heroes.EnumerateArray())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (found.Count >= 30)
+                    {
+                        break;
+                    }
+
+                    var url = GetJsonString(hero, "url");
+                    if (url is null || !IsAllowedImageUrl(url) || !seenUrls.Add(url))
+                    {
+                        continue;
+                    }
+
+                    var width = GetJsonInt(hero, "width");
+                    var height = GetJsonInt(hero, "height");
+
+                    // The hero panel is full-screen wide; square artwork would
+                    // be cropped into an unreadable strip.
+                    if (width > 0 && height > 0 &&
+                        (width < 1280 || height < 480 ||
+                         (double)width / height < 2.0))
+                    {
+                        continue;
+                    }
+
+                    found.Add((url, GetJsonString(hero, "thumb") ?? url));
+                }
+            }
+
+            var previewTasks = found.Select(async item =>
+            {
+                var bytes = await DownloadImageAsync(item.Thumb, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var preview = bytes is null
+                    ? null
+                    : CoverImage.LoadBytes(bytes, 640);
+
+                return preview is null
+                    ? null
+                    : new CoverCandidate(item.Url, name, preview);
+            });
+
+            foreach (var candidate in await Task.WhenAll(previewTasks).ConfigureAwait(false))
+            {
+                if (candidate is not null)
+                {
+                    results.Add(candidate);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // Invalid key, offline API or changed response: no banner results.
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Forgets the downloaded hero so the next Big Picture visit picks the
+    /// current store artwork after the user removed a custom banner.
+    /// </summary>
+    public void InvalidateHeroArtwork(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+        {
+            return;
+        }
+
+        try
+        {
+            var path = Path.Combine(_coverCacheDirectory, "heroes", HeroFileName(gameId));
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // A cached banner is harmless; the custom one is already removed.
+        }
     }
 
     /// <summary>
@@ -3029,6 +3236,10 @@ public sealed class GameLibraryService : IDisposable
         {
             SaveStoreIds();
         }
+
+        // The hero cache is keyed by the game id, so it always belongs to this
+        // card and can be removed even when no AppID was resolved.
+        TryDelete(Path.Combine(_coverCacheDirectory, "heroes", HeroFileName(game.Id)));
 
         if (appId <= 0)
         {

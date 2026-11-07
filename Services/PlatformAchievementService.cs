@@ -732,12 +732,14 @@ public static class PlatformAchievementService
     {
         var earned = false;
         string? display = null;
+        var timestamp = 0L;
 
         if (value.ValueKind == JsonValueKind.Object)
         {
-            earned = GetBool(value, "earned") ||
-                     GetLong(value, "earned_time") > 0 ||
-                     GetLong(value, "unlock_time") > 0;
+            timestamp = Math.Max(timestamp, GetLong(value, "earned_time"));
+            timestamp = Math.Max(timestamp, GetLong(value, "unlock_time"));
+
+            earned = GetBool(value, "earned") || timestamp > 0;
 
             display = GetString(value, "displayName") ??
                       GetString(value, "display_name") ??
@@ -754,9 +756,20 @@ public static class PlatformAchievementService
         }
 
         result.ApiNames.Add(id);
+
+        if (timestamp > 0)
+        {
+            result.AddUnlockTime(id, timestamp);
+        }
+
         if (!string.IsNullOrWhiteSpace(display))
         {
             result.DisplayNames.Add(display!);
+
+            if (timestamp > 0)
+            {
+                result.AddUnlockTime(display, timestamp);
+            }
         }
 
         result.Sources.Add("Ubisoft");
@@ -924,11 +937,12 @@ public static class PlatformAchievementService
         JsonElement value,
         LocalAchievements result)
     {
+        var timestamp = Math.Max(GetLong(value, "earned_time"), GetLong(value, "unlock_time"));
+        timestamp = Math.Max(timestamp, GetLong(value, "UnlockTime"));
+
         var earned = GetBool(value, "earned") ||
                      GetBool(value, "Earned") ||
-                     GetLong(value, "earned_time") > 0 ||
-                     GetLong(value, "unlock_time") > 0 ||
-                     GetLong(value, "UnlockTime") > 0;
+                     timestamp > 0;
 
         if (!earned)
         {
@@ -936,6 +950,11 @@ public static class PlatformAchievementService
         }
 
         result.ApiNames.Add(id);
+
+        if (timestamp > 0)
+        {
+            result.AddUnlockTime(id, timestamp);
+        }
 
         var display = GetString(value, "display_name") ??
                       GetString(value, "DisplayName") ??
@@ -947,6 +966,11 @@ public static class PlatformAchievementService
         if (!string.IsNullOrWhiteSpace(display))
         {
             result.DisplayNames.Add(display!);
+
+            if (timestamp > 0)
+            {
+                result.AddUnlockTime(display, timestamp);
+            }
         }
 
         result.Sources.Add("Epic (Nemirtingas)");

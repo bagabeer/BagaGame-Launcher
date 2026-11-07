@@ -393,6 +393,82 @@
                             </StackPanel>
                         </Grid>
                     </Border>
+
+                    <!-- Recent achievements of the selected card, in the empty
+                         sidebar space under the library item. -->
+                    <Border Margin="0,24,0,0"
+                            Padding="14,13"
+                            Background="{DynamicResource BpAccentSoftBrush}"
+                            CornerRadius="14">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasRecentAchievements}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon FontSize="13"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource BpAccentBrush}"
+                                               Symbol="Certificate24" />
+                                <TextBlock Margin="7,0,0,0"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BpTextMutedBrush}"
+                                           Text="{Binding RecentAchievementsTitle}" />
+                            </StackPanel>
+
+                            <ItemsControl Margin="0,11,0,0"
+                                          ItemsSource="{Binding RecentAchievements}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,8"
+                                              ToolTip="{Binding Tooltip}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="30"
+                                                    Height="30"
+                                                    Background="{DynamicResource BpHeroPanelBrush}"
+                                                    ClipToBounds="True"
+                                                    CornerRadius="0">
+                                                <Grid>
+                                                    <ui:SymbolIcon FontSize="13"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource BpTextMutedBrush}"
+                                                                   Symbol="Certificate24" />
+                                                    <Image Source="{Binding Icon}"
+                                                           Stretch="UniformToFill" />
+                                                </Grid>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1"
+                                                        Margin="9,0,0,0"
+                                                        VerticalAlignment="Center">
+                                                <ui:MarqueeTextBlock FontSize="11.5"
+                                                                     FontWeight="SemiBold"
+                                                                     Foreground="{DynamicResource BpTextBrush}"
+                                                                     Text="{Binding Name}" />
+                                                <TextBlock Margin="0,1,0,0"
+                                                           FontSize="10"
+                                                           Foreground="{DynamicResource BpTextMutedBrush}"
+                                                           Text="{Binding TimeText}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <!-- Status card -->

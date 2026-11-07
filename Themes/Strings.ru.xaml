@@ -45,6 +45,9 @@
     <sys:String x:Key="Loc.BP.Menu">Меню</sys:String>
     <sys:String x:Key="Loc.BP.NotPlayed">Ещё не играли</sys:String>
     <sys:String x:Key="Loc.BP.PlayedFor">Время в игре {0}</sys:String>
+    <sys:String x:Key="Loc.BP.RecentAchievements">Недавние достижения</sys:String>
+    <sys:String x:Key="Loc.BP.AchievementUnknownTime">Дата неизвестна</sys:String>
+    <sys:String x:Key="Loc.BP.AchievementFallback">Достижение</sys:String>
 
     <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
     <sys:String x:Key="Loc.Menu.LaunchArguments">Аргументы запуска</sys:String>
@@ -90,6 +93,13 @@
     <sys:String x:Key="Loc.Cover.Save">Сохранить</sys:String>
     <sys:String x:Key="Loc.Cover.UploadFailed">Не удалось открыть файл. Поддерживаются JPG, PNG и BMP до 12 МБ.</sys:String>
     <sys:String x:Key="Loc.Cover.FileFilter">Изображения|*.jpg;*.jpeg;*.png;*.bmp</sys:String>
+    <sys:String x:Key="Loc.Cover.ModePoster">Обложка</sys:String>
+    <sys:String x:Key="Loc.Cover.ModePosterTip">Вертикальная обложка карточки</sys:String>
+    <sys:String x:Key="Loc.Cover.ModeHero">Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.ModeHeroTip">Большая горизонтальная обложка для Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroTitle">Обложка Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroCropTitle">Кадрирование обложки Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroCropHint">Перетаскивайте картинку, колесом мыши меняйте масштаб. Итоговая обложка 1920x620.</sys:String>
 
     <sys:String x:Key="Loc.Common.Add">Добавить</sys:String>
     <sys:String x:Key="Loc.Common.Remove">Убрать</sys:String>

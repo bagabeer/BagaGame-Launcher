@@ -15,6 +15,7 @@ public sealed class SteamAchievementsViewModel : INotifyPropertyChanged
 {
     private readonly SteamAchievementsService _service;
     private readonly LocalAchievementsService _local;
+    private readonly LibraryStore? _store;
     private readonly Game _game;
     private readonly int _appId;
     private string _progressText = string.Empty;
@@ -27,12 +28,14 @@ public sealed class SteamAchievementsViewModel : INotifyPropertyChanged
         Game game,
         int appId,
         SteamAchievementsService service,
-        LocalAchievementsService local)
+        LocalAchievementsService local,
+        LibraryStore? store = null)
     {
         _game = game;
         _appId = appId;
         _service = service;
         _local = local;
+        _store = store;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -109,37 +112,12 @@ public sealed class SteamAchievementsViewModel : INotifyPropertyChanged
                 .GetAsync(_appId, SteamAchievementCatalogService.Language, cancellationToken)
                 .ConfigureAwait(true);
 
-            var byApi = result.Achievements
-                .Where(item => !string.IsNullOrWhiteSpace(item.ApiName))
-                .GroupBy(item => item.ApiName, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
-
             var hasCatalog = catalog.Count > 0;
-            var source = hasCatalog ? catalog : result.Achievements;
-            var merged = new List<SteamAchievement>();
+            var merged = AchievementMergeService.BuildAchievements(result, local, catalog);
 
-            foreach (var item in source)
+            if (_store is not null)
             {
-                var baseItem = item;
-
-                if (hasCatalog && byApi.TryGetValue(item.ApiName, out var steam))
-                {
-                    baseItem = new SteamAchievement
-                    {
-                        ApiName = item.ApiName,
-                        Name = item.Name,
-                        Description = item.Description,
-                        Unlocked = steam.Unlocked,
-                        IconOpen = item.IconOpen,
-                        IconLocked = item.IconLocked,
-                        IconUrl = steam.Unlocked && !string.IsNullOrWhiteSpace(item.IconOpen)
-                            ? item.IconOpen
-                            : item.IconLocked,
-                        UnlockTime = steam.UnlockTime,
-                    };
-                }
-
-                merged.Add(Merge(baseItem, local));
+                AchievementTimeService.Apply(_game, merged, _store);
             }
 
             Achievements.Clear();
@@ -217,30 +195,6 @@ public sealed class SteamAchievementsViewModel : INotifyPropertyChanged
         {
             // Rarity is optional; the tiles keep the "no data" tooltip.
         }
-    }
-
-    internal static SteamAchievement Merge(SteamAchievement achievement, LocalAchievements local)
-    {
-        if (achievement.Unlocked ||
-            string.IsNullOrWhiteSpace(achievement.ApiName) ||
-            !local.IsUnlocked(achievement.ApiName, achievement.Name))
-        {
-            return achievement;
-        }
-
-        return new SteamAchievement
-        {
-            ApiName = achievement.ApiName,
-            Name = achievement.Name,
-            Description = achievement.Description,
-            Unlocked = true,
-            IconOpen = achievement.IconOpen,
-            IconLocked = achievement.IconLocked,
-            IconUrl = string.IsNullOrWhiteSpace(achievement.IconOpen)
-                ? achievement.IconUrl
-                : achievement.IconOpen,
-            UnlockTime = achievement.UnlockTime,
-        };
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

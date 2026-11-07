@@ -150,11 +150,6 @@ Compat/                             — polyfills for modern C# on net472
 
 ### Version 1.0.0 (in development)
 
-**Emulator manager**
-* A separate window per game: local files, Goldberg, Nemirtingas and UniverseLAN.
-* Downloads from GitHub and GitLab, version cache, backup and restoration of the original `steam_api64`.
-* Fixed target detection for DL2 and cleanup of old archives and versions.
-
 **Achievements**
 * Achievements tab with supported games, platforms, progress and status.
 * Russian and English Steam catalogues, icons and global rarity percentages.
@@ -162,22 +157,29 @@ Compat/                             — polyfills for modern C# on net472
 * New-achievement toasts, cached icons and the Supported status only after a real toast.
 * A clear note for private Steam profiles, clean cards and tooltips.
 
+**Emulator manager**
+* A separate window per game: local files, Goldberg, Nemirtingas and UniverseLAN.
+* Downloads from GitHub and GitLab, version cache, backup and restoration of the original `steam_api64`.
+
 **Performance**
 * Universal launch optimisation with detailed settings.
 * CPU topology detection with Auto, P-core and E-core modes for hybrid Intel.
-* Single-CCD selection for dual-CCD AMD, with unsupported options hidden.
+* Single-CCD selection for dual-CCD AMD.
 * Priority, EcoQoS removal, launcher background and a 1 ms or 0.5 ms timer.
 * Per-game launch arguments.
 
+**Covers and Big Picture**
+* A Cover and Big Picture switch in the cover window.
+* Wide SteamGridDB banner search and custom banner upload.
+* Banner cropping and saving at 1920x620.
+
 **Game removal**
 * Full removal of the game folder, saves, emulator data by AppID and local Steam data.
-* Mandatory confirmation with the complete path list and system-folder protection.
+* Mandatory confirmation with the complete path list.
 
 **Cleanup and interface**
 * Safe automatic cleanup of temporary files, archives, old versions and logs, always enabled.
-* Removed the Storage section and the manual cleanup window.
 * Unified settings, compact segments and tooltips, and no extra dialog glow.
-* Fixed the stretched single-achievement card and removed long dashes and semicolons from visible text.
 
 ### Version 0.9.0 — Big Picture
 

@@ -27,6 +27,13 @@ public sealed class SteamAchievementNotifier : IDisposable
     /// writes achievements and that the launcher can see them.
     /// </summary>
     public event Action<Game>? AchievementShown;
+
+    /// <summary>
+    /// Raised with the API names that just became unlocked and their best-known
+    /// times. The library stores them so both achievement views show a date.
+    /// </summary>
+    public event Action<Game, IReadOnlyDictionary<string, DateTimeOffset>>? AchievementsUnlocked;
+
     private readonly DispatcherTimer _timer;
     private readonly HashSet<string> _known = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _names = new(StringComparer.OrdinalIgnoreCase);
@@ -243,6 +250,8 @@ public sealed class SteamAchievementNotifier : IDisposable
                 $"fresh appId={_appId} count={fresh.Count} " +
                 $"first={fresh[0]} catalog={_catalog.Count} icons={_icons.Count}");
 
+            NotifyUnlockTimes(game, fresh, result.Achievements);
+
             var displayName = names.TryGetValue(fresh[0], out var knownName) &&
                               !string.IsNullOrWhiteSpace(knownName)
                 ? knownName
@@ -298,6 +307,8 @@ public sealed class SteamAchievementNotifier : IDisposable
                 return false;
             }
 
+            NotifyUnlockTimes(_game, fresh, null);
+
             var displayName = _names.TryGetValue(fresh[0], out var knownName) &&
                               !string.IsNullOrWhiteSpace(knownName)
                 ? knownName
@@ -321,6 +332,41 @@ public sealed class SteamAchievementNotifier : IDisposable
         {
             return false;
         }
+    }
+
+    private void NotifyUnlockTimes(
+        Game game,
+        IReadOnlyList<string> fresh,
+        IReadOnlyList<SteamAchievement>? steamAchievements)
+    {
+        if (fresh.Count == 0)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.Now;
+        var times = new Dictionary<string, DateTimeOffset>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var apiName in fresh)
+        {
+            DateTimeOffset? steamTime = null;
+
+            if (steamAchievements is not null)
+            {
+                foreach (var achievement in steamAchievements)
+                {
+                    if (string.Equals(achievement.ApiName, apiName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        steamTime = achievement.UnlockTime;
+                        break;
+                    }
+                }
+            }
+
+            times[apiName] = steamTime ?? now;
+        }
+
+        AchievementsUnlocked?.Invoke(game, times);
     }
 
     /// <summary>

@@ -19,6 +19,14 @@ public sealed class LocalAchievements
 
     public HashSet<string> Sources { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Unlock times written by an emulator, keyed by API name or display name.
+    /// Not every format stores one; the launcher records a first-seen time for
+    /// the rest.
+    /// </summary>
+    public Dictionary<string, DateTimeOffset> UnlockTimes { get; } =
+        new(StringComparer.OrdinalIgnoreCase);
+
     public bool HasData => ApiNames.Count > 0 || DisplayNames.Count > 0 || Sources.Count > 0;
 
     public bool IsUnlocked(string apiName, string displayName)
@@ -26,6 +34,65 @@ public sealed class LocalAchievements
            (!string.IsNullOrWhiteSpace(displayName) && DisplayNames.Contains(displayName)) ||
            (!string.IsNullOrWhiteSpace(apiName) &&
             ApiNames.Any(id => IsNumeric(id) && HasNumericSuffix(apiName, id)));
+
+    public DateTimeOffset? GetUnlockTime(string? apiName, string? displayName)
+    {
+        if (!string.IsNullOrWhiteSpace(apiName) &&
+            UnlockTimes.TryGetValue(apiName, out var apiTime))
+        {
+            return apiTime;
+        }
+
+        if (!string.IsNullOrWhiteSpace(displayName) &&
+            UnlockTimes.TryGetValue(displayName, out var displayTime))
+        {
+            return displayTime;
+        }
+
+        return null;
+    }
+
+    public void AddUnlockTime(string? key, long timestamp)
+    {
+        if (string.IsNullOrWhiteSpace(key) ||
+            FromTimestamp(timestamp) is not { } time)
+        {
+            return;
+        }
+
+        UnlockTimes[key] = time;
+    }
+
+    /// <summary>
+    /// Emulators use Unix seconds, Unix milliseconds or Windows FILETIME.
+    /// Returns <c>null</c> for an impossible value instead of throwing.
+    /// </summary>
+    public static DateTimeOffset? FromTimestamp(long value)
+    {
+        if (value <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            if (value > 100_000_000_000_000L)
+            {
+                return new DateTimeOffset(DateTime.FromFileTimeUtc(value)).ToLocalTime();
+            }
+
+            if (value > 10_000_000_000L)
+            {
+                return DateTimeOffset.FromUnixTimeMilliseconds(value).ToLocalTime();
+            }
+
+            return DateTimeOffset.FromUnixTimeSeconds(value).ToLocalTime();
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public static bool IsNumeric(string value)
         => value.Length > 0 && value.All(char.IsDigit);
@@ -203,6 +270,7 @@ public sealed class LocalAchievementsService
         {
             string? section = null;
             var achieved = false;
+            long? unlockTimestamp = null;
 
             foreach (var raw in File.ReadLines(path))
             {
@@ -214,6 +282,7 @@ public sealed class LocalAchievementsService
                     Flush();
                     section = line.Substring(1, line.Length - 2).Trim();
                     achieved = false;
+                    unlockTimestamp = null;
                     continue;
                 }
 
@@ -239,6 +308,7 @@ public sealed class LocalAchievementsService
                          long.TryParse(value, out var seconds) && seconds > 0)
                 {
                     achieved = true;
+                    unlockTimestamp = seconds;
                 }
             }
 
@@ -254,6 +324,11 @@ public sealed class LocalAchievementsService
 
                 result.ApiNames.Add(section);
                 result.Sources.Add(source);
+
+                if (unlockTimestamp is > 0)
+                {
+                    result.AddUnlockTime(section, unlockTimestamp.Value);
+                }
             }
         }
         catch
@@ -324,6 +399,7 @@ public sealed class LocalAchievementsService
 
         var unlocked = false;
         string? display = null;
+        var timestamp = 0L;
 
         if (value.ValueKind == JsonValueKind.True)
         {
@@ -331,12 +407,14 @@ public sealed class LocalAchievementsService
         }
         else if (value.ValueKind == JsonValueKind.Object)
         {
+            timestamp = Math.Max(timestamp, GetLong(value, "earned_time"));
+            timestamp = Math.Max(timestamp, GetLong(value, "unlock_time"));
+            timestamp = Math.Max(timestamp, GetLong(value, "time"));
+
             unlocked = GetBool(value, "earned") ||
                        GetBool(value, "achieved") ||
                        GetBool(value, "unlocked") ||
-                       GetLong(value, "earned_time") > 0 ||
-                       GetLong(value, "unlock_time") > 0 ||
-                       GetLong(value, "time") > 0;
+                       timestamp > 0;
 
             display = GetString(value, "displayName") ??
                       GetString(value, "display_name") ??
@@ -350,9 +428,19 @@ public sealed class LocalAchievementsService
 
         result.ApiNames.Add(name);
 
+        if (timestamp > 0)
+        {
+            result.AddUnlockTime(name, timestamp);
+        }
+
         if (!string.IsNullOrWhiteSpace(display))
         {
             result.DisplayNames.Add(display!);
+
+            if (timestamp > 0)
+            {
+                result.AddUnlockTime(display, timestamp);
+            }
         }
 
         result.Sources.Add(source);

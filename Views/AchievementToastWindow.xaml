@@ -45,7 +45,7 @@
                     Background="#14FFFFFF"
                     BorderBrush="{DynamicResource CardStrokeBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
+                    CornerRadius="0"
                     ClipToBounds="True">
                 <Image x:Name="IconImage"
                        Stretch="UniformToFill" />

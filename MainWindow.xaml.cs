@@ -42,6 +42,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private SteamAchievementNotifier? _achievementNotifier;
     private bool _syncingGrouping;
     private Game? _coverTarget;
+    private bool _heroMode;
     private BitmapSource? _cropSource;
     private bool _cropDragging;
     private Point _cropDragStart;
@@ -463,12 +464,18 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
                     toast.Show();
                 })));
             _achievementNotifier.AchievementShown += OnAchievementShown;
+            _achievementNotifier.AchievementsUnlocked += OnAchievementsUnlocked;
         }
 
         _achievementNotifier.Start(game, appId);
     }
 
     private void OnAchievementShown(Game game) => _viewModel.MarkAchievementVerified(game);
+
+    private void OnAchievementsUnlocked(
+        Game game,
+        IReadOnlyDictionary<string, DateTimeOffset> unlocks)
+        => _store.RecordAchievementUnlocks(game.Id, unlocks);
 
     /// <summary>
     /// One toast before the game starts: which emulator was found and whether
@@ -541,7 +548,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         RepackSupportService.EnsureProvisioned(game, appId);
         PlatformAchievementService.PrepareGame(game);
 
-        new SteamAchievementsWindow(game, appId) { Owner = this }.ShowDialog();
+        new SteamAchievementsWindow(game, appId, _store) { Owner = this }.ShowDialog();
     }
 
     private void EmulatorsButton_Click(object sender, RoutedEventArgs e)
@@ -1296,15 +1303,21 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private void OpenCoverPicker(Game game)
     {
         _coverTarget = game;
+        _heroMode = false;
         _cropSource = null;
+        CoverModePosterButton.IsChecked = true;
         CoverTitle.Text = $"{Loc.T("Loc.Cover.Title")} · {game.Title}";
         CoverSearchBox.Text = game.Title;
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
+        CoverGalleryHeroPanel.Visibility = Visibility.Collapsed;
         CoverSearchRow.Visibility = Visibility.Visible;
         CoverTitle.Visibility = Visibility.Visible;
         CropPreviewImage.Source = null;
         ResetCropTransform();
+        _viewModel.CoverResults.Clear();
+        _viewModel.HeroResults.Clear();
+        _viewModel.CoverStatusText = string.Empty;
 
         CoverOverlay.Visibility = Visibility.Visible;
         UpdateCoverSourceUi();
@@ -1318,21 +1331,69 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     }
 
     /// <summary>
+    /// Switches the picker between the portrait card cover and the wide Big
+    /// Picture banner. The same search field drives both SteamGridDB queries.
+    /// </summary>
+    private void CoverMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            (sender as FrameworkElement)?.Tag is not string tag)
+        {
+            return;
+        }
+
+        var hero = string.Equals(tag, "Hero", StringComparison.OrdinalIgnoreCase);
+        if (_heroMode == hero)
+        {
+            return;
+        }
+
+        _heroMode = hero;
+
+        if (_coverTarget is null)
+        {
+            return;
+        }
+
+        CoverTitle.Text =
+            $"{Loc.T(_heroMode ? "Loc.Cover.HeroTitle" : "Loc.Cover.Title")} · {_coverTarget.Title}";
+        _viewModel.CoverResults.Clear();
+        _viewModel.HeroResults.Clear();
+        _viewModel.CoverStatusText = string.Empty;
+        UpdateCoverSourceUi();
+
+        if (_viewModel.IsSteamGridDbConfigured)
+        {
+            _ = SearchCoversAsync();
+        }
+    }
+
+    /// <summary>
     /// Steam search is gone from the picker: with SteamGridDB disabled the
     /// dialog only offers manual upload and explains how to enable it.
     /// </summary>
     private void UpdateCoverSourceUi()
     {
         var configured = _viewModel.IsSteamGridDbConfigured;
+        var cropping = CoverCropPanel.Visibility == Visibility.Visible;
 
-        CoverSearchField.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
-        CoverSearchBox.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
-        CoverSearchButton.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
-        SgdbHintPanel.Visibility = configured ? Visibility.Collapsed : Visibility.Visible;
+        CoverModeSwitch.Visibility = cropping ? Visibility.Collapsed : Visibility.Visible;
+        CoverSearchField.Visibility = configured && !cropping ? Visibility.Visible : Visibility.Collapsed;
+        CoverSearchBox.Visibility = configured && !cropping ? Visibility.Visible : Visibility.Collapsed;
+        CoverSearchButton.Visibility = configured && !cropping ? Visibility.Visible : Visibility.Collapsed;
+        SgdbHintPanel.Visibility = configured || cropping ? Visibility.Collapsed : Visibility.Visible;
 
-        if (CoverCropPanel.Visibility != Visibility.Visible)
+        if (cropping)
         {
-            CoverGalleryPanel.Visibility = configured ? Visibility.Visible : Visibility.Collapsed;
+            CoverGalleryPanel.Visibility = Visibility.Collapsed;
+            CoverGalleryHeroPanel.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            CoverGalleryPanel.Visibility =
+                configured && !_heroMode ? Visibility.Visible : Visibility.Collapsed;
+            CoverGalleryHeroPanel.Visibility =
+                configured && _heroMode ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
@@ -1362,9 +1423,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
-        await _viewModel.SearchCoversAsync(
-            _coverTarget,
-            CoverSearchBox.Text);
+        if (_heroMode)
+        {
+            await _viewModel.SearchHeroesAsync(_coverTarget, CoverSearchBox.Text);
+        }
+        else
+        {
+            await _viewModel.SearchCoversAsync(_coverTarget, CoverSearchBox.Text);
+        }
     }
 
     private async void CoverCandidate_Click(object sender, RoutedEventArgs e)
@@ -1375,7 +1441,11 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
-        if (await _viewModel.ApplyCoverAsync(_coverTarget, candidate))
+        var applied = _heroMode
+            ? await _viewModel.ApplyHeroAsync(_coverTarget, candidate)
+            : await _viewModel.ApplyCoverAsync(_coverTarget, candidate);
+
+        if (applied)
         {
             CloseCoverOverlay();
         }
@@ -1406,13 +1476,37 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _cropSource = image;
         CropPreviewImage.Source = image;
         ResetCropTransform();
+        ConfigureCropViewport(_heroMode);
+
+        CropTitleText.Text = Loc.T(
+            _heroMode ? "Loc.Cover.HeroCropTitle" : "Loc.Cover.CropTitle");
+        CropHintText.Text = Loc.T(
+            _heroMode ? "Loc.Cover.HeroCropHint" : "Loc.Cover.CropHint");
 
         CoverGalleryPanel.Visibility = Visibility.Collapsed;
+        CoverGalleryHeroPanel.Visibility = Visibility.Collapsed;
         CoverCropPanel.Visibility = Visibility.Visible;
         CoverSearchRow.Visibility = Visibility.Collapsed;
+        CoverModeSwitch.Visibility = Visibility.Collapsed;
         CoverTitle.Visibility = Visibility.Collapsed;
         SgdbHintPanel.Visibility = Visibility.Collapsed;
         _viewModel.CoverStatusText = string.Empty;
+    }
+
+    /// <summary>
+    /// The crop viewport matches the target format, so the preview is honest:
+    /// a tall poster for cards and a wide strip for the Big Picture banner.
+    /// </summary>
+    private void ConfigureCropViewport(bool hero)
+    {
+        var width = hero ? 620d : 280d;
+        var height = hero ? 200d : 420d;
+
+        CropViewport.Width = width;
+        CropViewport.Height = height;
+        CropPreviewImage.Width = width;
+        CropPreviewImage.Height = height;
+        CropClip.Rect = new Rect(0, 0, width, height);
     }
 
     private void CoverCropBack_Click(object sender, RoutedEventArgs e) => ShowCoverGallery();
@@ -1422,7 +1516,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _cropSource = null;
         CropPreviewImage.Source = null;
         CoverCropPanel.Visibility = Visibility.Collapsed;
-        CoverGalleryPanel.Visibility = Visibility.Visible;
         CoverSearchRow.Visibility = Visibility.Visible;
         CoverTitle.Visibility = Visibility.Visible;
         UpdateCoverSourceUi();
@@ -1438,14 +1531,25 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         var width = CropViewport.ActualWidth > 0 ? CropViewport.ActualWidth : CropViewport.Width;
         var height = CropViewport.ActualHeight > 0 ? CropViewport.ActualHeight : CropViewport.Height;
 
-        if (_viewModel.ApplyCustomCover(
+        var applied = _heroMode
+            ? _viewModel.ApplyCustomHero(
                 _coverTarget,
                 _cropSource,
                 _cropZoom,
                 CropOffset.X,
                 CropOffset.Y,
                 width,
-                height))
+                height)
+            : _viewModel.ApplyCustomCover(
+                _coverTarget,
+                _cropSource,
+                _cropZoom,
+                CropOffset.X,
+                CropOffset.Y,
+                width,
+                height);
+
+        if (applied)
         {
             CloseCoverOverlay();
         }
@@ -1458,7 +1562,15 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
-        await _viewModel.ResetCoverAsync(_coverTarget);
+        if (_heroMode)
+        {
+            _viewModel.ResetHero(_coverTarget);
+        }
+        else
+        {
+            await _viewModel.ResetCoverAsync(_coverTarget);
+        }
+
         CloseCoverOverlay();
     }
 
@@ -1477,13 +1589,18 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         CoverOverlay.Visibility = Visibility.Collapsed;
         CoverCropPanel.Visibility = Visibility.Collapsed;
         CoverGalleryPanel.Visibility = Visibility.Visible;
+        CoverGalleryHeroPanel.Visibility = Visibility.Collapsed;
+        CoverModeSwitch.Visibility = Visibility.Visible;
         CoverSearchRow.Visibility = Visibility.Visible;
         CoverTitle.Visibility = Visibility.Visible;
         CropPreviewImage.Source = null;
         _coverTarget = null;
+        _heroMode = false;
+        CoverModePosterButton.IsChecked = true;
         _cropSource = null;
         _cropDragging = false;
         _viewModel.CoverResults.Clear();
+        _viewModel.HeroResults.Clear();
         _viewModel.CoverStatusText = string.Empty;
     }
 

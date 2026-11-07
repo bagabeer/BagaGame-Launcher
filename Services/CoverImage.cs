@@ -6,14 +6,27 @@ using System.Windows.Media.Imaging;
 namespace BagaGame.Services;
 
 /// <summary>
-/// Decodes, validates and normalizes poster images. Every cover the launcher
-/// stores is exactly 600x900 (2:3), so a hand-picked image cannot break the
-/// card layout.
+/// Decodes, validates and normalizes poster and banner images. Posters keep a
+/// 2:3 format and may use Steam's 2x capsule size, while Big Picture banners
+/// are always compressed to the standard 1920x620.
 /// </summary>
 public static class CoverImage
 {
+    /// <summary>Smallest stored poster, in 2:3 format.</summary>
     public const int PosterWidth = 600;
     public const int PosterHeight = 900;
+
+    /// <summary>Largest stored poster, matching Steam's 2x capsule.</summary>
+    public const int MaxPosterWidth = 1200;
+    public const int MaxPosterHeight = 1800;
+
+    /// <summary>Standard wide banner format of the Big Picture hero.</summary>
+    public const int HeroWidth = 1920;
+    public const int HeroHeight = 620;
+
+    /// <summary>Banners are compressed to the same size as Steam hero art.</summary>
+    public const int MaxHeroWidth = 1920;
+    public const int MaxHeroHeight = 620;
 
     private const long MaxFileBytes = 12L * 1024 * 1024;
     private const int MaxDimension = 8000;
@@ -56,7 +69,7 @@ public static class CoverImage
         }
     }
 
-    /// <summary>Center-crops any image to the 600x900 poster format.</summary>
+    /// <summary>Center-crops any image to the 2:3 poster format.</summary>
     public static BitmapSource? CenterCrop(BitmapSource source)
     {
         if (!IsSane(source))
@@ -78,12 +91,42 @@ public static class CoverImage
             cropWidth,
             cropHeight);
 
-        return Resize(new CroppedBitmap(source, rect));
+        var targetWidth = ClampInt(cropWidth, PosterWidth, MaxPosterWidth);
+        var targetHeight = (int)Math.Round(targetWidth * 1.5);
+        return Resize(new CroppedBitmap(source, rect), targetWidth, targetHeight);
+    }
+
+    /// <summary>Center-crops any image to the wide Big Picture banner format.</summary>
+    public static BitmapSource? CenterCropHero(BitmapSource source)
+    {
+        if (!IsSane(source))
+        {
+            return null;
+        }
+
+        var ratio = (double)HeroWidth / HeroHeight;
+        var cropHeight = Math.Min(source.PixelHeight, (int)Math.Round(source.PixelWidth / ratio));
+        var cropWidth = Math.Min(source.PixelWidth, (int)Math.Round(cropHeight * ratio));
+
+        if (cropWidth < 1 || cropHeight < 1)
+        {
+            return null;
+        }
+
+        var rect = new Int32Rect(
+            (source.PixelWidth - cropWidth) / 2,
+            (source.PixelHeight - cropHeight) / 2,
+            cropWidth,
+            cropHeight);
+
+        var targetWidth = ClampInt(cropWidth, HeroWidth, MaxHeroWidth);
+        var targetHeight = (int)Math.Round(targetWidth * (double)HeroHeight / HeroWidth);
+        return Resize(new CroppedBitmap(source, rect), targetWidth, targetHeight);
     }
 
     /// <summary>
     /// Applies the pan/zoom chosen in the crop dialog. Offsets are in viewport
-    /// pixels; the result is always a 600x900 poster.
+    /// pixels; the result keeps the 2:3 poster format.
     /// </summary>
     public static BitmapSource? CropToPoster(
         BitmapSource source,
@@ -92,6 +135,46 @@ public static class CoverImage
         double offsetY,
         double viewportWidth,
         double viewportHeight)
+        => CropTo(
+            source,
+            zoom,
+            offsetX,
+            offsetY,
+            viewportWidth,
+            viewportHeight,
+            PosterWidth,
+            PosterHeight,
+            MaxPosterWidth);
+
+    /// <summary>Same pan/zoom crop, but the result keeps the wide banner format.</summary>
+    public static BitmapSource? CropToHero(
+        BitmapSource source,
+        double zoom,
+        double offsetX,
+        double offsetY,
+        double viewportWidth,
+        double viewportHeight)
+        => CropTo(
+            source,
+            zoom,
+            offsetX,
+            offsetY,
+            viewportWidth,
+            viewportHeight,
+            HeroWidth,
+            HeroHeight,
+            MaxHeroWidth);
+
+    private static BitmapSource? CropTo(
+        BitmapSource source,
+        double zoom,
+        double offsetX,
+        double offsetY,
+        double viewportWidth,
+        double viewportHeight,
+        int baseWidth,
+        int baseHeight,
+        int maxWidth)
     {
         if (!IsSane(source) || viewportWidth <= 0 || viewportHeight <= 0)
         {
@@ -125,7 +208,13 @@ public static class CoverImage
             return null;
         }
 
-        return Resize(new CroppedBitmap(source, new Int32Rect(x, y, width, height)));
+        var targetWidth = ClampInt(width, baseWidth, maxWidth);
+        var targetHeight = (int)Math.Round(targetWidth * (double)baseHeight / baseWidth);
+
+        return Resize(
+            new CroppedBitmap(source, new Int32Rect(x, y, width, height)),
+            targetWidth,
+            targetHeight);
     }
 
     public static byte[]? ToJpeg(BitmapSource source)
@@ -176,13 +265,13 @@ public static class CoverImage
         return image;
     }
 
-    private static BitmapSource Resize(BitmapSource source)
+    private static BitmapSource Resize(BitmapSource source, int targetWidth, int targetHeight)
     {
         var resized = new TransformedBitmap(
             source,
             new ScaleTransform(
-                (double)PosterWidth / source.PixelWidth,
-                (double)PosterHeight / source.PixelHeight));
+                (double)targetWidth / source.PixelWidth,
+                (double)targetHeight / source.PixelHeight));
 
         resized.Freeze();
         return resized;
@@ -196,5 +285,8 @@ public static class CoverImage
            (long)image.PixelWidth * image.PixelHeight <= MaxPixels;
 
     private static double Clamp(double value, double min, double max)
+        => value < min ? min : value > max ? max : value;
+
+    private static int ClampInt(int value, int min, int max)
         => value < min ? min : value > max ? max : value;
 }

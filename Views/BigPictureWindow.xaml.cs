@@ -31,7 +31,10 @@ public partial class BigPictureWindow : Window
     private readonly GamepadService _gamepad = new();
     private readonly Dictionary<string, GameMetadata?> _metadataCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ImageSource?> _heroCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IReadOnlyList<RecentAchievementItem>> _achievementCache =
+        new(StringComparer.Ordinal);
     private CancellationTokenSource? _detailsToken;
+    private CancellationTokenSource? _achievementToken;
     private DispatcherTimer? _introTimer;
     private bool _cursorHidden;
     private Point _lastMousePosition;
@@ -92,6 +95,7 @@ public partial class BigPictureWindow : Window
         GamesGrid.MouseDoubleClick += (_, _) => PlaySelected();
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        Loc.Changed += OnLanguageChangedAchievements;
 
         // Big Picture owns the pad; the main window never sees these events.
         _gamepad.Command += OnPadCommand;
@@ -122,6 +126,7 @@ public partial class BigPictureWindow : Window
         _viewModel.EnsureSelection();
         SelectCurrent();
         ScheduleDetailsLoad();
+        ScheduleAchievementsLoad();
     }
 
     /// <summary>Fades the veil away and settles the layout with a small zoom-out.</summary>
@@ -184,6 +189,7 @@ public partial class BigPictureWindow : Window
         _gamepad.Start();
         UpdateHints(_gamepad.IsConnected);
         ScheduleDetailsLoad();
+        ScheduleAchievementsLoad();
     }
 
     /// <summary>Fades the veil in; the caller swaps the windows when it completes.</summary>
@@ -323,6 +329,7 @@ public partial class BigPictureWindow : Window
         if (e.PropertyName == nameof(BigPictureViewModel.SelectedGame))
         {
             ScheduleDetailsLoad();
+            ScheduleAchievementsLoad();
         }
     }
 
@@ -403,10 +410,14 @@ public partial class BigPictureWindow : Window
                 return;
             }
 
-            var heroPath = await _library.GetHeroArtworkAsync(
-                game,
-                _store.SteamGridDbApiKey,
-                cancellationToken);
+            var heroPath = _store.GetCustomHeroPath(game.Id);
+            if (heroPath is null)
+            {
+                heroPath = await _library.GetHeroArtworkAsync(
+                    game,
+                    _store.SteamGridDbApiKey,
+                    cancellationToken);
+            }
 
             var hero = LoadBitmap(heroPath);
             _heroCache[game.Id] = hero;
@@ -425,6 +436,88 @@ public partial class BigPictureWindow : Window
         {
             // Offline or a store hiccup: the poster fallback stays.
         }
+    }
+
+    /// <summary>
+    /// Loads the latest achievements for the selected card. Results are cached
+    /// per game for the lifetime of the window; a quick scroll cancels stale
+    /// requests, so only the card the user settles on reaches Steam.
+    /// </summary>
+    private void ScheduleAchievementsLoad()
+    {
+        _achievementToken?.Cancel();
+        _achievementToken?.Dispose();
+
+        var token = new CancellationTokenSource();
+        _achievementToken = token;
+
+        var game = _viewModel.SelectedGame;
+        if (game is null)
+        {
+            _viewModel.SetRecentAchievements(Array.Empty<RecentAchievementItem>());
+            return;
+        }
+
+        if (_achievementCache.TryGetValue(game.Id, out var cached))
+        {
+            _viewModel.SetRecentAchievements(cached);
+            return;
+        }
+
+        _viewModel.SetRecentAchievements(Array.Empty<RecentAchievementItem>());
+        _ = LoadAchievementsAsync(game, token.Token);
+    }
+
+    private async Task LoadAchievementsAsync(Game game, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // A short debounce: scrolling the carousel must not query Steam.
+            await Task.Delay(280, cancellationToken);
+
+            IReadOnlyList<RecentAchievementItem> items;
+            var appId = _library.GetCachedSteamAppId(game);
+
+            if (appId <= 0)
+            {
+                items = Array.Empty<RecentAchievementItem>();
+            }
+            else
+            {
+                var achievements = await RecentAchievementsService
+                    .GetAsync(game, appId, cancellationToken)
+                    .ConfigureAwait(true);
+
+                AchievementTimeService.Apply(game, achievements, _store);
+
+                items = achievements
+                    .Take(5)
+                    .Select(item => new RecentAchievementItem(item))
+                    .ToList();
+            }
+
+            _achievementCache[game.Id] = items;
+
+            if (!cancellationToken.IsCancellationRequested &&
+                ReferenceEquals(_viewModel.SelectedGame, game))
+            {
+                _viewModel.SetRecentAchievements(items);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The selection changed again.
+        }
+        catch
+        {
+            _achievementCache[game.Id] = Array.Empty<RecentAchievementItem>();
+        }
+    }
+
+    private void OnLanguageChangedAchievements()
+    {
+        _achievementCache.Clear();
+        ScheduleAchievementsLoad();
     }
 
     private static ImageSource? LoadBitmap(string? path)
@@ -1362,6 +1455,11 @@ public partial class BigPictureWindow : Window
         _detailsToken?.Cancel();
         _detailsToken?.Dispose();
         _detailsToken = null;
+
+        _achievementToken?.Cancel();
+        _achievementToken?.Dispose();
+        _achievementToken = null;
+        Loc.Changed -= OnLanguageChangedAchievements;
 
         _favoriteToastTimer?.Stop();
         _favoriteToastTimer = null;

@@ -13,7 +13,7 @@ public partial class SteamAchievementsWindow : BagaWindow
     private readonly SteamAchievementsViewModel _viewModel;
     private readonly CancellationTokenSource _lifetime = new();
 
-    public SteamAchievementsWindow(Game game, int appId)
+    public SteamAchievementsWindow(Game game, int appId, LibraryStore store)
     {
         InitializeComponent();
 
@@ -21,7 +21,8 @@ public partial class SteamAchievementsWindow : BagaWindow
             game,
             appId,
             SteamAchievementsService.Shared,
-            new LocalAchievementsService());
+            new LocalAchievementsService(),
+            store);
         DataContext = _viewModel;
 
         Loaded += async (_, _) => await _viewModel.LoadAsync(_lifetime.Token);

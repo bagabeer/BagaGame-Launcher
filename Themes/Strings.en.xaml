@@ -44,6 +44,9 @@
     <sys:String x:Key="Loc.BP.Menu">Menu</sys:String>
     <sys:String x:Key="Loc.BP.NotPlayed">Not played yet</sys:String>
     <sys:String x:Key="Loc.BP.PlayedFor">Time in game {0}</sys:String>
+    <sys:String x:Key="Loc.BP.RecentAchievements">Recent achievements</sys:String>
+    <sys:String x:Key="Loc.BP.AchievementUnknownTime">Date unknown</sys:String>
+    <sys:String x:Key="Loc.BP.AchievementFallback">Achievement</sys:String>
 
     <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
     <sys:String x:Key="Loc.Menu.LaunchArguments">Launch arguments</sys:String>
@@ -89,6 +92,13 @@
     <sys:String x:Key="Loc.Cover.Save">Save</sys:String>
     <sys:String x:Key="Loc.Cover.UploadFailed">Could not open the file. JPG, PNG and BMP up to 12 MB are supported.</sys:String>
     <sys:String x:Key="Loc.Cover.FileFilter">Images|*.jpg;*.jpeg;*.png;*.bmp</sys:String>
+    <sys:String x:Key="Loc.Cover.ModePoster">Cover</sys:String>
+    <sys:String x:Key="Loc.Cover.ModePosterTip">Portrait cover for the library card</sys:String>
+    <sys:String x:Key="Loc.Cover.ModeHero">Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.ModeHeroTip">Wide hero artwork for Big Picture</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroTitle">Big Picture cover</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroCropTitle">Big Picture cover crop</sys:String>
+    <sys:String x:Key="Loc.Cover.HeroCropHint">Drag the image, use the mouse wheel to zoom. The final cover is 1920x620.</sys:String>
 
     <sys:String x:Key="Loc.Common.Add">Add</sys:String>
     <sys:String x:Key="Loc.Common.Remove">Remove</sys:String>

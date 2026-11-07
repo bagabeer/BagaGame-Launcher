@@ -168,7 +168,7 @@
                                                 Height="40"
                                                 VerticalAlignment="Center"
                                                 Background="{DynamicResource ChipFillBrush}"
-                                                CornerRadius="8"
+                                                CornerRadius="0"
                                                 ClipToBounds="True">
                                             <Image Source="{Binding IconUrl}" Stretch="UniformToFill">
                                                 <Image.Style>
@@ -219,6 +219,55 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
+                                            </Border>
+
+                                            <Border Width="18"
+                                                    Height="18"
+                                                    Margin="6,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="{DynamicResource ChipFillBrush}"
+                                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="9"
+                                                    Cursor="Help"
+                                                    ToolTip="{Binding UnlockTimeText}">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasUnlockTime}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Canvas Width="10"
+                                                        Height="10"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center">
+                                                    <Ellipse Canvas.Left="0"
+                                                             Canvas.Top="0"
+                                                             Width="10"
+                                                             Height="10"
+                                                             Stroke="{DynamicResource TextSecondaryBrush}"
+                                                             StrokeThickness="1" />
+                                                    <Line X1="5"
+                                                          Y1="5"
+                                                          X2="5"
+                                                          Y2="2.2"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round" />
+                                                    <Line X1="5"
+                                                          Y1="5"
+                                                          X2="7.1"
+                                                          Y2="5.9"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round" />
+                                                </Canvas>
                                             </Border>
 
                                             <Border Width="18"
