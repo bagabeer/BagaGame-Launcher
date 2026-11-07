@@ -15,7 +15,7 @@ public sealed class AchievementSupport
 
     public bool HasCatalog { get; init; }
 
-    /// <summary>True only when local files contain at least one earned achievement.</summary>
+    /// <summary>True only after the launcher actually showed an achievement toast.</summary>
     public bool Verified { get; init; }
 
     public int LocalCount { get; init; }
@@ -30,9 +30,9 @@ public sealed class AchievementSupport
 }
 
 /// <summary>
-/// Describes the achievement support of one game. A Steam catalogue or a
-/// detected emulator only means the launcher can read achievements; it does not
-/// prove the game writes them. Verified means local progress really exists.
+/// Describes the achievement support of one game. A Steam catalogue, a detected
+/// emulator or old local progress only means the launcher can read achievements.
+/// Verified means the launcher really showed a toast for this game.
 /// </summary>
 public static class AchievementSupportService
 {
@@ -89,6 +89,8 @@ public static class AchievementSupportService
             ? local.ApiNames.Count
             : local.DisplayNames.Count;
 
+        // Only a real toast proves that notifications work. Achievements earned
+        // before the launcher was installed must not flip this badge.
         var verified = notificationSeen;
         var hasCatalog = appId > 0;
 

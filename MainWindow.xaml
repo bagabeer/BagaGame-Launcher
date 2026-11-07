@@ -1459,7 +1459,7 @@
                                   HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="GamesItems"
-                                      Margin="38,54,28,12"
+                                      Margin="38,24,28,12"
                                       ItemsSource="{Binding GamesView}"
                                       ItemTemplate="{StaticResource GameCardTemplate}"
                                       ItemsPanel="{StaticResource GamesGridPanel}">
@@ -1514,34 +1514,36 @@
                 <!-- Bottom action bar -->
                 <Grid Grid.Row="3" Height="84">
                     <Border Background="{DynamicResource FooterFadeBrush}" IsHitTestVisible="False" />
-                    <ui:BagaButton x:Name="RescanButton"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Padding="18,9"
-                               Appearance="Secondary"
-                               AutomationProperties.Name="{DynamicResource Loc.Library.Rescan}"
-                               Click="Rescan_Click"
-                               CornerRadius="8"
-                               FontSize="12.5"
-                               IsEnabled="{Binding CanRescan}"
-                               ToolTip="{DynamicResource Loc.Library.RescanTip}">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon x:Name="RefreshIcon"
-                                           Width="16"
-                                           Height="16"
-                                           FontSize="16"
-                                           Foreground="{DynamicResource AccentBrush}"
-                                           RenderTransformOrigin="0.5,0.5"
-                                           Symbol="ArrowClockwise24">
-                                <ui:SymbolIcon.RenderTransform>
-                                    <RotateTransform x:Name="RefreshRotation" Angle="0" />
-                                </ui:SymbolIcon.RenderTransform>
-                            </ui:SymbolIcon>
-                            <TextBlock Margin="9,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Text="{DynamicResource Loc.Library.Rescan}" />
-                        </StackPanel>
-                    </ui:BagaButton>
+                    <Grid Margin="38,0,42,0">
+                        <ui:BagaButton x:Name="RescanButton"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Padding="18,9"
+                                   Appearance="Secondary"
+                                   AutomationProperties.Name="{DynamicResource Loc.Library.Rescan}"
+                                   Click="Rescan_Click"
+                                   CornerRadius="8"
+                                   FontSize="12.5"
+                                   IsEnabled="{Binding CanRescan}"
+                                   ToolTip="{DynamicResource Loc.Library.RescanTip}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon x:Name="RefreshIcon"
+                                               Width="16"
+                                               Height="16"
+                                               FontSize="16"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               RenderTransformOrigin="0.5,0.5"
+                                               Symbol="ArrowClockwise24">
+                                    <ui:SymbolIcon.RenderTransform>
+                                        <RotateTransform x:Name="RefreshRotation" Angle="0" />
+                                    </ui:SymbolIcon.RenderTransform>
+                                </ui:SymbolIcon>
+                                <TextBlock Margin="9,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{DynamicResource Loc.Library.Rescan}" />
+                            </StackPanel>
+                        </ui:BagaButton>
+                    </Grid>
                 </Grid>
             </Grid>
 
@@ -3701,8 +3703,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="{DynamicResource DialogFillBrush}"
-                    BorderBrush="{DynamicResource DialogStrokeBrush}"
-                    BorderThickness="1"
+                    BorderThickness="0"
                     CornerRadius="12">
                 <StackPanel>
                     <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI"
@@ -3715,21 +3716,25 @@
                                FontSize="11.5"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                TextTrimming="CharacterEllipsis" />
-                    <TextBox x:Name="RenameBox"
-                             Height="38"
-                             Margin="0,18,0,0"
-                             Padding="10,0"
-                             VerticalContentAlignment="Center"
-                             AutomationProperties.Name="{DynamicResource Loc.Rename.Placeholder}"
-                             Background="{DynamicResource FieldFillBrush}"
-                             BorderBrush="{DynamicResource FieldStrokeBrush}"
-                             BorderThickness="1"
-                             CaretBrush="{DynamicResource AccentBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             ContextMenu="{StaticResource EditMenu}"
-                             KeyDown="RenameBox_KeyDown"
-                             MaxLength="120"
-                             SelectionBrush="{DynamicResource AccentBrush}" />
+                    <Border Height="38"
+                            Margin="0,18,0,0"
+                            Background="{DynamicResource FieldFillBrush}"
+                            BorderBrush="{DynamicResource FieldStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                        <TextBox x:Name="RenameBox"
+                                 Padding="4,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.Name="{DynamicResource Loc.Rename.Placeholder}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 CaretBrush="{DynamicResource AccentBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ContextMenu="{StaticResource EditMenu}"
+                                 KeyDown="RenameBox_KeyDown"
+                                 MaxLength="120"
+                                 SelectionBrush="{DynamicResource AccentBrush}" />
+                    </Border>
                     <StackPanel Margin="0,20,0,0"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal">

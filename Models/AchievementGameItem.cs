@@ -2,8 +2,8 @@ namespace BagaGame.Models;
 
 /// <summary>
 /// One supported game shown in the Achievements tab. <see cref="Verified"/>
-/// means the launcher actually found at least one earned achievement in the
-/// local emulator/save files; a detected emulator alone is not proof.
+/// means the launcher actually showed an achievement toast for it; a detected
+/// emulator and old local progress alone are not proof.
 /// </summary>
 public sealed record AchievementGameItem(
     Game Game,

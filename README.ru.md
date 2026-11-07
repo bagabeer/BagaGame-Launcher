@@ -10,7 +10,7 @@
 
 ## 📥 Установка
 
-1. Откройте раздел **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** и скачайте архив последней версии (`v0.9.0`).
+1. Откройте раздел **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** и скачайте архив последней версии (`v1.0.0`).
 2. Распакуйте архив в любую папку, доступную для записи (например, `D:\BagaGame`).
 3. Запустите **`BagaGame.exe`**.
 
@@ -24,37 +24,29 @@
 
 ## 📸 Скриншоты
 
-| Big Picture — тёмная тема | Big Picture — светлая тема |
-|---|---|
-| <img src="docs/screenshots/bp-ru.png" alt="Big Picture, тёмная тема" width="100%"> | <img src="docs/screenshots/bp-ru-light.png" alt="Big Picture, светлая тема" width="100%"> |
-
-| Big Picture — сетка | Big Picture — жанры |
-|---|---|
-| <img src="docs/screenshots/bp-ru-grid.png" alt="Компактная сетка Big Picture" width="100%"> | <img src="docs/screenshots/bp-ru-genres.png" alt="Фильтр по жанрам в Big Picture" width="100%"> |
-
-| Big Picture — подробнее | Big Picture (EN) |
-|---|---|
-| <img src="docs/screenshots/bp-ru-details.png" alt="Панель «Подробнее» в Big Picture" width="100%"> | <img src="docs/screenshots/bp-dark.png" alt="Big Picture на английском" width="100%"> |
-
 | Библиотека — тёмная тема | Библиотека — светлая тема |
 |---|---|
 | <img src="docs/screenshots/main-dark.png" alt="Библиотека, тёмная тема" width="100%"> | <img src="docs/screenshots/main-light.png" alt="Библиотека, светлая тема" width="100%"> |
 
-| Настройки (RU) | Настройки (EN) |
+| Big Picture (RU) | Big Picture (EN) |
 |---|---|
-| <img src="docs/screenshots/settings-ru.png" alt="Настройки на русском" width="100%"> | <img src="docs/screenshots/settings-en.png" alt="Settings in English" width="100%"> |
+| <img src="docs/screenshots/bp-ru.png" alt="Big Picture на русском" width="100%"> | <img src="docs/screenshots/bp-dark.png" alt="Big Picture на английском" width="100%"> |
 
-| Сканирование | Группировка по сериям |
+| Достижения | Окно достижений |
 |---|---|
-| <img src="docs/screenshots/scan.png" alt="Страница сканирования" width="100%"> | <img src="docs/screenshots/series.png" alt="Группировка по сериям" width="100%"> |
+| <img src="docs/screenshots/achievements-ru.png" alt="Вкладка достижений" width="100%"> | <img src="docs/screenshots/achievements-window.png" alt="Окно достижений" width="100%"> |
 
-| Контекстное меню | Выбор обложки |
+| Оптимизация (RU) | Оптимизация (EN) |
 |---|---|
-| <img src="docs/screenshots/context-menu.png" alt="Контекстное меню карточки" width="100%"> | <img src="docs/screenshots/cover-picker.png" alt="Выбор обложки" width="100%"> |
+| <img src="docs/screenshots/settings-optimization-ru.png" alt="Настройки оптимизации на русском" width="100%"> | <img src="docs/screenshots/settings-optimization-en.png" alt="Performance settings in English" width="100%"> |
 
-| Добавление игры | Кадрирование обложки |
+| Контекстное меню | Баннеры Big Picture |
 |---|---|
-| <img src="docs/screenshots/add-game.png" alt="Диалог добавления игры" width="100%"> | <img src="docs/screenshots/cover-crop.png" alt="Кадрирование обложки" width="100%"> |
+| <img src="docs/screenshots/context-menu.png" alt="Контекстное меню карточки" width="100%"> | <img src="docs/screenshots/cover-picker-bp.png" alt="Выбор баннера Big Picture" width="100%"> |
+
+| Обложки SteamGridDB |
+|---|
+| <img src="docs/screenshots/steamgriddb-covers.png" alt="Обложки SteamGridDB" width="70%"> |
 
 ---
 
@@ -63,6 +55,8 @@
 * **Big Picture.** Полноэкранный режим для телевизора с геймпадом и клавиатурой: крупные обложки, hero-арт, карусель и компактная сетка, разделы «Все игры / По алфавиту / Жанры / Избранное», фильтр по жанрам, избранное и панель «Подробнее». Открывается на мониторе библиотеки, скрывает курсор при вводе с геймпада и запускает игры на этом же экране.
 * **Геймпад и клавиатура.** D-pad и стик, Q/E и LB/RB переключают разделы; A — играть, X — подробнее, Y — избранное, B — выход. Контроллер может открывать Big Picture автоматически.
 * **Избранное.** Отмечайте игры звёздочкой в библиотеке или в Big Picture и фильтруйте коллекцию по ним.
+* **Достижения.** Отдельная вкладка с прогрессом Steam и локальных эмуляторов (CODEX, RUNE, Goldberg, GSE, OnlineFix, FreeTP), русскими названиями, иконками, редкостью и тостами. Недавние достижения выбранной игры показываются в Big Picture.
+* **Оптимизация.** Настройки запуска: режимы CPU (Авто, P-ядра, E-ядра, один CCD), приоритет процесса, отключение EcoQoS, фон лаунчера и таймер 1 мс или 0.5 мс.
 * **Обновления.** Лаунчер проверяет новые версии, показывает скрываемую карточку в сайдбаре, а проверку можно отключить в настройках.
 * **Глубокое сканирование.** Находит игры в выбранных папках, включая нестандартные структуры и вложенные каталоги, отсеивая служебные `.exe` (`unins`, `vcredist`, `crashhandler` и подобные).
 * **Интеграция с магазинами.** Импортирует библиотеки **Steam**, **Epic Games** и **GOG Galaxy**.
@@ -148,7 +142,7 @@ Compat/                             — полифиллы для совреме
 
 ## 📝 Changelog
 
-### Версия 1.0.0 (в разработке)
+### Версия 1.0.0
 
 **Достижения**
 * Вкладка «Достижения»: поддерживаемые игры, платформы, прогресс и статус.

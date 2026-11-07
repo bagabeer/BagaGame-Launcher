@@ -10,7 +10,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 
 ## 📥 Installation
 
-1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v0.9.0`).
+1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v1.0.0`).
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
@@ -24,37 +24,29 @@ There is no installer — the app works right after unpacking. The build is a **
 
 ## 📸 Screenshots
 
-| Big Picture — dark theme | Big Picture — light theme |
-|---|---|
-| <img src="docs/screenshots/bp-dark.png" alt="Big Picture, dark theme" width="100%"> | <img src="docs/screenshots/bp-light.png" alt="Big Picture, light theme" width="100%"> |
-
-| Big Picture — compact grid | Big Picture — genres |
-|---|---|
-| <img src="docs/screenshots/bp-grid.png" alt="Big Picture compact grid" width="100%"> | <img src="docs/screenshots/bp-genres.png" alt="Big Picture genre filters" width="100%"> |
-
-| Big Picture — details | Big Picture in Russian |
-|---|---|
-| <img src="docs/screenshots/bp-details.png" alt="Big Picture details panel" width="100%"> | <img src="docs/screenshots/bp-ru.png" alt="Big Picture in Russian" width="100%"> |
-
 | Library — dark theme | Library — light theme |
 |---|---|
 | <img src="docs/screenshots/main-dark.png" alt="Library, dark theme" width="100%"> | <img src="docs/screenshots/main-light.png" alt="Library, light theme" width="100%"> |
 
-| Settings (RU) | Settings (EN) |
+| Big Picture (RU) | Big Picture (EN) |
 |---|---|
-| <img src="docs/screenshots/settings-ru.png" alt="Settings in Russian" width="100%"> | <img src="docs/screenshots/settings-en.png" alt="Settings in English" width="100%"> |
+| <img src="docs/screenshots/bp-ru.png" alt="Big Picture in Russian" width="100%"> | <img src="docs/screenshots/bp-dark.png" alt="Big Picture in English" width="100%"> |
 
-| Scanning | Series grouping |
+| Achievements | Achievement window |
 |---|---|
-| <img src="docs/screenshots/scan.png" alt="Scan page" width="100%"> | <img src="docs/screenshots/series.png" alt="Series grouping" width="100%"> |
+| <img src="docs/screenshots/achievements-ru.png" alt="Achievements tab" width="100%"> | <img src="docs/screenshots/achievements-window.png" alt="Achievement window" width="100%"> |
 
-| Context menu | Cover picker |
+| Performance settings (RU) | Performance settings (EN) |
 |---|---|
-| <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/cover-picker.png" alt="Cover picker" width="100%"> |
+| <img src="docs/screenshots/settings-optimization-ru.png" alt="Performance settings in Russian" width="100%"> | <img src="docs/screenshots/settings-optimization-en.png" alt="Performance settings in English" width="100%"> |
 
-| Add game | Cover crop |
+| Context menu | Big Picture banners |
 |---|---|
-| <img src="docs/screenshots/add-game.png" alt="Add game dialog" width="100%"> | <img src="docs/screenshots/cover-crop.png" alt="Cover crop editor" width="100%"> |
+| <img src="docs/screenshots/context-menu.png" alt="Game card context menu" width="100%"> | <img src="docs/screenshots/cover-picker-bp.png" alt="Big Picture banner picker" width="100%"> |
+
+| SteamGridDB covers |
+|---|
+| <img src="docs/screenshots/steamgriddb-covers.png" alt="SteamGridDB covers" width="70%"> |
 
 ---
 
@@ -63,6 +55,8 @@ There is no installer — the app works right after unpacking. The build is a **
 * **Big Picture.** A full-screen TV mode with gamepad and keyboard support: large covers, hero artwork, a carousel and a compact grid, section pills (All games / By alphabet / Genres / Favorites), genre filters, favorites and a details panel. It opens on the library monitor, hides the cursor on pad input and launches games on the same display.
 * **Gamepad and keyboard.** D-pad, stick, Q/E and LB/RB switch sections; A plays, X opens details, Y toggles a favorite and B exits. A controller can open Big Picture automatically.
 * **Favorites.** Star games in the library or from Big Picture and filter the collection to them.
+* **Achievements.** A dedicated tab with Steam and local emulator progress (CODEX, RUNE, Goldberg, GSE, OnlineFix, FreeTP), localized names, icons, rarity and toasts. Recent achievements of the selected game appear in Big Picture.
+* **Performance.** Launch settings: CPU modes (Auto, P-cores, E-cores, single CCD), process priority, EcoQoS removal, launcher background and a 1 ms or 0.5 ms timer.
 * **Updates.** The launcher checks for new releases, shows a dismissible card in the sidebar and can be turned off in Settings.
 * **Deep scanning.** Finds games in the selected folders, including non-standard layouts and nested directories, while filtering out service executables (`unins`, `vcredist`, `crashhandler` and similar).
 * **Store integration.** Imports libraries from **Steam**, **Epic Games** and **GOG Galaxy**.
@@ -148,7 +142,7 @@ Compat/                             — polyfills for modern C# on net472
 
 ## 📝 Changelog
 
-### Version 1.0.0 (in development)
+### Version 1.0.0
 
 **Achievements**
 * Achievements tab with supported games, platforms, progress and status.
