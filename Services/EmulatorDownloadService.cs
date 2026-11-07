@@ -526,8 +526,6 @@ public static class EmulatorDownloadService
         public DateTime SavedUtc { get; set; }
 
         public List<DownloadRelease> Items { get; set; } = new();
-
-        public HashSet<string> Sources { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     }
 
     private static string CachePath
@@ -590,9 +588,6 @@ public static class EmulatorDownloadService
             {
                 SavedUtc = DateTime.UtcNow,
                 Items = items.ToList(),
-                Sources = new HashSet<string>(
-                    items.Select(item => item.SourceKey),
-                    StringComparer.OrdinalIgnoreCase),
             };
 
             Directory.CreateDirectory(EmulatorSwapService.CacheRoot);
@@ -671,6 +666,19 @@ public static class EmulatorDownloadService
                 {
                     File.Copy(config[0], Path.Combine(folder, "UniverseLAN.ini"), true);
                 }
+            }
+
+            // The archive is no longer needed once the loader is cached.
+            try
+            {
+                if (File.Exists(archive))
+                {
+                    File.Delete(archive);
+                }
+            }
+            catch
+            {
+                // The cleanup pass removes it later.
             }
         }
         finally

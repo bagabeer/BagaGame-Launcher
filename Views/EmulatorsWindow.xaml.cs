@@ -165,6 +165,13 @@ public partial class EmulatorsWindow : BagaWindow
         DownloadsColumn.Width = downloads ? new GridLength(300) : new GridLength(0);
         GapColumn.Width = downloads ? new GridLength(16) : new GridLength(0);
 
+        DownloadsTitle.Text = tab switch
+        {
+            Tab.Epic => Loc.T("Loc.Emulators.DownloadNemirtingas"),
+            Tab.Gog => Loc.T("Loc.Emulators.DownloadUniverseLAN"),
+            _ => Loc.T("Loc.Emulators.DownloadGoldberg"),
+        };
+
         if (downloads)
         {
             ApplyReleaseFilter(tab switch

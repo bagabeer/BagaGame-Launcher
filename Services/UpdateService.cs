@@ -190,7 +190,7 @@ public sealed class UpdateService
     private static bool GetBool(JsonElement root, string name)
         => root.TryGetProperty(name, out var element) && element.ValueKind == JsonValueKind.True;
 
-    /// <summary>Accepts tags such as <c>v0.9.0</c> and ignores suffixes.</summary>
+    /// <summary>Accepts tags such as <c>vX.Y.Z</c> and ignores suffixes.</summary>
     private static bool TryParse(string? text, out Version version)
     {
         version = new Version(0, 0);

@@ -148,7 +148,38 @@ Compat/                             — polyfills for modern C# on net472
 
 ## 📝 Changelog
 
-### Version 0.9.0 (current) — Big Picture
+### Version 1.0.0 (in development)
+
+**Emulator manager**
+* A separate window per game: local files, Goldberg, Nemirtingas and UniverseLAN.
+* Downloads from GitHub and GitLab, version cache, backup and restoration of the original `steam_api64`.
+* Fixed target detection for DL2 and cleanup of old archives and versions.
+
+**Achievements**
+* Achievements tab with supported games, platforms, progress and status.
+* Russian and English Steam catalogues, icons and global rarity percentages.
+* Local CODEX, RUNE, Goldberg, GSE, OnlineFix and FreeTP progress, Steam profile and platform emulators.
+* New-achievement toasts, cached icons and the Supported status only after a real toast.
+* A clear note for private Steam profiles, clean cards and tooltips.
+
+**Performance**
+* Universal launch optimisation with detailed settings.
+* CPU topology detection with Auto, P-core and E-core modes for hybrid Intel.
+* Single-CCD selection for dual-CCD AMD, with unsupported options hidden.
+* Priority, EcoQoS removal, launcher background and a 1 ms or 0.5 ms timer.
+* Per-game launch arguments.
+
+**Game removal**
+* Full removal of the game folder, saves, emulator data by AppID and local Steam data.
+* Mandatory confirmation with the complete path list and system-folder protection.
+
+**Cleanup and interface**
+* Safe automatic cleanup of temporary files, archives, old versions and logs, always enabled.
+* Removed the Storage section and the manual cleanup window.
+* Unified settings, compact segments and tooltips, and no extra dialog glow.
+* Fixed the stretched single-achievement card and removed long dashes and semicolons from visible text.
+
+### Version 0.9.0 — Big Picture
 
 **Big Picture — a full-screen TV mode**
 * Hero artwork, large covers, sound effects and an animated entry/exit with a launch splash.

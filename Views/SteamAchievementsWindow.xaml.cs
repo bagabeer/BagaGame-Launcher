@@ -1,14 +1,14 @@
-using System;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
+using BagaGame.Controls;
 using BagaGame.Models;
 using BagaGame.Services;
 using BagaGame.ViewModels;
 
 namespace BagaGame.Views;
 
-public partial class SteamAchievementsWindow : Window
+public partial class SteamAchievementsWindow : BagaWindow
 {
     private readonly SteamAchievementsViewModel _viewModel;
     private readonly CancellationTokenSource _lifetime = new();
@@ -30,12 +30,6 @@ public partial class SteamAchievementsWindow : Window
             _lifetime.Cancel();
             _lifetime.Dispose();
         };
-    }
-
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        WindowEffects.SetDarkTitleBar(this, ThemeService.Current == AppTheme.Dark);
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)

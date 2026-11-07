@@ -29,7 +29,6 @@ public sealed class GamepadService : IDisposable
 {
     private const ushort DPadDown = 0x0002;
     private const ushort StartButton = 0x0010;
-    private const ushort BackButton = 0x0020;
     private const ushort LeftShoulder = 0x0100;
     private const ushort RightShoulder = 0x0200;
     private const ushort ButtonA = 0x1000;

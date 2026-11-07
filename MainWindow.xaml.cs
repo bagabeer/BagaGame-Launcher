@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,6 +25,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private readonly MainViewModel _viewModel;
     private readonly LibraryStore _store;
     private Game? _renameTarget;
+    private Game? _launchArgsTarget;
+    private Game? _deleteGameTarget;
+    private GameUninstallPlan? _deletePlan;
     private TrayIcon? _tray;
     private BigPictureWindow? _bigPicture;
     private DispatcherTimer? _bigPictureLaunchWatch;
@@ -107,11 +111,38 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         LanguageRuButton.IsChecked = Loc.Current == AppLanguage.Russian;
         LanguageEnButton.IsChecked = Loc.Current == AppLanguage.English;
 
+        // Performance controls follow the capabilities of this PC. Unsupported
+        // modes stay visible but disabled, so the same settings page is usable
+        // on every machine.
+        SyncPerformanceControls();
+
         // The release check runs next to the scan and never blocks it.
         _ = _viewModel.CheckForUpdatesAsync();
 
         // Covers stream in after the window is already visible.
         await _viewModel.InitializeAsync();
+
+        ScheduleCleanup();
+    }
+
+    /// <summary>Runs the safe cache cleanup at most once a day, off the UI thread.</summary>
+    private async void ScheduleCleanup()
+    {
+        var last = _store.LastCleanupUtc;
+        if (last.HasValue && DateTime.UtcNow - last.Value < TimeSpan.FromHours(24))
+        {
+            return;
+        }
+
+        try
+        {
+            await CleanupService.RunAsync(CancellationToken.None);
+            _store.LastCleanupUtc = DateTime.UtcNow;
+        }
+        catch
+        {
+            // Cleanup is optional and never blocks the launcher.
+        }
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -124,6 +155,47 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             UpdateGamepadWatcher();
         }
+        else if (e.PropertyName is nameof(MainViewModel.CpuMode)
+                 or nameof(MainViewModel.GamePriority))
+        {
+            SyncPerformanceControls();
+        }
+    }
+
+    private void SyncPerformanceControls()
+    {
+        // Show only the modes this CPU actually supports. A non-hybrid CPU
+        // gets a single Auto segment instead of greyed-out P/E buttons.
+        CpuPerformanceButton.Visibility = _viewModel.CanUsePerformanceCores
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CpuEfficiencyButton.Visibility = _viewModel.CanUseEfficiencyCores
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CpuL3Button.Visibility = _viewModel.CanSelectL3Domain
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        var visibleModes = 1 +
+            (_viewModel.CanUsePerformanceCores ? 1 : 0) +
+            (_viewModel.CanUseEfficiencyCores ? 1 : 0) +
+            (_viewModel.CanSelectL3Domain ? 1 : 0);
+
+        CpuModeGrid.Columns = visibleModes;
+        CpuModeGrid.Width = visibleModes * 70;
+
+        CpuAutoButton.IsChecked = _viewModel.CpuMode == CpuOptimizationMode.Auto;
+        CpuPerformanceButton.IsChecked = _viewModel.CpuMode == CpuOptimizationMode.PerformanceCores;
+        CpuEfficiencyButton.IsChecked = _viewModel.CpuMode == CpuOptimizationMode.EfficiencyCores;
+        CpuL3Button.IsChecked = _viewModel.CpuMode == CpuOptimizationMode.PreferredL3Domain;
+
+        PriorityNormalButton.IsChecked = _viewModel.GamePriority == GameProcessPriority.Normal;
+        PriorityAboveButton.IsChecked = _viewModel.GamePriority == GameProcessPriority.AboveNormal;
+        PriorityHighButton.IsChecked = _viewModel.GamePriority == GameProcessPriority.High;
+
+        TimerOffButton.IsChecked = _viewModel.TimerResolution == GameTimerResolution.Off;
+        TimerOneButton.IsChecked = _viewModel.TimerResolution == GameTimerResolution.OneMs;
+        TimerHalfButton.IsChecked = _viewModel.TimerResolution == GameTimerResolution.HalfMs;
     }
 
     /// <summary>
@@ -360,7 +432,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             StartGamePlacementWatch(game, target);
         }
 
-        HideInTray(game.Title);
+        HideInTray();
         StartAchievementNotifications(game);
     }
 
@@ -375,18 +447,77 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         RepackSupportService.EnsureProvisioned(game, appId);
         PlatformAchievementService.PrepareGame(game);
 
-        _achievementNotifier ??= new SteamAchievementNotifier(
-            _steamAchievements,
-            _localAchievements,
-            (title, text, icon) => Dispatcher.BeginInvoke(new Action(() =>
-            {
-                var toast = new AchievementToastWindow(title, text, icon);
-                toast.Show();
-            })));
+        if (_viewModel.AchievementScanNotice)
+        {
+            ShowAchievementScanNotice(game, appId);
+        }
+
+        if (_achievementNotifier is null)
+        {
+            _achievementNotifier = new SteamAchievementNotifier(
+                _steamAchievements,
+                _localAchievements,
+                (title, text, icon) => Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var toast = new AchievementToastWindow(title, text, icon);
+                    toast.Show();
+                })));
+            _achievementNotifier.AchievementShown += OnAchievementShown;
+        }
+
         _achievementNotifier.Start(game, appId);
     }
 
+    private void OnAchievementShown(Game game) => _viewModel.MarkAchievementVerified(game);
+
+    /// <summary>
+    /// One toast before the game starts: which emulator was found and whether
+    /// any achievements are already recorded. This makes a silent repack
+    /// obvious before the user spends time playing it.
+    /// </summary>
+    private void ShowAchievementScanNotice(Game game, int appId)
+    {
+        try
+        {
+            var support = AchievementSupportService.Describe(game, appId, false);
+
+            var text = support is null || string.IsNullOrWhiteSpace(support.ScanText)
+                ? Loc.T("Loc.Achievements.ScanNone")
+                : support.ScanText;
+
+            var toast = new AchievementToastWindow(
+                Loc.T("Loc.Achievements.ScanTitle"),
+                text,
+                null,
+                compact: true);
+            toast.Show();
+        }
+        catch
+        {
+            // The notice is optional.
+        }
+    }
+
     private void StopAchievementNotifications() => _achievementNotifier?.Stop();
+
+    private void RefreshAchievements_Click(object sender, RoutedEventArgs e)
+        => _viewModel.RefreshAchievementGames();
+
+    /// <summary>
+    /// The ListBox lives inside an overlay ScrollViewer; without forwarding the
+    /// wheel event the ListBox swallows it and the list stops scrolling.
+    /// </summary>
+    private void AchievementGames_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (AchievementGamesScroll is null)
+        {
+            return;
+        }
+
+        AchievementGamesScroll.ScrollToVerticalOffset(
+            AchievementGamesScroll.VerticalOffset - e.Delta / 3.0);
+        e.Handled = true;
+    }
 
     private void SteamAchievements_Click(object sender, RoutedEventArgs e)
     {
@@ -411,6 +542,20 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         PlatformAchievementService.PrepareGame(game);
 
         new SteamAchievementsWindow(game, appId) { Owner = this }.ShowDialog();
+    }
+
+    private void EmulatorsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.SelectedAchievementGame?.Game is Game game)
+        {
+            OpenEmulators(game);
+        }
+    }
+
+    private void OpenEmulators(Game game)
+    {
+        var appId = _viewModel.GetSteamAppId(game);
+        new EmulatorsWindow(game, appId, _viewModel.Games) { Owner = this }.ShowDialog();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -496,6 +641,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         switch (page)
         {
+            case "Achievements":
+                AchievementsNav.IsChecked = true;
+                break;
+
             case "Scan":
                 ScanNav.IsChecked = true;
                 break;
@@ -878,30 +1027,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
     }
 
-    private void MoveCursorToBigPictureScreen()
-    {
-        try
-        {
-            if (_bigPicture is not { } window)
-            {
-                return;
-            }
-
-            var handle = new WindowInteropHelper(window).Handle;
-            if (handle == IntPtr.Zero)
-            {
-                return;
-            }
-
-            var area = System.Windows.Forms.Screen.FromHandle(handle).WorkingArea;
-            SetCursorPos(area.Left + area.Width / 2, area.Top + area.Height / 2);
-        }
-        catch
-        {
-            // A cursor move is best effort; the game still starts.
-        }
-    }
-
     private void StopBigPictureLaunchWatch()
     {
         _bigPictureLaunchWatch?.Stop();
@@ -918,7 +1043,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// process, so quitting would stop the counter. The tray icon brings the
     /// window back or exits for real.
     /// </summary>
-    private void HideInTray(string gameTitle)
+    private void HideInTray()
     {
         // A running game does not need controller polling in the background.
         _gamepadWatcher.Stop();
@@ -926,7 +1051,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _tray ??= new TrayIcon(RestoreFromTray, ExitFromTray);
         _tray.RefreshTexts();
         _tray.Visible = true;
-        _tray.ShowBalloon("BagaGame", Loc.Format("Loc.Tray.Launched", gameTitle));
         Hide();
     }
 
@@ -954,6 +1078,11 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         StopAchievementNotifications();
+        _viewModel.RestoreLauncherBackground();
+
+        // Progress, unlocked tiles and the verified badge may all have changed
+        // while the launcher was hidden, so rebuild the list on return.
+        _viewModel.RefreshAchievementGames();
 
         if (_tray is null || !_tray.Visible)
         {
@@ -1084,6 +1213,42 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _store.Language = language;
         Loc.Apply(language);
         _tray?.RefreshTexts();
+    }
+
+    private void CpuMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            (sender as FrameworkElement)?.Tag is not string tag ||
+            !Enum.TryParse<CpuOptimizationMode>(tag, ignoreCase: true, out var mode))
+        {
+            return;
+        }
+
+        _viewModel.CpuMode = mode;
+    }
+
+    private void Priority_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            (sender as FrameworkElement)?.Tag is not string tag ||
+            !Enum.TryParse<GameProcessPriority>(tag, ignoreCase: true, out var priority))
+        {
+            return;
+        }
+
+        _viewModel.GamePriority = priority;
+    }
+
+    private void Timer_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            (sender as FrameworkElement)?.Tag is not string tag ||
+            !Enum.TryParse<GameTimerResolution>(tag, ignoreCase: true, out var resolution))
+        {
+            return;
+        }
+
+        _viewModel.TimerResolution = resolution;
     }
 
     /// <summary>
@@ -1447,10 +1612,70 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void DeleteGame_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as MenuItem)?.DataContext is Game game)
+        if ((sender as MenuItem)?.DataContext is not Game game)
         {
-            _viewModel.DeleteGame(game);
+            return;
         }
+
+        _deleteGameTarget = game;
+        _deletePlan = _viewModel.BuildUninstallPlan(game);
+
+        DeleteGameTitle.Text = game.Title;
+        DeleteTargetsText.Text = _deletePlan.Targets.Count == 0
+            ? Loc.T("Loc.Delete.NoFiles")
+            : string.Join(
+                Environment.NewLine,
+                _deletePlan.Targets.Select(target =>
+                    DeleteKindLabel(target.Kind) + ": " + target.Path));
+
+        DeleteErrorText.Text = string.Empty;
+        DeleteErrorText.Visibility = Visibility.Collapsed;
+        DeleteGameOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void DeleteGameConfirm_Click(object sender, RoutedEventArgs e)
+    {
+        if (_deleteGameTarget is null || _deletePlan is null)
+        {
+            CloseDeleteGameOverlay();
+            return;
+        }
+
+        if (_viewModel.UninstallGame(_deleteGameTarget, _deletePlan, out var error))
+        {
+            CloseDeleteGameOverlay();
+            return;
+        }
+
+        DeleteErrorText.Text = error;
+        DeleteErrorText.Visibility = Visibility.Visible;
+    }
+
+    private static string DeleteKindLabel(UninstallTargetKind kind)
+        => Loc.T(kind switch
+        {
+            UninstallTargetKind.Install => "Loc.Delete.Kind.Install",
+            UninstallTargetKind.Emulator => "Loc.Delete.Kind.Emulator",
+            UninstallTargetKind.Save => "Loc.Delete.Kind.Save",
+            _ => "Loc.Delete.Kind.Steam",
+        });
+
+    private void DeleteGameCancel_Click(object sender, RoutedEventArgs e)
+        => CloseDeleteGameOverlay();
+
+    private void DeleteGameOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, DeleteGameOverlay))
+        {
+            CloseDeleteGameOverlay();
+        }
+    }
+
+    private void CloseDeleteGameOverlay()
+    {
+        DeleteGameOverlay.Visibility = Visibility.Collapsed;
+        _deleteGameTarget = null;
+        _deletePlan = null;
     }
 
     private void RenameSave_Click(object sender, RoutedEventArgs e) => CommitRename();
@@ -1502,6 +1727,66 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     {
         RenameOverlay.Visibility = Visibility.Collapsed;
         _renameTarget = null;
+    }
+
+    private void LaunchArguments_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.DataContext is not Game game)
+        {
+            return;
+        }
+
+        _launchArgsTarget = game;
+        LaunchArgsSubtitle.Text = game.Title;
+        LaunchArgsBox.Text = _viewModel.GetLaunchArguments(game);
+
+        LaunchArgsOverlay.Visibility = Visibility.Visible;
+        LaunchArgsBox.Focus();
+        LaunchArgsBox.CaretIndex = LaunchArgsBox.Text.Length;
+    }
+
+    private void LaunchArgsSave_Click(object sender, RoutedEventArgs e) => CommitLaunchArgs();
+
+    private void LaunchArgsCancel_Click(object sender, RoutedEventArgs e) => CloseLaunchArgsOverlay();
+
+    private void LaunchArgsOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, LaunchArgsOverlay))
+        {
+            CloseLaunchArgsOverlay();
+        }
+    }
+
+    private void LaunchArgsBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            CommitLaunchArgs();
+        }
+        else if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            CloseLaunchArgsOverlay();
+        }
+    }
+
+    private void CommitLaunchArgs()
+    {
+        if (_launchArgsTarget is null)
+        {
+            CloseLaunchArgsOverlay();
+            return;
+        }
+
+        _viewModel.SetLaunchArguments(_launchArgsTarget, LaunchArgsBox.Text);
+        CloseLaunchArgsOverlay();
+    }
+
+    private void CloseLaunchArgsOverlay()
+    {
+        LaunchArgsOverlay.Visibility = Visibility.Collapsed;
+        _launchArgsTarget = null;
     }
 
     private async void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -1595,6 +1880,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         var page = (sender as FrameworkElement)?.Tag as string;
 
         LibraryPage.Visibility = page == "Library" ? Visibility.Visible : Visibility.Collapsed;
+        AchievementsPage.Visibility = page == "Achievements" ? Visibility.Visible : Visibility.Collapsed;
         ScanPage.Visibility = page == "Scan" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPage.Visibility = page == "Settings" ? Visibility.Visible : Visibility.Collapsed;
 
@@ -1602,6 +1888,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             case "Library":
                 FadeIn(LibraryPage);
+                break;
+            case "Achievements":
+                _viewModel.RefreshAchievementGames();
+                FadeIn(AchievementsPage);
                 break;
             case "Scan":
                 FadeIn(ScanPage);
@@ -1774,10 +2064,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetCursorPos(int x, int y);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);

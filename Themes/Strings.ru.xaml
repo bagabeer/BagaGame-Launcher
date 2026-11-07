@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
@@ -32,9 +32,9 @@
     <sys:String x:Key="Loc.BP.Hint.Favorite">избранное</sys:String>
     <sys:String x:Key="Loc.BP.Hint.Exit">выход</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Title">Библиотека пуста</sys:String>
-    <sys:String x:Key="Loc.BP.Empty.Text">Добавьте папку с играми в основном окне — здесь они появятся с обложками.</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Text">Добавьте папку с играми в основном окне, здесь они появятся с обложками.</sys:String>
     <sys:String x:Key="Loc.BP.Empty.Favorites.Title">В избранном пока пусто</sys:String>
-    <sys:String x:Key="Loc.BP.Empty.Favorites.Text">Отметьте игры звёздочкой в основном окне — они соберутся здесь.</sys:String>
+    <sys:String x:Key="Loc.BP.Empty.Favorites.Text">Отметьте игры звёздочкой в основном окне, они соберутся здесь.</sys:String>
     <sys:String x:Key="Loc.BP.Toast.FavoriteAdded">Добавлено в избранное</sys:String>
     <sys:String x:Key="Loc.BP.Toast.FavoriteRemoved">Убрано из избранного</sys:String>
     <sys:String x:Key="Loc.BP.Details.Title">Об игре</sys:String>
@@ -47,6 +47,7 @@
     <sys:String x:Key="Loc.BP.PlayedFor">Время в игре {0}</sys:String>
 
     <sys:String x:Key="Loc.Menu.Launch">Запустить</sys:String>
+    <sys:String x:Key="Loc.Menu.LaunchArguments">Аргументы запуска</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Открыть папку</sys:String>
     <sys:String x:Key="Loc.Menu.Cut">Вырезать</sys:String>
     <sys:String x:Key="Loc.Menu.Copy">Копировать</sys:String>
@@ -55,9 +56,21 @@
     <sys:String x:Key="Loc.Menu.RemoveFavorite">Убрать из избранного</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Переименовать</sys:String>
     <sys:String x:Key="Loc.Menu.Hide">Скрыть из библиотеки</sys:String>
-    <sys:String x:Key="Loc.Menu.HideTip">Убрать игру из библиотеки, сохранив её имя и жанр — вернуть можно в Настройках, кнопкой «Восстановить скрытые»</sys:String>
+    <sys:String x:Key="Loc.Menu.HideTip">Убрать игру из библиотеки, сохранив её имя и жанр, вернуть можно в Настройках, кнопкой «Восстановить скрытые»</sys:String>
     <sys:String x:Key="Loc.Menu.Delete">Удалить</sys:String>
-    <sys:String x:Key="Loc.Menu.DeleteTip">Удалить запись об игре — повторное сканирование найдёт игру снова</sys:String>
+    <sys:String x:Key="Loc.Menu.DeleteTip">Удалить игру с компьютера вместе с файлами</sys:String>
+    <sys:String x:Key="Loc.Delete.Title">Удалить игру?</sys:String>
+    <sys:String x:Key="Loc.Delete.Warning">Будет удалена папка игры, сохранения и данные эмуляторов. Это полное удаление, отменить нельзя.</sys:String>
+    <sys:String x:Key="Loc.Delete.Targets">Будут удалены:</sys:String>
+    <sys:String x:Key="Loc.Delete.NoFiles">Файлы для удаления не найдены.</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Install">Игра</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Emulator">Эмулятор</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Save">Сохранения</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Steam">Steam</sys:String>
+    <sys:String x:Key="Loc.Delete.Confirm">Удалить</sys:String>
+    <sys:String x:Key="Loc.Delete.Missing">Папка игры не найдена.</sys:String>
+    <sys:String x:Key="Loc.Delete.Unsafe">Эта папка не похожа на папку игры. Удаление отменено.</sys:String>
+    <sys:String x:Key="Loc.Delete.Error">Не удалось удалить папку игры: {0}</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolder">Указать папку заново</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolderTip">Папка игры недоступна: подключите диск или выберите папку с игрой заново</sys:String>
     <sys:String x:Key="Loc.Menu.ChangeCover">Сменить обложку</sys:String>
@@ -67,14 +80,12 @@
     <sys:String x:Key="Loc.Cover.Upload">Загрузить свою</sys:String>
     <sys:String x:Key="Loc.Cover.Reset">Вернуть стандартную</sys:String>
     <sys:String x:Key="Loc.Cover.Searching">Поиск обложек…</sys:String>
-    <sys:String x:Key="Loc.Cover.NotFound">Ничего не найдено. Попробуйте другое название или загрузите свою картинку.</sys:String>
     <sys:String x:Key="Loc.Cover.Found">Найдено вариантов: {0}</sys:String>
     <sys:String x:Key="Loc.Cover.Applying">Применяем обложку…</sys:String>
     <sys:String x:Key="Loc.Cover.Applied">Обложка обновлена</sys:String>
     <sys:String x:Key="Loc.Cover.Failed">Не удалось применить обложку</sys:String>
     <sys:String x:Key="Loc.Cover.CropTitle">Кадрирование обложки</sys:String>
     <sys:String x:Key="Loc.Cover.CropHint">Перетаскивайте картинку, колесом мыши меняйте масштаб. Итоговая обложка всегда 2:3.</sys:String>
-    <sys:String x:Key="Loc.Cover.Preview">Предпросмотр</sys:String>
     <sys:String x:Key="Loc.Cover.Back">Назад</sys:String>
     <sys:String x:Key="Loc.Cover.Save">Сохранить</sys:String>
     <sys:String x:Key="Loc.Cover.UploadFailed">Не удалось открыть файл. Поддерживаются JPG, PNG и BMP до 12 МБ.</sys:String>
@@ -104,7 +115,7 @@
     <sys:String x:Key="Loc.Library.FavoritesTip">Показывать только избранные игры</sys:String>
     <sys:String x:Key="Loc.Library.GroupNoneTip">Одна общая сетка</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlpha">По алфавиту</sys:String>
-    <sys:String x:Key="Loc.Library.GroupAlphaShort">А–Я</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaShort">А-Я</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlphaTip">Группы по первой букве названия</sys:String>
     <sys:String x:Key="Loc.Library.GroupGenre">По жанрам</sys:String>
     <sys:String x:Key="Loc.Library.GroupGenreShort">Жанры</sys:String>
@@ -155,10 +166,49 @@
     <sys:String x:Key="Loc.Cover.NeedKey">Укажите API-ключ SteamGridDB в настройках.</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbNotFound">SteamGridDB ничего не нашёл. Проверьте ключ или измените запрос.</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbTitle">Больше обложек в SteamGridDB</sys:String>
-    <sys:String x:Key="Loc.Cover.SgdbHint">Добавьте API-ключ и включите SteamGridDB в настройках — обложки сообщества появятся здесь.</sys:String>
+    <sys:String x:Key="Loc.Cover.SgdbHint">Добавьте API-ключ и включите SteamGridDB в настройках, обложки сообщества появятся здесь.</sys:String>
     <sys:String x:Key="Loc.Cover.OpenSettings">Настройки</sys:String>
     <sys:String x:Key="Loc.Cover.AddBadge">Добавить обложку</sys:String>
-    <sys:String x:Key="Loc.Cover.AddBadgeTip">Обложка не найдена — загрузите свою или выберите в SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadgeTip">Обложка не найдена, загрузите свою или выберите в SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Settings.Performance">ПРОИЗВОДИТЕЛЬНОСТЬ</sys:String>
+    <sys:String x:Key="Loc.Settings.OptimizeGames">Оптимизировать игры при запуске</sys:String>
+    <sys:String x:Key="Loc.Settings.OptimizeGamesTip">Включает всю оптимизацию при запуске игры. Применяет выбранный режим CPU, приоритет, отключение энергосбережения и фон лаунчера. Настройки Windows не меняет.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuMode">Режим CPU</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuModeSummary">Позволяет принудительно переопределить распределение нагрузки по ядрам.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuModeAutoOnly">Для этого процессора доступен только автоматический режим.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuAuto">Авто</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuAutoTip">Windows сам выбирает ядра для игры и учитывает P-ядра и E-ядра. Это безопасный режим по умолчанию. Подходит для большинства игр, ничего не форсирует.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuPerformance">P-ядра</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuPerformanceTip">Игра работает только на производительных ядрах (P-cores). Может улучшить стабильность и 1% low в CPU-bound играх и эмуляторах. В многопоточных играх может снизить FPS.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuEfficiency">E-ядра</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuEfficiencyTip">Игра работает только на энергоэффективных ядрах (E-cores). Обычно даёт меньше FPS, чем P-ядра или Авто. Используйте для фоновых задач или тестов.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuL3">1 CCD</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuL3Tip">Игра ограничивается одним CCD или L3-доменом. Помогает двухчиплетным AMD Ryzen избегать переходов между чиплетами. Для одночиплетных Ryzen эффекта нет.</sys:String>
+    <sys:String x:Key="Loc.Settings.Priority">Приоритет</sys:String>
+    <sys:String x:Key="Loc.Settings.PrioritySummary">Позволяет принудительно переопределить приоритет процесса игры.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityNormal">Авто</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityNormalTip">Авто. Стандартный приоритет Windows. Игра конкурирует с фоновыми задачами как обычно. Подходит, если в фоне нет тяжёлых задач.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityAbove">Средний</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityAboveTip">Средний. Немного выше обычного. Игра получает больше времени CPU при фоновой нагрузке, но система остаётся отзывчивой. Безопасный выбор для большинства игр.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityHigh">Высокий</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityHighTip">Высокий приоритет. Игра сильнее вытесняет фоновые задачи, помогает при записи, браузере и антивирусе. Может снизить отзывчивость системы, включайте при необходимости.</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer">Таймер</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerSummary">Повышает точность системного таймера. Обычно не требуется.</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerOff">Выкл</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerOffTip">Обычный таймер Windows. Рекомендуется.</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer1">1 мс</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer1Tip">Повышает точность до 1 мс. Может улучшить стабильность кадров, немного повышает энергопотребление.</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerHalf">0.5 мс</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerHalfTip">Максимальная точность. Включайте только при проблемах с frame pacing.</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQos">Отключить энергосбережение игры</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQosSummary">Убрать EcoQoS и power throttling для процесса игры.</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQosTip">Windows иногда замедляет процессы через EcoQoS. Параметр снимает это ограничение с игры. Немного повышает энергопотребление.</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackground">Лаунчер в фоне</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackgroundSummary">Понижать приоритет лаунчера во время игры.</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackgroundTip">Пока игра запущена, лаунчер уходит в фон с низким приоритетом и не конкурирует с игрой за CPU. После выхода приоритет возвращается.</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuHybrid">{0} · {1}P + {2}E · потоков: {3}</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuCcd">{0} · ядер: {1} · CCD: {2} · потоков: {3}</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuBasic">{0} · ядер: {1} · потоков: {2}</sys:String>
     <sys:String x:Key="Loc.Settings.Library">БИБЛИОТЕКА</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Кэш обложек</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Вернуть папку по умолчанию</sys:String>
@@ -171,10 +221,8 @@
     <sys:String x:Key="Loc.Settings.Language">Язык интерфейса</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageTip">Переключается мгновенно и сохраняется</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageRu">Русский</sys:String>
-    <sys:String x:Key="Loc.Settings.LanguageEn">English</sys:String>
 
-    <sys:String x:Key="Loc.Add.Title">Добавить игру</sys:String>
-    <sys:String x:Key="Loc.Add.Description">Выберите папку игры или её .exe — обложка и жанр подтянутся автоматически.</sys:String>
+    <sys:String x:Key="Loc.Add.Description">Выберите папку игры или её .exe, обложка и жанр подтянутся автоматически.</sys:String>
     <sys:String x:Key="Loc.Add.Folder">Папка игры</sys:String>
     <sys:String x:Key="Loc.Add.FolderTip">Выбрать папку, .exe найдётся автоматически</sys:String>
     <sys:String x:Key="Loc.Add.FolderAction">Найти .exe автоматически</sys:String>
@@ -184,6 +232,9 @@
 
     <sys:String x:Key="Loc.Rename.Title">Переименовать игру</sys:String>
     <sys:String x:Key="Loc.Rename.Placeholder">Название игры</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Title">Аргументы запуска</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Placeholder">Например: -high -dx11</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Tip">Передаются исполняемому файлу при запуске из лаунчера. Для Steam-игр не применяются.</sys:String>
 
     <sys:String x:Key="Loc.Status.Ready">Подготовка…</sys:String>
     <sys:String x:Key="Loc.Status.Scanning">Сканирование…</sys:String>
@@ -235,10 +286,9 @@
 
     <sys:String x:Key="Loc.App.Version">Версия {0}</sys:String>
 
-    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame — игра запущена</sys:String>
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: игра запущена</sys:String>
     <sys:String x:Key="Loc.Tray.Open">Открыть BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Выйти</sys:String>
-    <sys:String x:Key="Loc.Tray.Launched">{0} запускается. Окно вернётся, когда игра закроется.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Выберите папку с играми</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Выберите папку с игрой</sys:String>
@@ -253,9 +303,8 @@
     <sys:String x:Key="Loc.Group.NoSeries">Без серии</sys:String>
 
     <sys:String x:Key="Loc.Game.PathUnavailable">Путь недоступен</sys:String>
-    <sys:String x:Key="Loc.Game.PathUnavailableTip">Папка или диск с игрой сейчас недоступны. Подключите диск и попробуйте снова — запись сохранена.</sys:String>
+    <sys:String x:Key="Loc.Game.PathUnavailableTip">Папка или диск с игрой сейчас недоступны. Подключите диск и попробуйте снова, запись сохранена.</sys:String>
 
-    <sys:String x:Key="Loc.SingleInstance.Running">BagaGame уже запущен.</sys:String>
 
     <sys:String x:Key="Loc.Genre.Action">Экшн</sys:String>
     <sys:String x:Key="Loc.Genre.Adventure">Приключения</sys:String>
@@ -281,21 +330,81 @@
     <sys:String x:Key="Loc.Genre.Web">Веб</sys:String>
     <sys:String x:Key="Loc.Genre.Accounting">Бухгалтерия</sys:String>
 
-    <sys:String x:Key="Loc.Achievements.Menu">Достижения Steam</sys:String>
-    <sys:String x:Key="Loc.Achievements.Title">Достижения Steam</sys:String>
+    <sys:String x:Key="Loc.Achievements.Menu">Достижения</sys:String>
+    <sys:String x:Key="Loc.Achievements.Title">Достижения</sys:String>
     <sys:String x:Key="Loc.Achievements.Progress">Открыто {0} из {1}</sys:String>
     <sys:String x:Key="Loc.Achievements.Unlocked">Открыто</sys:String>
     <sys:String x:Key="Loc.Achievements.Locked">Не открыто</sys:String>
+    <sys:String x:Key="Loc.Achievements.GlobalPercent">Достижение открыли {0}% игроков</sys:String>
+    <sys:String x:Key="Loc.Achievements.GlobalPercentUnknown">Нет данных о редкости достижения</sys:String>
+    <sys:String x:Key="Loc.Achievements.PrivateNote">Профиль Steam закрыт, показан только локальный прогресс.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteamNote">Steam не найден, показан только локальный прогресс.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ErrorNote">Прогресс Steam недоступен, показан только локальный.</sys:String>
     <sys:String x:Key="Loc.Achievements.Loading">Загружаю достижения…</sys:String>
-    <sys:String x:Key="Loc.Achievements.NoSteam">Steam не найден. Запустите Steam хотя бы раз.</sys:String>
-    <sys:String x:Key="Loc.Achievements.Private">Профиль Steam закрыт. Включите «Сведения об играх» в настройках приватности Steam.</sys:String>
-    <sys:String x:Key="Loc.Achievements.None">У этой игры нет достижений Steam.</sys:String>
-    <sys:String x:Key="Loc.Achievements.Error">Не удалось загрузить достижения. Проверьте подключение к Steam.</sys:String>
-    <sys:String x:Key="Loc.Achievements.NoAppId">Для этой игры не найден Steam AppID.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteam">Список достижений недоступен.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Private">Список достижений недоступен: профиль закрыт.</sys:String>
+    <sys:String x:Key="Loc.Achievements.None">У этой игры нет достижений.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Error">Не удалось загрузить достижения. Проверьте подключение.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoAppId">Для этой игры не найден список достижений.</sys:String>
     <sys:String x:Key="Loc.Achievements.ToastTitle">Достижение открыто</sys:String>
     <sys:String x:Key="Loc.Achievements.ToastMany">{0} и ещё {1}</sys:String>
     <sys:String x:Key="Loc.Achievements.Refresh">Обновить</sys:String>
     <sys:String x:Key="Loc.Achievements.Close">Закрыть</sys:String>
-    <sys:String x:Key="Loc.Achievements.LocalSource">Локально: {0}</sys:String>
+    <sys:String x:Key="Loc.Achievements.LocalSource">Источник: {0}</sys:String>
+    <sys:String x:Key="Loc.Achievements.Nav">Достижения</sys:String>
+    <sys:String x:Key="Loc.Achievements.PageSubtitle">Игры, для которых доступен прогресс достижений.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedTitle">С чем работает</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText">Steam и репаки: CODEX, RUNE, Goldberg/GSE, OnlineFix, FreeTP и т.д.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText2">Большая часть сборок просто не сообщает о достижениях, могут не работать. Игру желательно начинать сначала.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText3">«Поддерживается» появляется после первого уведомления о достижении.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedCount">Игр в списке: {0}</sys:String>
+    <sys:String x:Key="Loc.Achievements.Verified">Поддерживается</sys:String>
+    <sys:String x:Key="Loc.Achievements.NotVerified">Не проверялось</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoCatalog">Для этой игры нет списка достижений, но локальный прогресс может учитываться.</sys:String>
+    <sys:String x:Key="Loc.Achievements.EmptyTitle">Пока нечего показывать</sys:String>
+    <sys:String x:Key="Loc.Achievements.EmptyText">Лаунчер не нашёл игр с поддержкой достижений. Запусти сканирование или добавь игру.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Platform.Steam">Steam</sys:String>
+    <sys:String x:Key="Loc.Settings.AchievementNotice">Статус достижений при запуске</sys:String>
+    <sys:String x:Key="Loc.Settings.AchievementNoticeTip">Показывать, найден ли эмулятор достижений и активирован ли он.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanTitle">Достижения</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanNone">Эмулятор достижений не найден</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanEmpty">Эмулятор {0} найден</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanInactive">Эмулятор {0} не активирован</sys:String>
+    <sys:String x:Key="Loc.Emulators.Title">Эмуляторы</sys:String>
+    <sys:String x:Key="Loc.Emulators.Menu">Эмуляторы…</sys:String>
+    <sys:String x:Key="Loc.Emulators.OnlineTitle">Скачать Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadGoldberg">Скачать Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadNemirtingas">Скачать Nemirtingas</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadUniverseLAN">Скачать UniverseLAN</sys:String>
+    <sys:String x:Key="Loc.Emulators.Apply">Применить</sys:String>
+    <sys:String x:Key="Loc.Emulators.Restore">Вернуть оригинал</sys:String>
+    <sys:String x:Key="Loc.Emulators.Close">Закрыть</sys:String>
+    <sys:String x:Key="Loc.Emulators.Download">Скачать</sys:String>
+    <sys:String x:Key="Loc.Emulators.Refresh">Обновить</sys:String>
+    <sys:String x:Key="Loc.Emulators.Loading">Загружаю список…</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoReleases">Список версий недоступен.</sys:String>
+    <sys:String x:Key="Loc.Emulators.LoadError">Не удалось получить список версий.</sys:String>
+    <sys:String x:Key="Loc.Emulators.Downloading">Скачиваю {0}: {1}%</sys:String>
+    <sys:String x:Key="Loc.Emulators.Extracting">Распаковываю {0}…</sys:String>
+    <sys:String x:Key="Loc.Emulators.Ready">Готово: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.Applied">Применено: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.Restored">Оригинал восстановлен</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoBackup">Бэкап не найден</sys:String>
+    <sys:String x:Key="Loc.Emulators.AlreadyDownloaded">Уже скачано</sys:String>
+    <sys:String x:Key="Loc.Emulators.RestoreHint">Доступно после первой подмены</sys:String>
+    <sys:String x:Key="Loc.Emulators.Delete">Удалить</sys:String>
+    <sys:String x:Key="Loc.Emulators.Deleted">Удалено: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.DeleteFailed">Не удалось удалить файл</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Local">Локальные</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Goldberg">Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Epic">Nemirtingas</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Gog">UniverseLAN</sys:String>
+    <sys:String x:Key="Loc.Emulators.LocalHint">Файлы, которые уже лежат в играх: RUNE, CODEX, Goldberg.</sys:String>
+    <sys:String x:Key="Loc.Emulators.GogHint">Galaxy64.dll в сборке нет, UniverseLAN может не загрузиться.</sys:String>
+    <sys:String x:Key="Loc.Emulators.Error">Ошибка: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoTarget">steam_api64.dll не найден</sys:String>
+    <sys:String x:Key="Loc.Emulators.CurrentFile">Текущий файл</sys:String>
+    <sys:String x:Key="Loc.Emulators.OriginalValve">Оригинал</sys:String>
+
 
 </ResourceDictionary>

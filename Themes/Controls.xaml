@@ -229,6 +229,7 @@
                 <ControlTemplate TargetType="{x:Type ScrollViewer}">
                     <Grid Background="{TemplateBinding Background}">
                         <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
+                                                c:RoundedClip.Radius="12"
                                                 Margin="{TemplateBinding Padding}"
                                                 CanContentScroll="{TemplateBinding CanContentScroll}"
                                                 Content="{TemplateBinding Content}"

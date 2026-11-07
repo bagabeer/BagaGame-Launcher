@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -507,10 +508,12 @@ public static class RepackSupportService
 
         if ((info.Kind & RepackKind.Codex) != 0)
         {
+            // Only the emulator's storage is prepared. The launcher never
+            // swaps steam_api64.dll: replacing a game binary is risky and the
+            // game still has to call SetAchievement for anything to appear.
             ProvisionSteamEmulator(appId, "CODEX");
             EnsureSteamAppId(info.FixDirectory, appId);
             EnsureSteamAppId(game.InstallPath, appId);
-            ActivateCodexDll(info.FixDirectory);
         }
 
         if ((info.Kind & RepackKind.Rune) != 0)
@@ -523,6 +526,7 @@ public static class RepackSupportService
         if ((info.Kind & RepackKind.Goldberg) != 0)
         {
             ProvisionGoldberg(appId, info.FixDirectory);
+            ActivateGoldbergPluginDll(game, info.FixDirectory);
         }
 
         if ((info.Kind & RepackKind.FreeTp) != 0)
@@ -638,122 +642,6 @@ public static class RepackSupportService
         }
     }
 
-    /// <summary>
-    /// Many CODEX repacks ship the emulator as steam_api64.cdx next to an
-    /// untouched Valve steam_api64.dll. Windows loads the Valve DLL, so the
-    /// game never writes achievements. Swap the emulator in and keep the
-    /// original as a backup. Only files that look like a real PE DLL of the
-    /// same architecture are touched.
-    /// </summary>
-    private static void ActivateCodexDll(string? fixDirectory)
-    {
-        if (string.IsNullOrWhiteSpace(fixDirectory))
-        {
-            return;
-        }
-
-        try
-        {
-            TryActivateCodexDll(
-                Path.Combine(fixDirectory!, "steam_api64.cdx"),
-                Path.Combine(fixDirectory!, "steam_api64.dll"));
-
-            TryActivateCodexDll(
-                Path.Combine(fixDirectory!, "steam_api.cdx"),
-                Path.Combine(fixDirectory!, "steam_api.dll"));
-        }
-        catch
-        {
-            // A running game or a read-only folder is skipped until next time.
-        }
-    }
-
-    private static void TryActivateCodexDll(string crackPath, string dllPath)
-    {
-        if (!File.Exists(crackPath) || !File.Exists(dllPath))
-        {
-            return;
-        }
-
-        var crack = new FileInfo(crackPath);
-        var dll = new FileInfo(dllPath);
-        if (crack.Length == dll.Length)
-        {
-            return;
-        }
-
-        var crackMachine = GetPeMachine(crackPath);
-        if (crackMachine == 0 || crackMachine != GetPeMachine(dllPath))
-        {
-            return;
-        }
-
-        // The untouched Valve DLL reports 01.x. A CODEX DLL reports a higher
-        // version, so an already patched game is left alone.
-        if (!IsOriginalValveDll(dllPath))
-        {
-            return;
-        }
-
-        var backup = dllPath + ".bagagame-original.bak";
-        if (!File.Exists(backup))
-        {
-            File.Copy(dllPath, backup, false);
-        }
-
-        File.Copy(crackPath, dllPath, true);
-    }
-
-    private static bool IsOriginalValveDll(string path)
-    {
-        try
-        {
-            var info = FileVersionInfo.GetVersionInfo(path);
-            var version = info.FileVersion ?? string.Empty;
-
-            return version.StartsWith("01.", StringComparison.OrdinalIgnoreCase) ||
-                   (version.StartsWith("1.", StringComparison.OrdinalIgnoreCase) &&
-                    info.CompanyName?.IndexOf("Valve", StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static ushort GetPeMachine(string path)
-    {
-        try
-        {
-            using var stream = File.OpenRead(path);
-            using var reader = new BinaryReader(stream);
-
-            if (stream.Length < 0x40)
-            {
-                return 0;
-            }
-
-            stream.Position = 0x3C;
-            var peOffset = reader.ReadInt32();
-            if (peOffset < 0 || peOffset + 6 > stream.Length)
-            {
-                return 0;
-            }
-
-            stream.Position = peOffset;
-            if (reader.ReadUInt32() != 0x00004550)
-            {
-                return 0;
-            }
-
-            return reader.ReadUInt16();
-        }
-        catch
-        {
-            return 0;
-        }
-    }
-
     private static void ProvisionGoldberg(int appId, string? fixDirectory)
     {
         var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -791,6 +679,217 @@ public static class RepackSupportService
         EnsureDirectory(Path.Combine(root, "UserSaves"));
         EnsureDirectory(Path.Combine(root, "UserProfiles"));
         EnsureFile(Path.Combine(userData, "Achievements.ini"), string.Empty);
+    }
+
+    /// <summary>
+    /// Unity loads native plugins from "&lt;exe&gt;_Data\Plugins", so a Goldberg
+    /// DLL left in the game root is ignored and the game still talks to the
+    /// Valve DLL. When the plugin copy is the original Valve DLL and a Goldberg
+    /// loader is present, swap it in and keep the Valve file as a backup. Only
+    /// Valve DLLs are replaced, so the operation is idempotent.
+    /// </summary>
+    private static void ActivateGoldbergPluginDll(Game game, string? fixDirectory)
+    {
+        try
+        {
+            var executable = game.ExecutablePath;
+            if (string.IsNullOrWhiteSpace(executable))
+            {
+                return;
+            }
+
+            var exeDirectory = Path.GetDirectoryName(executable);
+            var stem = Path.GetFileNameWithoutExtension(executable);
+            if (string.IsNullOrWhiteSpace(exeDirectory) || string.IsNullOrWhiteSpace(stem))
+            {
+                return;
+            }
+
+            var emulator = FindGoldbergLoader(exeDirectory!, fixDirectory);
+            if (emulator is null)
+            {
+                return;
+            }
+
+            foreach (var plugin in GetPluginDllCandidates(exeDirectory!, stem!))
+            {
+                if (!File.Exists(plugin) ||
+                    !IsValveDll(plugin) ||
+                    string.Equals(plugin, emulator, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var backup = plugin + ".bagagame-original.bak";
+                if (!File.Exists(backup))
+                {
+                    File.Copy(plugin, backup, false);
+                }
+
+                File.Copy(emulator, plugin, true);
+            }
+        }
+        catch
+        {
+            // A running game or a read-only folder is skipped until next time.
+        }
+    }
+
+    private static string? FindGoldbergLoader(string exeDirectory, string? fixDirectory)
+    {
+        var candidates = new List<string>
+        {
+            Path.Combine(exeDirectory, "steam_api64.dll"),
+            Path.Combine(exeDirectory, "steam_api.dll"),
+            Path.Combine(exeDirectory, "steam_api64.cdx"),
+            Path.Combine(exeDirectory, "steam_api64.rne"),
+        };
+
+        if (!string.IsNullOrWhiteSpace(fixDirectory) &&
+            !string.Equals(
+                TrimPath(fixDirectory!),
+                TrimPath(exeDirectory),
+                StringComparison.OrdinalIgnoreCase))
+        {
+            candidates.Add(Path.Combine(fixDirectory!, "steam_api64.dll"));
+            candidates.Add(Path.Combine(fixDirectory!, "steam_api.dll"));
+        }
+
+        foreach (var candidate in candidates)
+        {
+            if (File.Exists(candidate) && !IsValveDll(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> GetPluginDllCandidates(
+        string exeDirectory,
+        string stem)
+    {
+        var plugins = Path.Combine(exeDirectory, stem + "_Data", "Plugins");
+        yield return Path.Combine(plugins, "x86_64", "steam_api64.dll");
+        yield return Path.Combine(plugins, "x86", "steam_api.dll");
+        yield return Path.Combine(plugins, "steam_api64.dll");
+        yield return Path.Combine(plugins, "steam_api.dll");
+    }
+
+    private static bool IsValveDll(string path)
+    {
+        try
+        {
+            var info = FileVersionInfo.GetVersionInfo(path);
+            var company = info.CompanyName ?? string.Empty;
+            var version = info.FileVersion ?? string.Empty;
+
+            return company.IndexOf("Valve", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   version.StartsWith("02.", StringComparison.OrdinalIgnoreCase) ||
+                   version.StartsWith("01.", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// True when the detected emulator is the loader the game really uses.
+    /// RUNE/CODEX repacks keep the cracked DLL next to the original as
+    /// "steam_api64.rne"/"steam_api64.cdx"; until it is copied over
+    /// "steam_api64.dll" the game still talks to Valve and writes nothing.
+    /// A repack that ships only the emulator under the normal name is active.
+    /// </summary>
+    public static bool IsEmulatorActive(RepackInfo info)
+    {
+        if (info is null || info.Kind == RepackKind.None)
+        {
+            return false;
+        }
+
+        var directory = info.FixDirectory;
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            return false;
+        }
+
+        try
+        {
+            if ((info.Kind & (RepackKind.Rune | RepackKind.Codex)) != 0)
+            {
+                var active = FirstExisting(
+                    Path.Combine(directory, "steam_api64.dll"),
+                    Path.Combine(directory, "steam_api.dll"));
+
+                if (active is null)
+                {
+                    return false;
+                }
+
+                var emulator = FirstExisting(
+                    Path.Combine(directory, "steam_api64.rne"),
+                    Path.Combine(directory, "steam_api.rne"),
+                    Path.Combine(directory, "steam_api64.cdx"),
+                    Path.Combine(directory, "steam_api.cdx"));
+
+                return emulator is null || SameContent(active, emulator);
+            }
+
+            if ((info.Kind & RepackKind.Goldberg) != 0)
+            {
+                var active = FirstExisting(
+                    Path.Combine(directory, "steam_api64.dll"),
+                    Path.Combine(directory, "steam_api.dll"));
+
+                return active is not null && !IsValveDll(active);
+            }
+
+            // OnlineFix and FreeTP hook the game through their own fix DLL,
+            // so the detected files already mean the fix is installed.
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string? FirstExisting(params string[] paths)
+    {
+        foreach (var path in paths)
+        {
+            if (File.Exists(path))
+            {
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool SameContent(string first, string second)
+    {
+        try
+        {
+            if (new FileInfo(first).Length != new FileInfo(second).Length)
+            {
+                return false;
+            }
+
+            using var sha = SHA256.Create();
+            using var left = File.OpenRead(first);
+            var leftHash = sha.ComputeHash(left);
+            using var right = File.OpenRead(second);
+            var rightHash = sha.ComputeHash(right);
+
+            return leftHash.SequenceEqual(rightHash);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static int ReadAppId(string installPath, string executablePath)

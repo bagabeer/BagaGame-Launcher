@@ -71,8 +71,6 @@ public static class EmulatorSwapService
     public static string FamilyRoot(EmulatorFamily family)
         => Path.Combine(CacheRoot, family.ToString().ToLowerInvariant());
 
-    public static string GoldbergRoot => FamilyRoot(EmulatorFamily.Steam);
-
     // ------------------------------------------------------------------
     // Target discovery
     // ------------------------------------------------------------------
@@ -196,9 +194,6 @@ public static class EmulatorSwapService
         }
     }
 
-    public static string? FindLoaderDirectory(Game game)
-        => FindTarget(game, EmulatorFamily.Steam)?.Directory;
-
     private static string? FindSteamDirectory(Game game)
     {
         var directories = new List<string>();
@@ -271,9 +266,15 @@ public static class EmulatorSwapService
         {
             try
             {
-                foreach (var file in Directory.EnumerateFiles(install!, "steam_api64.dll", SearchOption.AllDirectories))
+                var loaders = Directory
+                    .EnumerateFiles(install!, "steam_api64.dll", SearchOption.AllDirectories)
+                    .Where(path => path.IndexOf("_CommonRedist", StringComparison.OrdinalIgnoreCase) < 0)
+                    .OrderBy(LoaderScore)
+                    .ToList();
+
+                if (loaders.Count > 0)
                 {
-                    return Path.GetDirectoryName(file);
+                    return Path.GetDirectoryName(loaders[0]);
                 }
             }
             catch
@@ -283,6 +284,33 @@ public static class EmulatorSwapService
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Prefers the loader used by the game over editor and tool copies such as
+    /// "DevTools\bin\steam_api64.dll" (Dying Light 2 ships both).
+    /// </summary>
+    private static int LoaderScore(string path)
+    {
+        if (path.IndexOf("\\DevTools\\", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            path.IndexOf("\\Editor", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            path.IndexOf("\\Tools\\", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return 100;
+        }
+
+        if (path.IndexOf("\\engine\\source\\bin", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return 0;
+        }
+
+        if (path.IndexOf("\\bin\\x64", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            path.IndexOf("\\Binaries\\Win64", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return 1;
+        }
+
+        return 10;
     }
 
     private static string? FindSteamLoader(string directory)

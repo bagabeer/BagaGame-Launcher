@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -20,8 +22,10 @@ public enum SteamAchievementsStatus
     Error,
 }
 
-public sealed class SteamAchievement
+public sealed class SteamAchievement : INotifyPropertyChanged
 {
+    private double? _globalPercent;
+
     public string ApiName { get; init; } = string.Empty;
 
     public string Name { get; init; } = string.Empty;
@@ -38,9 +42,37 @@ public sealed class SteamAchievement
 
     public DateTimeOffset? UnlockTime { get; init; }
 
+    /// <summary>Share of all Steam players who unlocked this achievement.</summary>
+    public double? GlobalPercent
+    {
+        get => _globalPercent;
+        set
+        {
+            if (Nullable.Equals(_globalPercent, value))
+            {
+                return;
+            }
+
+            _globalPercent = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(GlobalPercentText));
+        }
+    }
+
     public string StatusText => Loc.T(Unlocked
         ? "Loc.Achievements.Unlocked"
         : "Loc.Achievements.Locked");
+
+    public string GlobalPercentText => GlobalPercent.HasValue
+        ? Loc.Format(
+            "Loc.Achievements.GlobalPercent",
+            GlobalPercent.Value.ToString("0.#", CultureInfo.CurrentCulture))
+        : Loc.T("Loc.Achievements.GlobalPercentUnknown");
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 public sealed class SteamAchievementsResult

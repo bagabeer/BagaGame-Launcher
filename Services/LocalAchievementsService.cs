@@ -36,19 +36,14 @@ public sealed class LocalAchievements
 }
 
 /// <summary>
-/// Reads achievements written by the Steam emulators used by non-Steam copies:
-/// CODEX, RUNE, Goldberg, FreeTP and OnlineFix. Cuphead keeps its progress in
-/// the game save, so it gets a small save adapter as well.
+/// Reads achievements written by the Steam emulators used by non-Steam copies.
+/// Besides CODEX, RUNE, Goldberg, FreeTP and OnlineFix this also understands the
+/// layouts used by SmartSteamEmu, ALI213, EMPRESS, CreamAPI, SKIDROW, RLD!,
+/// 3DM, Hoodlum, DARKSiDERS, PLAZA and the portable Goldberg layout.
 /// </summary>
 public sealed class LocalAchievementsService
 {
-    private const int CupheadAppId = 268910;
     private const int HellraiserAppId = 1551980;
-
-    private static readonly int[] CupheadIsleOneBosses =
-    {
-        6, 7, 1428495827, 1429976377, 1430652919,
-    };
 
     private static readonly string[] HellraiserStoryAchievements =
     {
@@ -69,6 +64,20 @@ public sealed class LocalAchievementsService
         "ach_burn_oh_such_a_limited",
     };
 
+    /// <summary>Steam emulator groups that keep "Steam\&lt;group&gt;\&lt;appid&gt;".</summary>
+    private static readonly string[] SteamGroups =
+    {
+        "CODEX", "RUNE", "PLAZA", "EMPRESS", "FLT", "TiNYiSO", "SKIDROW",
+        "Hoodlum", "DARKSiDERS", "3DM", "RLD!", "CPY", "PROPHET",
+    };
+
+    /// <summary>Groups that keep their own top-level folder with appid children.</summary>
+    private static readonly string[] OtherGroups =
+    {
+        "SmartSteamEmu", "EMPRESS", "CreamAPI", "SKIDROW", "RLD!", "3DM",
+        "Hoodlum", "DARKSiDERS", "ALI213", "PLAZA", "FLT", "TiNYiSO", "CPY", "PROPHET",
+    };
+
     public LocalAchievements Get(Game game, int appId)
     {
         var result = new LocalAchievements();
@@ -76,65 +85,21 @@ public sealed class LocalAchievementsService
 
         try
         {
-            var common = GetCommonDocuments();
-            if (common is not null && effectiveAppId > 0)
-            {
-                ReadSteamEmulatorIni(
-                    Path.Combine(common, "Steam", "CODEX", effectiveAppId.ToString(), "achievements.ini"),
-                    "CODEX",
-                    result,
-                    requireAchieved: true);
-
-                ReadSteamEmulatorIni(
-                    Path.Combine(common, "Steam", "RUNE", effectiveAppId.ToString(), "achievements.ini"),
-                    "RUNE",
-                    result,
-                    requireAchieved: true);
-
-                ReadOnlineFix(
-                    Path.Combine(common, "OnlineFix", effectiveAppId.ToString(), "Stats", "Achievements.ini"),
-                    result);
-            }
-
-            // Older CODEX/RUNE builds keep their stats under the roaming
-            // profile instead of Public Documents. Firewatch is one of them.
-            var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (!string.IsNullOrWhiteSpace(roaming) && effectiveAppId > 0)
-            {
-                ReadSteamEmulatorIni(
-                    Path.Combine(roaming, "Steam", "CODEX", effectiveAppId.ToString(), "achievements.ini"),
-                    "CODEX",
-                    result,
-                    requireAchieved: true);
-
-                ReadSteamEmulatorIni(
-                    Path.Combine(roaming, "Steam", "RUNE", effectiveAppId.ToString(), "achievements.ini"),
-                    "RUNE",
-                    result,
-                    requireAchieved: true);
-            }
-
-            // FreeTP and the game-save adapters do not need an AppID: they
-            // know the game from the install path or the title.
-            ReadFreeTp(game, result);
-
             if (effectiveAppId > 0)
             {
-                ReadGoldberg(game, effectiveAppId, result);
+                ReadEmulatorStates(game, effectiveAppId, result);
+                ReadAnadiusEa(game, effectiveAppId, result);
             }
 
-            if (effectiveAppId == CupheadAppId || IsGameNamed(game, "Cuphead"))
-            {
-                ReadCupheadSaves(result);
-            }
+            ReadFreeTp(game, result);
+            ReadRuneUbisoft(game, result);
+            ReadGogUniverselan(game, result);
 
             if (effectiveAppId == HellraiserAppId || IsGameNamed(game, "Hellraiser"))
             {
                 ReadHellraiserSave(result);
             }
 
-            // Ubisoft and Nemirtingas Epic emulators keep their own files,
-            // outside the Steam emulator tree.
             PlatformAchievementService.Read(game, result);
         }
         catch
@@ -145,117 +110,493 @@ public sealed class LocalAchievementsService
         return result;
     }
 
-    /// <summary>
-    /// A folder scan normally gives the game its folder title, but a repaired
-    /// manual entry can carry the executable's product name instead. The
-    /// install path still identifies the save adapter.
-    /// </summary>
-    private static bool IsGameNamed(Game game, string value)
-        => Contains(game.Title, value) ||
-           Contains(game.InstallPath, value) ||
-           Contains(game.ExecutablePath, value);
+    // ------------------------------------------------------------------
+    // Steam emulators
+    // ------------------------------------------------------------------
 
-    private static bool Contains(string? text, string value)
-        => !string.IsNullOrWhiteSpace(text) &&
-           text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
-
-    private static void ReadSteamEmulatorIni(
-        string path,
-        string source,
-        LocalAchievements result,
-        bool requireAchieved)
+    private static void ReadEmulatorStates(Game game, int appId, LocalAchievements result)
     {
-        if (!File.Exists(path))
+        var roots = new List<string>();
+        AddRoot(roots, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+        AddRoot(roots, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        AddRoot(roots, Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments));
+        AddRoot(roots, Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData));
+        AddRoot(roots, Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+        AddRoot(roots, game.InstallPath);
+        try
         {
-            return;
+            AddRoot(roots, Path.GetDirectoryName(game.ExecutablePath));
+        }
+        catch
+        {
+            // The executable path is optional.
         }
 
-        string? section = null;
-        var achieved = false;
+        var app = appId.ToString();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var raw in File.ReadLines(path))
+        foreach (var root in roots)
         {
-            var line = raw.Trim();
-
-            if (line.StartsWith("[", StringComparison.Ordinal) &&
-                line.EndsWith("]", StringComparison.Ordinal))
+            foreach (var group in SteamGroups)
             {
-                Flush();
-                section = line.Substring(1, line.Length - 2).Trim();
-                achieved = false;
-                continue;
+                AddIni(Path.Combine(root, "Steam", group, app, "achievements.ini"), group);
+                AddJson(Path.Combine(root, "Steam", group, app, "achievements.json"), group);
             }
 
-            var separator = line.IndexOf('=');
-            if (separator <= 0)
-            {
-                continue;
-            }
+            AddIni(Path.Combine(root, "OnlineFix", app, "Stats", "Achievements.ini"), "OnlineFix");
+            AddJson(Path.Combine(root, "OnlineFix", app, "Stats", "Achievements.json"), "OnlineFix");
 
-            var key = line.Substring(0, separator).Trim();
-            var value = line.Substring(separator + 1).Trim();
+            AddJson(Path.Combine(root, "Goldberg SteamEmu Saves", app, "achievements.json"), "Goldberg");
+            AddJson(Path.Combine(root, "Goldberg SteamEmu Saves", app, "stats", "achievements.json"), "Goldberg");
+            AddJson(Path.Combine(root, "GSE Saves", app, "achievements.json"), "GSE");
+            AddJson(Path.Combine(root, "GSE Saves", app, "stats", "achievements.json"), "GSE");
 
-            if (key.Equals("Achieved", StringComparison.OrdinalIgnoreCase) &&
-                (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase)))
+            // Portable layout: "<game>\<appid>\achievements.json" (Cuphead).
+            AddJson(Path.Combine(root, app, "achievements.json"), "Goldberg");
+            AddJson(Path.Combine(root, app, "stats", "achievements.json"), "Goldberg");
+            AddIni(Path.Combine(root, app, "achievements.ini"), "Steam emulator");
+
+            // Emulators whose cfg lives next to the executable (ALI213 and
+            // similar) keep the state in the same folder.
+            AddIni(Path.Combine(root, "achievements.ini"), "Steam emulator");
+            AddIni(Path.Combine(root, "stats.ini"), "Steam emulator");
+
+            foreach (var group in OtherGroups)
             {
-                achieved = true;
-            }
-            else if (key.Equals("time", StringComparison.OrdinalIgnoreCase) &&
-                     long.TryParse(value, out var seconds) && seconds > 0)
-            {
-                achieved = true;
+                AddIni(Path.Combine(root, group, app, "achievements.ini"), group);
+                AddJson(Path.Combine(root, group, app, "achievements.json"), group);
+                AddIni(Path.Combine(root, group, app, "stats.ini"), group);
             }
         }
 
-        Flush();
-
-        void Flush()
+        // %ProgramData%\Steam\<any group>\<appid> (CODEX/RUNE variants).
+        var programDataSteam = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "Steam");
+        foreach (var group in SafeDirectories(programDataSteam))
         {
-            if (section is null || section.Length == 0 || !achieved)
-            {
-                return;
-            }
+            var name = Path.GetFileName(group);
+            AddIni(Path.Combine(group, app, "achievements.ini"), name);
+            AddJson(Path.Combine(group, app, "achievements.json"), name);
+        }
 
-            if (requireAchieved || IsAchievementSection(section))
+        void AddIni(string path, string source)
+        {
+            if (seen.Add(path) && File.Exists(path))
             {
-                result.ApiNames.Add(section);
-                result.Sources.Add(source);
+                ReadIniState(path, source, result);
+            }
+        }
+
+        void AddJson(string path, string source)
+        {
+            if (seen.Add(path) && File.Exists(path))
+            {
+                ReadJsonState(path, source, result);
             }
         }
     }
 
+    private static void ReadIniState(string path, string source, LocalAchievements result)
+    {
+        try
+        {
+            string? section = null;
+            var achieved = false;
+
+            foreach (var raw in File.ReadLines(path))
+            {
+                var line = raw.Trim();
+
+                if (line.StartsWith("[", StringComparison.Ordinal) &&
+                    line.EndsWith("]", StringComparison.Ordinal))
+                {
+                    Flush();
+                    section = line.Substring(1, line.Length - 2).Trim();
+                    achieved = false;
+                    continue;
+                }
+
+                var separator = line.IndexOf('=');
+                if (separator <= 0)
+                {
+                    continue;
+                }
+
+                var key = line.Substring(0, separator).Trim();
+                var value = line.Substring(separator + 1).Trim();
+
+                if ((key.Equals("Achieved", StringComparison.OrdinalIgnoreCase) ||
+                     key.Equals("Earned", StringComparison.OrdinalIgnoreCase) ||
+                     key.Equals("Unlocked", StringComparison.OrdinalIgnoreCase)) &&
+                    (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                {
+                    achieved = true;
+                }
+                else if ((key.Equals("time", StringComparison.OrdinalIgnoreCase) ||
+                          key.Equals("UnlockTime", StringComparison.OrdinalIgnoreCase) ||
+                          key.Equals("earned_time", StringComparison.OrdinalIgnoreCase)) &&
+                         long.TryParse(value, out var seconds) && seconds > 0)
+                {
+                    achieved = true;
+                }
+            }
+
+            Flush();
+
+            void Flush()
+            {
+                if (section is null || section.Length == 0 || !achieved ||
+                    !IsAchievementSection(section))
+                {
+                    return;
+                }
+
+                result.ApiNames.Add(section);
+                result.Sources.Add(source);
+            }
+        }
+        catch
+        {
+            // A malformed or locked state file is skipped.
+        }
+    }
+
+    private static void ReadJsonState(string path, string source, LocalAchievements result)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            var root = document.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object &&
+                root.TryGetProperty("achievements", out var nested) &&
+                nested.ValueKind == JsonValueKind.Object)
+            {
+                root = nested;
+            }
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in root.EnumerateObject())
+                {
+                    ReadJsonEntry(property.Name, property.Value, source, result);
+                }
+            }
+            else if (root.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in root.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    var id = GetString(item, "name") ??
+                             GetString(item, "id") ??
+                             GetString(item, "achievement_id") ??
+                             GetString(item, "apiName");
+
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        ReadJsonEntry(id!, item, source, result);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // A malformed or locked state file is skipped.
+        }
+    }
+
+    private static void ReadJsonEntry(
+        string name,
+        JsonElement value,
+        string source,
+        LocalAchievements result)
+    {
+        if (string.IsNullOrWhiteSpace(name) ||
+            name.Equals("steamid", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var unlocked = false;
+        string? display = null;
+
+        if (value.ValueKind == JsonValueKind.True)
+        {
+            unlocked = true;
+        }
+        else if (value.ValueKind == JsonValueKind.Object)
+        {
+            unlocked = GetBool(value, "earned") ||
+                       GetBool(value, "achieved") ||
+                       GetBool(value, "unlocked") ||
+                       GetLong(value, "earned_time") > 0 ||
+                       GetLong(value, "unlock_time") > 0 ||
+                       GetLong(value, "time") > 0;
+
+            display = GetString(value, "displayName") ??
+                      GetString(value, "display_name") ??
+                      GetString(value, "name");
+        }
+
+        if (!unlocked)
+        {
+            return;
+        }
+
+        result.ApiNames.Add(name);
+
+        if (!string.IsNullOrWhiteSpace(display))
+        {
+            result.DisplayNames.Add(display!);
+        }
+
+        result.Sources.Add(source);
+    }
+
+    // ------------------------------------------------------------------
+    // Other platform emulators
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Anadius EA/Origin emulator writes Achievement-Watcher-compatible files
+    /// under "%LOCALAPPDATA%\anadius\LSX emu\achievement_watcher".
+    /// </summary>
+    private static void ReadAnadiusEa(Game game, int appId, LocalAchievements result)
+    {
+        var root = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "anadius",
+            "LSX emu",
+            "achievement_watcher");
+
+        if (!Directory.Exists(root))
+        {
+            return;
+        }
+
+        var app = appId.ToString();
+        var candidates = new[]
+        {
+            Path.Combine(root, app, "achievements.json"),
+            Path.Combine(root, app, "stats", "achievements.json"),
+            Path.Combine(root, "achievements.json"),
+        };
+
+        foreach (var path in candidates)
+        {
+            if (File.Exists(path))
+            {
+                ReadJsonState(path, "EA (Anadius)", result);
+            }
+        }
+
+        // Some builds name the folder by the EA product id, not the Steam AppID.
+        foreach (var directory in SafeDirectories(root))
+        {
+            var path = Path.Combine(directory, "achievements.json");
+            if (File.Exists(path))
+            {
+                ReadJsonState(path, "EA (Anadius)", result);
+            }
+        }
+    }
+
+    /// <summary>
+    /// RUNE's Ubisoft Connect emulator keeps
+    /// "Documents\RUNE\Ubisoft Connect\achievements\&lt;user&gt;\&lt;uplayId&gt;\achievements.cfg".
+    /// </summary>
+    private static void ReadRuneUbisoft(Game game, LocalAchievements result)
+    {
+        var uplay = PlatformAchievementService.DetectUplay(game);
+        if (uplay is null)
+        {
+            return;
+        }
+
+        var root = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "RUNE",
+            "Ubisoft Connect",
+            "achievements");
+
+        foreach (var user in SafeDirectories(root))
+        {
+            var path = Path.Combine(user, uplay.UplayId, "achievements.cfg");
+            if (File.Exists(path))
+            {
+                ReadIniState(path, "Ubisoft (RUNE)", result);
+            }
+        }
+    }
+
+    /// <summary>
+    /// GOG UniverseLAN keeps "%LOCALAPPDATA%\UniverseLAN\&lt;productId&gt;\UniverseLANData\Achievements.ini".
+    /// The product id is taken from the game's "goggame-*.info" file.
+    /// </summary>
+    private static void ReadGogUniverselan(Game game, LocalAchievements result)
+    {
+        var info = FindFile(game, "goggame-*.info");
+        if (info is null)
+        {
+            return;
+        }
+
+        var fileName = Path.GetFileNameWithoutExtension(info);
+        if (string.IsNullOrWhiteSpace(fileName) ||
+            !fileName.StartsWith("goggame-", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var productId = fileName.Substring("goggame-".Length);
+        var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "UniverseLAN",
+            productId,
+            "UniverseLANData",
+            "Achievements.ini");
+
+        if (File.Exists(path))
+        {
+            ReadIniState(path, "GOG (UniverseLAN)", result);
+        }
+    }
+
+    private static string? FindFile(Game game, string pattern)
+    {
+        var directories = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(game.InstallPath))
+        {
+            directories.Add(game.InstallPath!);
+        }
+
+        try
+        {
+            var directory = Path.GetDirectoryName(game.ExecutablePath);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                directories.Add(directory!);
+            }
+        }
+        catch
+        {
+            // The executable path is optional.
+        }
+
+        foreach (var directory in directories)
+        {
+            try
+            {
+                var file = Directory.EnumerateFiles(directory, pattern).FirstOrDefault();
+                if (file is not null)
+                {
+                    return file;
+                }
+            }
+            catch
+            {
+                // A locked folder is skipped.
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ReadIniValue(string path, string key)
+    {
+        try
+        {
+            foreach (var raw in File.ReadLines(path))
+            {
+                var line = raw.Trim();
+                var separator = line.IndexOf('=');
+                if (separator <= 0)
+                {
+                    continue;
+                }
+
+                if (line.Substring(0, separator).Trim()
+                    .Equals(key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return line.Substring(separator + 1).Trim().Trim('"');
+                }
+            }
+        }
+        catch
+        {
+            // A missing or locked ini has no value.
+        }
+
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // FreeTP
+    // ------------------------------------------------------------------
+
     private static void ReadFreeTp(Game game, LocalAchievements result)
     {
-        if (string.IsNullOrWhiteSpace(game.InstallPath))
+        var paths = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(game.InstallPath))
         {
-            return;
+            paths.Add(game.InstallPath!);
         }
 
-        var path = FindFreeTpAchievements(game.InstallPath);
-        if (path is null)
+        try
         {
-            return;
+            var directory = Path.GetDirectoryName(game.ExecutablePath);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                paths.Add(directory!);
+            }
+        }
+        catch
+        {
+            // The executable path is optional.
         }
 
-        foreach (var section in ReadSections(path))
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var path in paths)
         {
-            if (!IsAchievementSection(section))
+            var achievements = FindFreeTpAchievements(path);
+            if (achievements is null || !seen.Add(achievements))
             {
                 continue;
             }
 
-            // FreeTP stores the visible title in most builds and an API id in
-            // a few others; keep both so the Steam list can still be merged.
-            if (LooksLikeApiName(section))
+            try
             {
-                result.ApiNames.Add(section);
-            }
-            else
-            {
-                result.DisplayNames.Add(section);
-            }
+                foreach (var section in ReadSections(achievements))
+                {
+                    if (!IsAchievementSection(section))
+                    {
+                        continue;
+                    }
 
-            result.Sources.Add("FreeTP");
+                    if (LooksLikeApiName(section))
+                    {
+                        result.ApiNames.Add(section);
+                    }
+                    else
+                    {
+                        result.DisplayNames.Add(section);
+                    }
+
+                    result.Sources.Add("FreeTP");
+                }
+            }
+            catch
+            {
+                // A locked file is skipped.
+            }
         }
     }
 
@@ -303,162 +644,9 @@ public sealed class LocalAchievementsService
         return null;
     }
 
-    private static void ReadOnlineFix(string path, LocalAchievements result)
-    {
-        if (!File.Exists(path))
-        {
-            return;
-        }
-
-        string? section = null;
-        var achieved = false;
-
-        foreach (var raw in File.ReadLines(path))
-        {
-            var line = raw.Trim();
-
-            if (line.StartsWith("[", StringComparison.Ordinal) &&
-                line.EndsWith("]", StringComparison.Ordinal))
-            {
-                Flush();
-                section = line.Substring(1, line.Length - 2).Trim();
-                achieved = false;
-                continue;
-            }
-
-            var separator = line.IndexOf('=');
-            if (separator <= 0)
-            {
-                continue;
-            }
-
-            var key = line.Substring(0, separator).Trim();
-            var value = line.Substring(separator + 1).Trim();
-
-            if (key.Equals("Achieved", StringComparison.OrdinalIgnoreCase) &&
-                (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase)))
-            {
-                achieved = true;
-            }
-            else if (key.Equals("time", StringComparison.OrdinalIgnoreCase) &&
-                     long.TryParse(value, out var seconds) && seconds > 0)
-            {
-                achieved = true;
-            }
-        }
-
-        Flush();
-
-        void Flush()
-        {
-            if (section is null || section.Length == 0 || !achieved)
-            {
-                return;
-            }
-
-            if (IsAchievementSection(section))
-            {
-                result.ApiNames.Add(section);
-                result.Sources.Add("OnlineFix");
-            }
-        }
-    }
-
-    private static void ReadGoldberg(Game game, int appId, LocalAchievements result)
-    {
-        var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var candidates = new List<string>
-        {
-            Path.Combine(roaming, "Goldberg SteamEmu Saves", appId.ToString(), "achievements.json"),
-            Path.Combine(roaming, "Goldberg SteamEmu Saves", appId.ToString(), "stats", "achievements.json"),
-            Path.Combine(roaming, "GSE Saves", appId.ToString(), "achievements.json"),
-            Path.Combine(roaming, "GSE Saves", appId.ToString(), "stats", "achievements.json"),
-        };
-
-        if (!string.IsNullOrWhiteSpace(game.InstallPath))
-        {
-            // Portable Goldberg setups put the save tree inside the game
-            // folder. The plain "achievements.json" in the install root is a
-            // schema (or another platform's state) and must not be read here.
-            candidates.Add(Path.Combine(
-                game.InstallPath,
-                "Goldberg SteamEmu Saves",
-                appId.ToString(),
-                "achievements.json"));
-            candidates.Add(Path.Combine(
-                game.InstallPath,
-                "GSE Saves",
-                appId.ToString(),
-                "achievements.json"));
-        }
-
-        foreach (var path in candidates)
-        {
-            if (!File.Exists(path))
-            {
-                continue;
-            }
-
-            try
-            {
-                using var document = JsonDocument.Parse(File.ReadAllText(path));
-                var root = document.RootElement;
-
-                var container = root;
-                if (root.ValueKind == JsonValueKind.Object &&
-                    root.TryGetProperty("achievements", out var nested) &&
-                    nested.ValueKind == JsonValueKind.Object)
-                {
-                    container = nested;
-                }
-
-                if (container.ValueKind != JsonValueKind.Object)
-                {
-                    continue;
-                }
-
-                foreach (var property in container.EnumerateObject())
-                {
-                    if (string.IsNullOrWhiteSpace(property.Name) ||
-                        property.Name.Equals("steamid", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    var unlocked = false;
-
-                    if (property.Value.ValueKind == JsonValueKind.True)
-                    {
-                        unlocked = true;
-                    }
-                    else if (property.Value.ValueKind == JsonValueKind.Object)
-                    {
-                        if (property.Value.TryGetProperty("earned", out var earned) &&
-                            earned.ValueKind == JsonValueKind.True)
-                        {
-                            unlocked = true;
-                        }
-                        else if (property.Value.TryGetProperty("earned_time", out var time) &&
-                                 time.ValueKind == JsonValueKind.Number &&
-                                 time.GetInt64() > 0)
-                        {
-                            unlocked = true;
-                        }
-                    }
-
-                    if (unlocked)
-                    {
-                        result.ApiNames.Add(property.Name);
-                        result.Sources.Add("Goldberg");
-                    }
-                }
-            }
-            catch
-            {
-                // A malformed local file must not hide the Steam progress.
-            }
-        }
-    }
+    // ------------------------------------------------------------------
+    // Game save adapters
+    // ------------------------------------------------------------------
 
     private static void ReadHellraiserSave(LocalAchievements result)
     {
@@ -518,74 +706,53 @@ public sealed class LocalAchievementsService
         }
     }
 
-    private static void ReadCupheadSaves(LocalAchievements result)
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private static bool IsGameNamed(Game game, string value)
+        => Contains(game.Title, value) ||
+           Contains(game.InstallPath, value) ||
+           Contains(game.ExecutablePath, value);
+
+    private static bool Contains(string? text, string value)
+        => !string.IsNullOrWhiteSpace(text) &&
+           text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+
+    private static void AddRoot(List<string> roots, string? path)
     {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
         try
         {
-            var directory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Cuphead");
+            var trimmed = path!.TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
 
-            if (!Directory.Exists(directory))
+            if (trimmed.Length > 0 &&
+                !roots.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
             {
-                return;
-            }
-
-            var files = Directory
-                .GetFiles(directory, "cuphead_player_data_v1_slot_*.sav")
-                .OrderByDescending(File.GetLastWriteTimeUtc)
-                .ToArray();
-
-            foreach (var file in files)
-            {
-                using var document = JsonDocument.Parse(File.ReadAllText(file));
-                var root = document.RootElement;
-
-                if (root.TryGetProperty("hasBeatenAnyBossOnEasy", out var easy) &&
-                    easy.ValueKind == JsonValueKind.True)
-                {
-                    result.ApiNames.Add("defeatboss");
-                    result.Sources.Add("Cuphead save");
-                }
-
-                if (!root.TryGetProperty("levelDataManager", out var manager) ||
-                    !manager.TryGetProperty("levelObjects", out var levels) ||
-                    levels.ValueKind != JsonValueKind.Array)
-                {
-                    continue;
-                }
-
-                var completed = new HashSet<int>();
-                foreach (var level in levels.EnumerateArray())
-                {
-                    if (!level.TryGetProperty("levelID", out var id) ||
-                        id.ValueKind != JsonValueKind.Number ||
-                        !level.TryGetProperty("completed", out var done) ||
-                        done.ValueKind != JsonValueKind.True)
-                    {
-                        continue;
-                    }
-
-                    completed.Add(id.GetInt32());
-                }
-
-                // Level 6 is Botanic Panic, the first boss in Cuphead.
-                if (completed.Contains(6))
-                {
-                    result.ApiNames.Add("defeatboss");
-                    result.Sources.Add("Cuphead save");
-                }
-
-                if (CupheadIsleOneBosses.All(completed.Contains))
-                {
-                    result.ApiNames.Add("completeworld1");
-                    result.Sources.Add("Cuphead save");
-                }
+                roots.Add(trimmed);
             }
         }
         catch
         {
-            // The save can be open while the game is writing it.
+            // A malformed path is skipped.
+        }
+    }
+
+    private static IEnumerable<string> SafeDirectories(string path)
+    {
+        try
+        {
+            return Directory.GetDirectories(path);
+        }
+        catch
+        {
+            return Array.Empty<string>();
         }
     }
 
@@ -616,6 +783,47 @@ public sealed class LocalAchievementsService
         => value.All(character => char.IsLetterOrDigit(character) || character == '_')
            && value.IndexOf(' ') < 0
            && value.Any(char.IsLetter);
+
+    private static string? GetString(JsonElement element, string property)
+        => element.TryGetProperty(property, out var value) &&
+           value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+
+    private static bool GetBool(JsonElement element, string property)
+    {
+        if (!element.TryGetProperty(property, out var value))
+        {
+            return false;
+        }
+
+        return value.ValueKind == JsonValueKind.True ||
+               value.ValueKind == JsonValueKind.String &&
+               (value.GetString() == "1" ||
+                string.Equals(value.GetString(), "true", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static long GetLong(JsonElement element, string property)
+    {
+        if (!element.TryGetProperty(property, out var value))
+        {
+            return long.MinValue;
+        }
+
+        if (value.ValueKind == JsonValueKind.Number &&
+            value.TryGetInt64(out var number))
+        {
+            return number;
+        }
+
+        if (value.ValueKind == JsonValueKind.String &&
+            long.TryParse(value.GetString(), out number))
+        {
+            return number;
+        }
+
+        return long.MinValue;
+    }
 
     private static string? GetCommonDocuments()
     {

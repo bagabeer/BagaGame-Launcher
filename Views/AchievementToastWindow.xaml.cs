@@ -18,13 +18,35 @@ namespace BagaGame.Views;
 public partial class AchievementToastWindow : Window
 {
     private readonly DispatcherTimer _closeTimer;
+    private readonly bool _compact;
 
-    public AchievementToastWindow(string title, string text, string? iconPath)
+    public AchievementToastWindow(string title, string text, string? iconPath, bool compact = false)
     {
         InitializeComponent();
 
+        _compact = compact;
+
         TitleText.Text = title;
         BodyText.Text = text;
+
+        if (compact)
+        {
+            Width = 320;
+            Height = 66;
+            Card.Margin = new Thickness(8);
+            Card.Padding = new Thickness(10);
+            IconFrame.Visibility = Visibility.Collapsed;
+
+            if (IconFrame.Parent is System.Windows.Controls.Grid grid &&
+                grid.ColumnDefinitions.Count > 1)
+            {
+                grid.ColumnDefinitions[1].Width = new GridLength(0);
+            }
+
+            TitleText.FontSize = 10;
+            BodyText.FontSize = 12.5;
+            BodyText.Margin = new Thickness(0, 2, 0, 0);
+        }
 
         // The toast is its own transparent window, so a failed theme lookup
         // would leave it with no card at all. Keep the dark fallback from XAML
@@ -82,7 +104,10 @@ public partial class AchievementToastWindow : Window
         Left = area.Right - Width - 8;
         Top = area.Bottom - Height - 8;
 
-        AchievementSound.Play();
+        if (!_compact)
+        {
+            AchievementSound.Play();
+        }
 
         BeginAnimation(
             OpacityProperty,

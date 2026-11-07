@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -24,13 +21,20 @@ public sealed class SteamAchievementNotifier : IDisposable
     private readonly SteamAchievementsService _steam;
     private readonly LocalAchievementsService _local;
     private readonly Action<string, string, string?> _showBalloon;
+
+    /// <summary>
+    /// Raised after a toast was shown. This is the proof that the game really
+    /// writes achievements and that the launcher can see them.
+    /// </summary>
+    public event Action<Game>? AchievementShown;
     private readonly DispatcherTimer _timer;
     private readonly HashSet<string> _known = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _names = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _icons = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _apiByDisplayName = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _apiByNumericId = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly HttpClient IconHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
+    private IReadOnlyList<SteamAchievement>? _catalog;
+    private int _catalogAppId;
     private CancellationTokenSource? _cancellation;
     private Game? _game;
     private int _appId;
@@ -61,12 +65,15 @@ public sealed class SteamAchievementNotifier : IDisposable
             return;
         }
 
+        Log($"start appId={appId} game={game.Title}");
         Stop();
 
         _game = game;
         _appId = appId;
         _primed = false;
         _known.Clear();
+        _catalog = null;
+        _catalogAppId = 0;
         _cancellation = new CancellationTokenSource();
         _timer.Start();
 
@@ -89,6 +96,8 @@ public sealed class SteamAchievementNotifier : IDisposable
         _icons.Clear();
         _apiByDisplayName.Clear();
         _apiByNumericId.Clear();
+        _catalog = null;
+        _catalogAppId = 0;
     }
 
     private async Task PollAsync()
@@ -116,24 +125,75 @@ public sealed class SteamAchievementNotifier : IDisposable
             var local = _local.Get(game, appId);
             var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+            if (_catalog is null || _catalogAppId != appId)
+            {
+                try
+                {
+                    _catalog = await SteamAchievementCatalogService.Shared
+                        .GetAsync(
+                            appId,
+                            SteamAchievementCatalogService.Language,
+                            _cancellation?.Token ?? CancellationToken.None)
+                        .ConfigureAwait(true);
+                    _catalogAppId = appId;
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch
+                {
+                    _catalog = Array.Empty<SteamAchievement>();
+                    _catalogAppId = appId;
+                }
+            }
+
+            foreach (var achievement in _catalog)
+            {
+                if (string.IsNullOrWhiteSpace(achievement.ApiName))
+                {
+                    continue;
+                }
+
+                names[achievement.ApiName] = achievement.Name;
+                _names[achievement.ApiName] = achievement.Name;
+                _icons[achievement.ApiName] = achievement.IconOpen;
+
+                if (!string.IsNullOrWhiteSpace(achievement.Name))
+                {
+                    _apiByDisplayName[achievement.Name] = achievement.ApiName;
+                }
+
+                var numeric = NumericSuffix(achievement.ApiName);
+                if (numeric is not null)
+                {
+                    _apiByNumericId[numeric] = achievement.ApiName;
+                }
+            }
+
             foreach (var achievement in result.Achievements)
             {
-                if (!string.IsNullOrWhiteSpace(achievement.ApiName))
+                if (string.IsNullOrWhiteSpace(achievement.ApiName))
+                {
+                    continue;
+                }
+
+                if (!names.ContainsKey(achievement.ApiName))
                 {
                     names[achievement.ApiName] = achievement.Name;
                     _names[achievement.ApiName] = achievement.Name;
                     _icons[achievement.ApiName] = achievement.IconOpen;
+                }
 
-                    if (!string.IsNullOrWhiteSpace(achievement.Name))
-                    {
-                        _apiByDisplayName[achievement.Name] = achievement.ApiName;
-                    }
+                if (!string.IsNullOrWhiteSpace(achievement.Name))
+                {
+                    _apiByDisplayName[achievement.Name] = achievement.ApiName;
+                }
 
-                    var numericId = NumericSuffix(achievement.ApiName);
-                    if (numericId is not null)
-                    {
-                        _apiByNumericId[numericId] = achievement.ApiName;
-                    }
+                var numericId = NumericSuffix(achievement.ApiName);
+                if (numericId is not null)
+                {
+                    _apiByNumericId[numericId] = achievement.ApiName;
                 }
             }
 
@@ -151,16 +211,10 @@ public sealed class SteamAchievementNotifier : IDisposable
                 unlocked.Add(apiName);
             }
 
-            var steamUnavailable = result.Status is SteamAchievementsStatus.NoSteam
-                or SteamAchievementsStatus.NoAppId;
-            if (steamUnavailable &&
-                local.ApiNames.Count == 0 &&
-                local.DisplayNames.Count == 0)
-            {
-                Stop();
-                return;
-            }
-
+            // Both Steam and the local files can be empty at launch: the
+            // emulator only writes an achievement once one is earned. Do not
+            // stop polling here, otherwise a repack without a Steam account
+            // would never raise a toast for the achievements it earns later.
             if (!_primed)
             {
                 foreach (var apiName in unlocked)
@@ -169,6 +223,10 @@ public sealed class SteamAchievementNotifier : IDisposable
                 }
 
                 _primed = true;
+                Log(
+                    $"baseline appId={_appId} unlocked={unlocked.Count} " +
+                    $"localApi={local.ApiNames.Count} localDisplay={local.DisplayNames.Count} " +
+                    $"sources={string.Join(",", local.Sources)}");
                 return;
             }
 
@@ -180,6 +238,10 @@ public sealed class SteamAchievementNotifier : IDisposable
             {
                 return;
             }
+
+            Log(
+                $"fresh appId={_appId} count={fresh.Count} " +
+                $"first={fresh[0]} catalog={_catalog.Count} icons={_icons.Count}");
 
             var displayName = names.TryGetValue(fresh[0], out var knownName) &&
                               !string.IsNullOrWhiteSpace(knownName)
@@ -196,6 +258,8 @@ public sealed class SteamAchievementNotifier : IDisposable
                 : null;
 
             _showBalloon(title, text, iconPath);
+            Log($"toast appId={_appId} text={text} icon={iconPath}");
+            AchievementShown?.Invoke(game);
         }
         catch (OperationCanceledException)
         {
@@ -249,6 +313,8 @@ public sealed class SteamAchievementNotifier : IDisposable
                 : null;
 
             _showBalloon(title, text, iconPath);
+            Log($"flush toast appId={_appId} text={text} icon={iconPath}");
+            AchievementShown?.Invoke(_game);
             return true;
         }
         catch
@@ -306,49 +372,44 @@ public sealed class SteamAchievementNotifier : IDisposable
             return null;
         }
 
+        // The achievements tab already keeps icons in the shared disk cache.
+        // Reuse that file first, so a toast never waits for a second download
+        // or loses its artwork because the network is slow.
+        var cached = AchievementIconCache.GetCached(url);
+        if (!string.IsNullOrWhiteSpace(cached) && File.Exists(cached))
+        {
+            return cached;
+        }
+
         try
         {
-            var directory = Path.Combine(
-                Path.GetTempPath(),
-                "BagaGame",
-                "achievement-icons");
-            Directory.CreateDirectory(directory);
-
-            using var sha = SHA256.Create();
-            var hash = BitConverter
-                .ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(url)))
-                .Replace("-", string.Empty);
-            var path = Path.Combine(directory, hash + ".img");
-
-            if (File.Exists(path) && new FileInfo(path).Length > 0)
-            {
-                return path;
-            }
-
-            using var response = await IconHttp
-                .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            var downloaded = await AchievementIconCache
+                .GetLocalAsync(url, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            var bytes = await response.Content
-                .ReadAsByteArrayAsync()
-                .ConfigureAwait(false);
-
-            if (bytes.Length < 100)
-            {
-                return null;
-            }
-
-            File.WriteAllBytes(path, bytes);
-            return path;
+            return File.Exists(downloaded) ? downloaded : null;
         }
         catch
         {
             return null;
+        }
+    }
+
+    private static void Log(string message)
+    {
+        try
+        {
+            var directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BagaGame");
+            Directory.CreateDirectory(directory);
+            File.AppendAllText(
+                Path.Combine(directory, "achievement-notifier.log"),
+                DateTime.Now.ToString("u") + "\t" + message + Environment.NewLine);
+        }
+        catch
+        {
+            // Diagnostics never break a toast.
         }
     }
 

@@ -20,6 +20,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly GameLibraryService _libraryService;
     private readonly LibraryStore _store;
     private readonly PlaytimeTracker _playtime;
+    private readonly CpuTopology _cpuTopology;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly ListCollectionView _view;
 
@@ -55,6 +56,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         _libraryService = libraryService;
         _store = store;
+
+        // Optimisation is an explicit per-session action: every launcher start
+        // begins with the master switch off.
+        _store.OptimizeGames = false;
+
+        _cpuTopology = CpuTopologyService.Detect();
         _downloadCovers = store.DownloadCovers;
 
         // Watches a launched game and grows its played time while it runs.
@@ -119,6 +126,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// <summary>Online covers shown in the cover picker.</summary>
     public ObservableCollection<CoverCandidate> CoverResults { get; } = new();
 
+    /// <summary>Games that can show achievements, bound to the Achievements tab.</summary>
+    public ObservableCollection<AchievementGameItem> AchievementGames { get; } = new();
+
+    /// <summary>Achievements of the selected supported game, shown as tiles.</summary>
+    public ObservableCollection<SteamAchievement> AchievementTiles { get; } = new();
+
     private string _coverStatusText = string.Empty;
 
     public string CoverStatusText
@@ -145,6 +158,318 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public string VisibleCountText => Loc.Format("Loc.Library.Shown", VisibleCount);
 
     public bool HasVisibleGames => !_view.IsEmpty;
+
+    // ------------------------------------------------------------------
+    // Achievements tab
+    // ------------------------------------------------------------------
+
+    public int AchievementGamesCount => AchievementGames.Count;
+
+    public bool HasAchievementGames => AchievementGames.Count > 0;
+
+    public string AchievementGamesCountText =>
+        Loc.Format("Loc.Achievements.SupportedCount", AchievementGamesCount);
+
+    private AchievementGameItem? _selectedAchievementGame;
+
+    /// <summary>The game whose achievements are shown on the right.</summary>
+    public AchievementGameItem? SelectedAchievementGame
+    {
+        get => _selectedAchievementGame;
+        set
+        {
+            if (ReferenceEquals(_selectedAchievementGame, value))
+            {
+                return;
+            }
+
+            _selectedAchievementGame = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasSelectedAchievementGame));
+            _ = LoadSelectedAchievementsAsync();
+        }
+    }
+
+    public bool HasSelectedAchievementGame => _selectedAchievementGame is not null;
+
+    private string _selectedAchievementProgress = string.Empty;
+
+    public string SelectedAchievementProgress
+    {
+        get => _selectedAchievementProgress;
+        private set => SetField(ref _selectedAchievementProgress, value);
+    }
+
+    private string _selectedAchievementStatus = string.Empty;
+
+    public string SelectedAchievementStatus
+    {
+        get => _selectedAchievementStatus;
+        private set => SetField(ref _selectedAchievementStatus, value);
+    }
+
+    private bool _loadingAchievements;
+
+    public bool IsLoadingAchievements
+    {
+        get => _loadingAchievements;
+        private set => SetField(ref _loadingAchievements, value);
+    }
+
+    public bool HasAchievementTiles => AchievementTiles.Count > 0;
+
+    /// <summary>
+    /// Rebuilds the supported-games list. Safe to call after every scan and
+    /// when the user asks for a refresh; the selection is preserved by id.
+    /// </summary>
+    public void RefreshAchievementGames()
+    {
+        var selectedId = _selectedAchievementGame?.Game.Id;
+
+        AchievementGames.Clear();
+
+        var items = new List<AchievementGameItem>();
+
+        foreach (var game in Games)
+        {
+            try
+            {
+                var support = AchievementSupportService.Describe(
+                    game,
+                    GetSteamAppId(game),
+                    _store.IsAchievementVerified(game.Id));
+                if (support is null)
+                {
+                    continue;
+                }
+
+                items.Add(new AchievementGameItem(
+                    game,
+                    support.Platform,
+                    support.HasCatalog,
+                    support.Verified,
+                    support.LocalCount,
+                    support.StatusText));
+            }
+            catch
+            {
+                // One unreadable game only skips the row.
+            }
+        }
+
+        foreach (var item in items
+                     .OrderBy(item => item.Game.Title, StringComparer.CurrentCultureIgnoreCase))
+        {
+            AchievementGames.Add(item);
+        }
+
+        OnPropertyChanged(nameof(AchievementGamesCount));
+        OnPropertyChanged(nameof(HasAchievementGames));
+        OnPropertyChanged(nameof(AchievementGamesCountText));
+
+        var keep = selectedId is null
+            ? null
+            : AchievementGames.FirstOrDefault(item =>
+                string.Equals(item.Game.Id, selectedId, StringComparison.OrdinalIgnoreCase));
+
+        SelectedAchievementGame = keep ?? AchievementGames.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The notifier showed a toast, so the game really writes achievements.
+    /// Persist that and flip the row badge without reloading the catalogue.
+    /// </summary>
+    public void MarkAchievementVerified(Game game)
+    {
+        if (game is null || string.IsNullOrWhiteSpace(game.Id))
+        {
+            return;
+        }
+
+        _store.MarkAchievementVerified(game.Id);
+
+        for (var index = 0; index < AchievementGames.Count; index++)
+        {
+            var item = AchievementGames[index];
+            if (!string.Equals(item.Game.Id, game.Id, StringComparison.OrdinalIgnoreCase) ||
+                item.Verified)
+            {
+                continue;
+            }
+
+            var updated = item with
+            {
+                Verified = true,
+                StatusText = Loc.T("Loc.Achievements.Verified"),
+            };
+
+            AchievementGames[index] = updated;
+
+            if (ReferenceEquals(_selectedAchievementGame, item))
+            {
+                _selectedAchievementGame = updated;
+                OnPropertyChanged(nameof(SelectedAchievementGame));
+            }
+
+            break;
+        }
+    }
+
+    private async Task LoadSelectedAchievementsAsync()
+    {
+        var item = _selectedAchievementGame;
+        if (item is null)
+        {
+            AchievementTiles.Clear();
+            SelectedAchievementProgress = string.Empty;
+            SelectedAchievementStatus = string.Empty;
+            OnPropertyChanged(nameof(HasAchievementTiles));
+            return;
+        }
+
+        var appId = GetSteamAppId(item.Game);
+        if (appId <= 0)
+        {
+            AchievementTiles.Clear();
+            SelectedAchievementProgress = string.Empty;
+            SelectedAchievementStatus = Loc.T("Loc.Achievements.NoCatalog");
+            OnPropertyChanged(nameof(HasAchievementTiles));
+            return;
+        }
+
+        IsLoadingAchievements = true;
+
+        try
+        {
+            // Rarity comes from a different Steam endpoint, so it runs next to
+            // the profile and catalogue requests instead of after them.
+            var percentagesTask = SteamGlobalStatsService.Shared
+                .GetAsync(appId, _lifetime.Token);
+
+            var result = await SteamAchievementsService.Shared
+                .GetAsync(appId, _lifetime.Token)
+                .ConfigureAwait(true);
+
+            // Another game was selected while the catalogue was loading.
+            if (!ReferenceEquals(_selectedAchievementGame, item))
+            {
+                return;
+            }
+
+            var catalog = await SteamAchievementCatalogService.Shared
+                .GetAsync(appId, SteamAchievementCatalogService.Language, _lifetime.Token)
+                .ConfigureAwait(true);
+
+            if (!ReferenceEquals(_selectedAchievementGame, item))
+            {
+                return;
+            }
+
+            var local = new LocalAchievementsService().Get(item.Game, appId);
+            var byApi = result.Achievements
+                .Where(achievement => !string.IsNullOrWhiteSpace(achievement.ApiName))
+                .GroupBy(achievement => achievement.ApiName, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+            var hasCatalog = catalog.Count > 0;
+            var source = hasCatalog ? catalog : result.Achievements;
+
+            var merged = source
+                .Select(achievement =>
+                {
+                    var baseItem = achievement;
+
+                    if (hasCatalog && byApi.TryGetValue(achievement.ApiName, out var steam))
+                    {
+                        baseItem = new SteamAchievement
+                        {
+                            ApiName = achievement.ApiName,
+                            Name = achievement.Name,
+                            Description = achievement.Description,
+                            Unlocked = steam.Unlocked,
+                            IconOpen = achievement.IconOpen,
+                            IconLocked = achievement.IconLocked,
+                            IconUrl = steam.Unlocked && !string.IsNullOrWhiteSpace(achievement.IconOpen)
+                                ? achievement.IconOpen
+                                : achievement.IconLocked,
+                            UnlockTime = steam.UnlockTime,
+                        };
+                    }
+
+                    return SteamAchievementsViewModel.Merge(baseItem, local);
+                })
+                .OrderByDescending(achievement => achievement.Unlocked)
+                .ToList();
+
+            AchievementTiles.Clear();
+            foreach (var achievement in merged)
+            {
+                AchievementTiles.Add(achievement);
+            }
+
+            var unlocked = merged.Count(achievement => achievement.Unlocked);
+            SelectedAchievementProgress = result.Status == SteamAchievementsStatus.Success || hasCatalog
+                ? Loc.Format("Loc.Achievements.Progress", unlocked, merged.Count)
+                : string.Empty;
+
+            SelectedAchievementStatus = merged.Count > 0
+                ? result.Status switch
+                {
+                    SteamAchievementsStatus.NoSteam => Loc.T("Loc.Achievements.NoSteamNote"),
+                    SteamAchievementsStatus.PrivateProfile => Loc.T("Loc.Achievements.PrivateNote"),
+                    SteamAchievementsStatus.Error => Loc.T("Loc.Achievements.ErrorNote"),
+                    _ => string.Empty,
+                }
+                : result.Status switch
+                {
+                    SteamAchievementsStatus.Success => Loc.T("Loc.Achievements.None"),
+                    SteamAchievementsStatus.NoSteam => Loc.T("Loc.Achievements.NoSteam"),
+                    SteamAchievementsStatus.PrivateProfile => Loc.T("Loc.Achievements.Private"),
+                    SteamAchievementsStatus.NoAppId => Loc.T("Loc.Achievements.NoAppId"),
+                    _ => Loc.T("Loc.Achievements.Error"),
+                };
+
+            // The list is already visible; rarity fills in as soon as it arrives.
+            _ = AssignPercentagesAsync(item, percentagesTask);
+        }
+        catch (OperationCanceledException)
+        {
+            // The window closed or the selection changed.
+        }
+        catch
+        {
+            SelectedAchievementStatus = Loc.T("Loc.Achievements.Error");
+        }
+        finally
+        {
+            IsLoadingAchievements = false;
+            OnPropertyChanged(nameof(HasAchievementTiles));
+        }
+    }
+
+    private async Task AssignPercentagesAsync(
+        AchievementGameItem item,
+        Task<IReadOnlyDictionary<string, double>> percentagesTask)
+    {
+        try
+        {
+            var percentages = await percentagesTask.ConfigureAwait(true);
+            if (!ReferenceEquals(_selectedAchievementGame, item))
+            {
+                return;
+            }
+
+            SteamGlobalStatsService.Assign(AchievementTiles, percentages);
+        }
+        catch (OperationCanceledException)
+        {
+            // The window closed or the selection changed.
+        }
+        catch
+        {
+            // Rarity is optional; the tiles keep the "no data" tooltip.
+        }
+    }
 
     public LibraryGrouping Grouping => _grouping;
 
@@ -316,6 +641,245 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>Show the achievement status toast when a game is launched.</summary>
+    public bool AchievementScanNotice
+    {
+        get => _store.AchievementScanNotice;
+        set
+        {
+            if (_store.AchievementScanNotice == value)
+            {
+                return;
+            }
+
+            _store.AchievementScanNotice = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Detected CPU topology used by the performance settings.</summary>
+    public CpuTopology CpuTopology => _cpuTopology;
+
+    public string CpuSummary => BuildCpuSummary();
+
+    public bool CanUsePerformanceCores => _cpuTopology.CanForcePerformanceCores;
+
+    public bool CanUseEfficiencyCores => _cpuTopology.CanForceEfficiencyCores;
+
+    public bool CanSelectL3Domain => _cpuTopology.CanSelectL3Domain;
+
+    public string CpuModeHint =>
+        !CanUsePerformanceCores &&
+        !CanUseEfficiencyCores &&
+        !CanSelectL3Domain
+            ? Loc.T("Loc.Settings.CpuModeAutoOnly")
+            : Loc.T("Loc.Settings.CpuModeSummary");
+
+    public bool OptimizeGames
+    {
+        get => _store.OptimizeGames;
+        set
+        {
+            if (_store.OptimizeGames == value)
+            {
+                return;
+            }
+
+            _store.OptimizeGames = value;
+            OnPropertyChanged();
+
+            // Turning optimisation on starts from the safe universal profile.
+            if (value)
+            {
+                ResetPerformanceDefaults();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Auto CPU mode, Auto priority and both optional switches off. Applied
+    /// when the master optimisation switch is turned on.
+    /// </summary>
+    public void ResetPerformanceDefaults()
+    {
+        CpuMode = CpuOptimizationMode.Auto;
+        GamePriority = GameProcessPriority.Normal;
+        DisableEcoQos = false;
+        LauncherBackground = false;
+        TimerResolution = GameTimerResolution.Off;
+    }
+
+    /// <summary>CPU mode with unsupported values safely reduced to Auto.</summary>
+    public CpuOptimizationMode CpuMode
+    {
+        get
+        {
+            var mode = _store.CpuMode;
+            if (mode == CpuOptimizationMode.PerformanceCores &&
+                !CanUsePerformanceCores)
+            {
+                return CpuOptimizationMode.Auto;
+            }
+
+            if (mode == CpuOptimizationMode.EfficiencyCores &&
+                !CanUseEfficiencyCores)
+            {
+                return CpuOptimizationMode.Auto;
+            }
+
+            if (mode == CpuOptimizationMode.PreferredL3Domain &&
+                !CanSelectL3Domain)
+            {
+                return CpuOptimizationMode.Auto;
+            }
+
+            return mode;
+        }
+        set
+        {
+            if (value == CpuOptimizationMode.PerformanceCores &&
+                !CanUsePerformanceCores)
+            {
+                value = CpuOptimizationMode.Auto;
+            }
+
+            if (value == CpuOptimizationMode.EfficiencyCores &&
+                !CanUseEfficiencyCores)
+            {
+                value = CpuOptimizationMode.Auto;
+            }
+
+            if (value == CpuOptimizationMode.PreferredL3Domain &&
+                !CanSelectL3Domain)
+            {
+                value = CpuOptimizationMode.Auto;
+            }
+
+            if (_store.CpuMode == value)
+            {
+                return;
+            }
+
+            _store.CpuMode = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public GameProcessPriority GamePriority
+    {
+        get => _store.GamePriority;
+        set
+        {
+            if (_store.GamePriority == value)
+            {
+                return;
+            }
+
+            _store.GamePriority = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool DisableEcoQos
+    {
+        get => _store.DisableEcoQos;
+        set
+        {
+            if (_store.DisableEcoQos == value)
+            {
+                return;
+            }
+
+            _store.DisableEcoQos = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool LauncherBackground
+    {
+        get => _store.LauncherBackground;
+        set
+        {
+            if (_store.LauncherBackground == value)
+            {
+                return;
+            }
+
+            _store.LauncherBackground = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public GameTimerResolution TimerResolution
+    {
+        get => _store.TimerResolution;
+        set
+        {
+            if (_store.TimerResolution == value)
+            {
+                return;
+            }
+
+            _store.TimerResolution = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private GameBoostSettings CreateBoostSettings()
+        => new(
+            _store.OptimizeGames,
+            CpuMode,
+            _store.GamePriority,
+            _store.DisableEcoQos,
+            _store.LauncherBackground,
+            _store.TimerResolution,
+            false);
+
+    private string BuildCpuSummary()
+    {
+        var model = string.IsNullOrWhiteSpace(_cpuTopology.Model)
+            ? "CPU"
+            : _cpuTopology.Model;
+        var logical = _cpuTopology.LogicalProcessors;
+
+        if (_cpuTopology.IsHybrid)
+        {
+            var performance = _cpuTopology.Cores
+                .Where(core => core.IsPerformance)
+                .Select(core => (core.Group, core.CoreIndex))
+                .Distinct()
+                .Count();
+            var efficiency = _cpuTopology.Cores
+                .Where(core => !core.IsPerformance)
+                .Select(core => (core.Group, core.CoreIndex))
+                .Distinct()
+                .Count();
+
+            return Loc.Format(
+                "Loc.Performance.CpuHybrid",
+                model,
+                performance,
+                efficiency,
+                logical);
+        }
+
+        if (_cpuTopology.CanSelectL3Domain)
+        {
+            return Loc.Format(
+                "Loc.Performance.CpuCcd",
+                model,
+                _cpuTopology.PhysicalCores,
+                _cpuTopology.L3Domains.Count,
+                logical);
+        }
+
+        return Loc.Format(
+            "Loc.Performance.CpuBasic",
+            model,
+            _cpuTopology.PhysicalCores,
+            logical);
+    }
+
     /// <summary>True when GitHub reports a stable release newer than this build.</summary>
     public bool HasUpdate
     {
@@ -330,7 +894,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    /// <summary>"Version 0.9.0 is available", re-rendered on a language switch.</summary>
+    /// <summary>"Version X is available", re-rendered on a language switch.</summary>
     public string UpdateVersionText => HasUpdate
         ? Loc.Format("Loc.Update.Available", _updateVersion)
         : string.Empty;
@@ -777,6 +1341,117 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         SetStatus("Loc.Status.Deleted", title);
     }
 
+    /// <summary>Builds the full list shown in the delete confirmation window.</summary>
+    public GameUninstallPlan BuildUninstallPlan(Game game)
+        => GameUninstallService.Build(game, GetSteamAppId(game));
+
+    /// <summary>
+    /// Deletes every file in the uninstall plan and then removes the library
+    /// record. The install folder is validated before anything is touched.
+    /// </summary>
+    public bool UninstallGame(Game game, GameUninstallPlan plan, out string error)
+    {
+        error = string.Empty;
+
+        var install = plan.Targets.FirstOrDefault(
+            target => target.Kind == UninstallTargetKind.Install);
+
+        if (install is not null && !IsSafeGameFolder(install.Path))
+        {
+            error = Loc.T("Loc.Delete.Unsafe");
+            return false;
+        }
+
+        var errors = GameUninstallService.Delete(plan);
+        if (errors.Count > 0)
+        {
+            error = Loc.Format(
+                "Loc.Delete.Error",
+                string.Join(Environment.NewLine, errors));
+            return false;
+        }
+
+        DeleteGame(game);
+        return true;
+    }
+
+    private bool IsSafeGameFolder(string fullPath)
+    {
+        var root = Path.GetPathRoot(fullPath)?
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        if (string.IsNullOrWhiteSpace(root) ||
+            string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Steam library folders are allowed even under Program Files.
+        if (fullPath.IndexOf(
+                Path.DirectorySeparatorChar + "steamapps" +
+                Path.DirectorySeparatorChar + "common" +
+                Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        var critical = new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            AppPaths.DataDirectory,
+            AppDomain.CurrentDomain.BaseDirectory,
+        };
+
+        foreach (var protectedPath in critical)
+        {
+            if (string.IsNullOrWhiteSpace(protectedPath))
+            {
+                continue;
+            }
+
+            var normalized = Path.GetFullPath(protectedPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            if (string.Equals(fullPath, normalized, StringComparison.OrdinalIgnoreCase) ||
+                IsChildOf(fullPath, normalized))
+            {
+                return false;
+            }
+        }
+
+        foreach (var folder in _store.Folders)
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                continue;
+            }
+
+            var normalized = Path.GetFullPath(folder)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            if (!string.Equals(fullPath, normalized, StringComparison.OrdinalIgnoreCase) &&
+                IsChildOf(fullPath, normalized))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsChildOf(string path, string parent)
+        => path.StartsWith(
+            parent + Path.DirectorySeparatorChar,
+            StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Stars or unstars a game; an active star filter updates at once.</summary>
     public void ToggleFavorite(Game game)
     {
@@ -794,15 +1469,28 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         try
         {
+            var boost = CreateBoostSettings();
+
             if (!string.IsNullOrWhiteSpace(game.ExecutablePath) &&
                 File.Exists(game.ExecutablePath))
             {
                 var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = game.ExecutablePath,
+                    Arguments = _store.GetLaunchArguments(game.Id),
                     WorkingDirectory = Path.GetDirectoryName(game.ExecutablePath) ?? string.Empty,
                     UseShellExecute = true,
                 });
+
+                if (process is not null && boost.Enabled)
+                {
+                    GameOptimizationService.ApplyToProcess(process, boost, _cpuTopology);
+                    GameOptimizationService.ReapplyAfterDelay(
+                        process.Id,
+                        boost,
+                        _cpuTopology,
+                        TimeSpan.FromSeconds(2));
+                }
 
                 SetStatus("Loc.Status.Launching", game.Title);
                 _store.MarkPlayed(game.Id);
@@ -811,20 +1499,29 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 // not expose its module path to a normal launcher, so the name
                 // lookup alone would report it as stopped after the grace time.
                 _playtime.Track(game, process?.Id ?? 0);
+                ApplySessionOptimizations(boost);
                 return true;
             }
 
             if (game.AppId > 0)
             {
+                var executable = _libraryService.ResolveLaunchExecutable(game);
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = $"steam://rungameid/{game.AppId}",
                     UseShellExecute = true,
                 });
 
+                if (boost.Enabled)
+                {
+                    GameOptimizationService.WatchForProcess(executable, boost, _cpuTopology);
+                }
+
                 SetStatus("Loc.Status.Launching", game.Title);
                 _store.MarkPlayed(game.Id);
                 _playtime.Track(game);
+                ApplySessionOptimizations(boost);
                 return true;
             }
 
@@ -841,6 +1538,30 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             return false;
         }
     }
+
+    /// <summary>Returns the launcher and timer to their normal state.</summary>
+    public void RestoreLauncherBackground()
+    {
+        GameOptimizationService.SetLauncherBackground(false);
+        TimerResolutionService.Restore();
+    }
+
+    private static void ApplySessionOptimizations(GameBoostSettings settings)
+    {
+        if (settings.Enabled && settings.LauncherBackground)
+        {
+            GameOptimizationService.SetLauncherBackground(true);
+        }
+
+        TimerResolutionService.Apply(
+            settings.Enabled ? settings.TimerResolution : GameTimerResolution.Off);
+    }
+
+    public string GetLaunchArguments(Game game)
+        => _store.GetLaunchArguments(game.Id);
+
+    public void SetLaunchArguments(Game game, string arguments)
+        => _store.SetLaunchArguments(game.Id, arguments);
 
     public void OpenGameFolder(Game game)
     {
@@ -1572,6 +2293,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         ApplyGroups();
         RefreshView();
+        RefreshAchievementGames();
 
         OnPropertyChanged(nameof(GamesCount));
         OnPropertyChanged(nameof(LibrarySummary));
@@ -1687,6 +2409,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         ApplyGroups();
         RefreshView();
+        RefreshAchievementGames();
 
         foreach (var game in Games)
         {
@@ -1705,6 +2428,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         OnPropertyChanged(nameof(UpdateVersionText));
         OnPropertyChanged(nameof(UpdateTipText));
+        OnPropertyChanged(nameof(CpuSummary));
+        OnPropertyChanged(nameof(CpuModeHint));
 
         OnPropertyChanged(nameof(EmptyTitle));
         OnPropertyChanged(nameof(EmptyText));
@@ -1743,6 +2468,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         _playtime.PlaytimeChanged -= OnPlaytimeChanged;
         _playtime.GameStopped -= OnGameStopped;
         _playtime.Dispose();
+        GameOptimizationService.SetLauncherBackground(false);
+        TimerResolutionService.Restore();
         _libraryService.Dispose();
     }
 }

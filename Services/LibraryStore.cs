@@ -109,6 +109,179 @@ public sealed class LibraryStore
         }
     }
 
+    /// <summary>Show the achievement status toast when a game is launched.</summary>
+    public bool AchievementScanNotice
+    {
+        get => _data.AchievementScanNotice;
+        set
+        {
+            if (_data.AchievementScanNotice == value)
+            {
+                return;
+            }
+
+            _data.AchievementScanNotice = value;
+            Save();
+        }
+    }
+
+    /// <summary>Apply the universal launch optimisation to games started here.</summary>
+    public bool OptimizeGames
+    {
+        get => _data.OptimizeGames;
+        set
+        {
+            if (_data.OptimizeGames == value)
+            {
+                return;
+            }
+
+            _data.OptimizeGames = value;
+            Save();
+        }
+    }
+
+    /// <summary>CPU scheduling intent; unsupported modes fall back to Auto.</summary>
+    public CpuOptimizationMode CpuMode
+    {
+        get => Enum.TryParse<CpuOptimizationMode>(_data.CpuMode, true, out var mode)
+            ? mode
+            : CpuOptimizationMode.Auto;
+        set
+        {
+            var stored = value.ToString();
+            if (string.Equals(_data.CpuMode, stored, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _data.CpuMode = stored;
+            Save();
+        }
+    }
+
+    /// <summary>Priority class for the game process.</summary>
+    public GameProcessPriority GamePriority
+    {
+        get => Enum.TryParse<GameProcessPriority>(_data.GamePriority, true, out var priority)
+            ? priority
+            : GameProcessPriority.AboveNormal;
+        set
+        {
+            var stored = value.ToString();
+            if (string.Equals(_data.GamePriority, stored, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _data.GamePriority = stored;
+            Save();
+        }
+    }
+
+    /// <summary>Remove Windows power throttling from the game process.</summary>
+    public bool DisableEcoQos
+    {
+        get => _data.DisableEcoQos;
+        set
+        {
+            if (_data.DisableEcoQos == value)
+            {
+                return;
+            }
+
+            _data.DisableEcoQos = value;
+            Save();
+        }
+    }
+
+    /// <summary>Optional timer resolution request while a game runs.</summary>
+    public GameTimerResolution TimerResolution
+    {
+        get => Enum.TryParse<GameTimerResolution>(_data.TimerResolution, true, out var value)
+            ? value
+            : GameTimerResolution.Off;
+        set
+        {
+            var stored = value.ToString();
+            if (string.Equals(_data.TimerResolution, stored, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _data.TimerResolution = stored;
+            Save();
+        }
+    }
+
+    /// <summary>Lower the launcher priority while a game is running.</summary>
+    public bool LauncherBackground
+    {
+        get => _data.LauncherBackground;
+        set
+        {
+            if (_data.LauncherBackground == value)
+            {
+                return;
+            }
+
+            _data.LauncherBackground = value;
+            Save();
+        }
+    }
+
+    /// <summary>Extra command-line arguments for one game, or an empty string.</summary>
+    public string GetLaunchArguments(string gameId)
+    {
+        return !string.IsNullOrWhiteSpace(gameId) &&
+               _data.LaunchArguments.TryGetValue(gameId, out var arguments)
+            ? arguments
+            : string.Empty;
+    }
+
+    public void SetLaunchArguments(string gameId, string? arguments)
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+        {
+            return;
+        }
+
+        var value = arguments?.Trim() ?? string.Empty;
+        var current = GetLaunchArguments(gameId);
+
+        if (string.Equals(current, value, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (value.Length == 0)
+        {
+            _data.LaunchArguments.Remove(gameId);
+        }
+        else
+        {
+            _data.LaunchArguments[gameId] = value;
+        }
+
+        Save();
+    }
+
+    /// <summary>Last successful automatic cleanup, in UTC.</summary>
+    public DateTime? LastCleanupUtc
+    {
+        get => _data.LastCleanupUtc;
+        set
+        {
+            if (_data.LastCleanupUtc == value)
+            {
+                return;
+            }
+
+            _data.LastCleanupUtc = value;
+            Save();
+        }
+    }
+
     /// <summary>
     /// Open Big Picture automatically when a controller connects while the
     /// launcher window is active. Off by default.
@@ -304,6 +477,26 @@ public sealed class LibraryStore
             _data.Playtime[gameId] = normalized;
         }
 
+        Save();
+    }
+
+    /// <summary>
+    /// True once the launcher actually showed an achievement toast for this
+    /// game. A local file with progress is not enough: the notification proves
+    /// that the game writes achievements and the launcher can see them.
+    /// </summary>
+    public bool IsAchievementVerified(string gameId)
+        => !string.IsNullOrWhiteSpace(gameId) &&
+           _data.AchievementVerified.Contains(gameId, StringComparer.OrdinalIgnoreCase);
+
+    public void MarkAchievementVerified(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId) || IsAchievementVerified(gameId))
+        {
+            return;
+        }
+
+        _data.AchievementVerified.Add(gameId);
         Save();
     }
 
@@ -864,6 +1057,9 @@ public sealed class LibraryStore
 
         public Dictionary<string, string> CustomTitles { get; set; } = new();
 
+        /// <summary>Optional extra command-line arguments per game.</summary>
+        public Dictionary<string, string> LaunchArguments { get; set; } = new();
+
         public List<string> Folders { get; set; } = new();
 
         public List<ManualGameEntry> ManualGames { get; set; } = new();
@@ -873,6 +1069,9 @@ public sealed class LibraryStore
         public Dictionary<string, long> Playtime { get; set; } = new();
 
         public Dictionary<string, long> LastPlayed { get; set; } = new();
+
+        /// <summary>Ids of games that produced a real achievement toast.</summary>
+        public List<string> AchievementVerified { get; set; } = new();
 
         /// <summary>Ids of games the user marked with a star.</summary>
         public List<string> Favorites { get; set; } = new();
@@ -892,6 +1091,23 @@ public sealed class LibraryStore
         public string? DismissedUpdateVersion { get; set; }
 
         public bool DownloadCovers { get; set; } = true;
+
+        /// <summary>Show the achievement status toast when a game is launched.</summary>
+        public bool AchievementScanNotice { get; set; } = true;
+
+        public bool OptimizeGames { get; set; }
+
+        public string CpuMode { get; set; } = "Auto";
+
+        public string GamePriority { get; set; } = "Normal";
+
+        public bool DisableEcoQos { get; set; }
+
+        public bool LauncherBackground { get; set; }
+
+        public string TimerResolution { get; set; } = "Off";
+
+        public DateTime? LastCleanupUtc { get; set; }
 
         public bool UseSteamGridDb { get; set; }
 

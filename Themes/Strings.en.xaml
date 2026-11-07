@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
@@ -46,6 +46,7 @@
     <sys:String x:Key="Loc.BP.PlayedFor">Time in game {0}</sys:String>
 
     <sys:String x:Key="Loc.Menu.Launch">Launch</sys:String>
+    <sys:String x:Key="Loc.Menu.LaunchArguments">Launch arguments</sys:String>
     <sys:String x:Key="Loc.Menu.OpenFolder">Open folder</sys:String>
     <sys:String x:Key="Loc.Menu.Cut">Cut</sys:String>
     <sys:String x:Key="Loc.Menu.Copy">Copy</sys:String>
@@ -54,9 +55,21 @@
     <sys:String x:Key="Loc.Menu.RemoveFavorite">Remove from favorites</sys:String>
     <sys:String x:Key="Loc.Menu.Rename">Rename</sys:String>
     <sys:String x:Key="Loc.Menu.Hide">Hide from library</sys:String>
-    <sys:String x:Key="Loc.Menu.HideTip">Remove the game from the library but keep its name and genre — bring it back in Settings with “Restore hidden”</sys:String>
+    <sys:String x:Key="Loc.Menu.HideTip">Remove the game from the library but keep its name and genre, bring it back in Settings with “Restore hidden”</sys:String>
     <sys:String x:Key="Loc.Menu.Delete">Delete</sys:String>
-    <sys:String x:Key="Loc.Menu.DeleteTip">Delete the game record — the next scan will find the game again</sys:String>
+    <sys:String x:Key="Loc.Menu.DeleteTip">Delete the game and its files from the PC</sys:String>
+    <sys:String x:Key="Loc.Delete.Title">Delete the game?</sys:String>
+    <sys:String x:Key="Loc.Delete.Warning">The game folder, saves and emulator data will be deleted. This is a full uninstall and cannot be undone.</sys:String>
+    <sys:String x:Key="Loc.Delete.Targets">Will be deleted:</sys:String>
+    <sys:String x:Key="Loc.Delete.NoFiles">No files were found to delete.</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Install">Game</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Emulator">Emulator</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Save">Saves</sys:String>
+    <sys:String x:Key="Loc.Delete.Kind.Steam">Steam</sys:String>
+    <sys:String x:Key="Loc.Delete.Confirm">Delete</sys:String>
+    <sys:String x:Key="Loc.Delete.Missing">The game folder was not found.</sys:String>
+    <sys:String x:Key="Loc.Delete.Unsafe">This folder does not look like a game folder. Deletion cancelled.</sys:String>
+    <sys:String x:Key="Loc.Delete.Error">Could not delete the game folder: {0}</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolder">Choose the folder again</sys:String>
     <sys:String x:Key="Loc.Menu.ReassignFolderTip">The game folder is unavailable: connect the drive or pick the game folder again</sys:String>
     <sys:String x:Key="Loc.Menu.ChangeCover">Change cover</sys:String>
@@ -66,14 +79,12 @@
     <sys:String x:Key="Loc.Cover.Upload">Upload image</sys:String>
     <sys:String x:Key="Loc.Cover.Reset">Restore default</sys:String>
     <sys:String x:Key="Loc.Cover.Searching">Searching covers…</sys:String>
-    <sys:String x:Key="Loc.Cover.NotFound">Nothing found. Try another title or upload your own image.</sys:String>
     <sys:String x:Key="Loc.Cover.Found">Variants found: {0}</sys:String>
     <sys:String x:Key="Loc.Cover.Applying">Applying cover…</sys:String>
     <sys:String x:Key="Loc.Cover.Applied">Cover updated</sys:String>
     <sys:String x:Key="Loc.Cover.Failed">Could not apply the cover</sys:String>
     <sys:String x:Key="Loc.Cover.CropTitle">Cover crop</sys:String>
     <sys:String x:Key="Loc.Cover.CropHint">Drag the image, use the mouse wheel to zoom. The final cover is always 2:3.</sys:String>
-    <sys:String x:Key="Loc.Cover.Preview">Preview</sys:String>
     <sys:String x:Key="Loc.Cover.Back">Back</sys:String>
     <sys:String x:Key="Loc.Cover.Save">Save</sys:String>
     <sys:String x:Key="Loc.Cover.UploadFailed">Could not open the file. JPG, PNG and BMP up to 12 MB are supported.</sys:String>
@@ -103,7 +114,7 @@
     <sys:String x:Key="Loc.Library.FavoritesTip">Show only favorites</sys:String>
     <sys:String x:Key="Loc.Library.GroupNoneTip">One shared grid</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlpha">By alphabet</sys:String>
-    <sys:String x:Key="Loc.Library.GroupAlphaShort">A–Z</sys:String>
+    <sys:String x:Key="Loc.Library.GroupAlphaShort">A-Z</sys:String>
     <sys:String x:Key="Loc.Library.GroupAlphaTip">Groups by the first letter of the title</sys:String>
     <sys:String x:Key="Loc.Library.GroupGenre">By genre</sys:String>
     <sys:String x:Key="Loc.Library.GroupGenreShort">Genres</sys:String>
@@ -154,10 +165,49 @@
     <sys:String x:Key="Loc.Cover.NeedKey">Enter your SteamGridDB API key in Settings.</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbNotFound">SteamGridDB found nothing. Check the key or change the query.</sys:String>
     <sys:String x:Key="Loc.Cover.SgdbTitle">More covers in SteamGridDB</sys:String>
-    <sys:String x:Key="Loc.Cover.SgdbHint">Add an API key and enable SteamGridDB in Settings — community covers will appear here.</sys:String>
+    <sys:String x:Key="Loc.Cover.SgdbHint">Add an API key and enable SteamGridDB in Settings, community covers will appear here.</sys:String>
     <sys:String x:Key="Loc.Cover.OpenSettings">Settings</sys:String>
     <sys:String x:Key="Loc.Cover.AddBadge">Add cover</sys:String>
-    <sys:String x:Key="Loc.Cover.AddBadgeTip">No cover found — upload your own or pick one in SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Cover.AddBadgeTip">No cover found, upload your own or pick one in SteamGridDB</sys:String>
+    <sys:String x:Key="Loc.Settings.Performance">PERFORMANCE</sys:String>
+    <sys:String x:Key="Loc.Settings.OptimizeGames">Optimize games at launch</sys:String>
+    <sys:String x:Key="Loc.Settings.OptimizeGamesTip">Enables all launch optimisation. Applies the selected CPU mode, priority, power saving and launcher background. It does not change Windows settings.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuMode">CPU mode</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuModeSummary">Lets you forcibly override how load is distributed across CPU cores.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuModeAutoOnly">Only automatic mode is available for this CPU.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuAuto">Auto</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuAutoTip">Windows chooses the cores for the game and takes P-cores and E-cores into account. This is the safe default for most games and forces nothing.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuPerformance">P-cores</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuPerformanceTip">The game runs only on performance cores (P-cores). Can improve stability and 1% lows in CPU-bound games and emulators. May lower FPS in heavily threaded games.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuEfficiency">E-cores</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuEfficiencyTip">The game runs only on efficiency cores (E-cores). Usually gives lower FPS than P-cores or Auto. Use it for background tasks or testing.</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuL3">1 CCD</sys:String>
+    <sys:String x:Key="Loc.Settings.CpuL3Tip">Keeps the game on one CCD or L3 domain. Helps dual-CCD AMD Ryzen avoid cross-chiplet jumps. No effect on single-CCD Ryzen.</sys:String>
+    <sys:String x:Key="Loc.Settings.Priority">Priority</sys:String>
+    <sys:String x:Key="Loc.Settings.PrioritySummary">Lets you forcibly override the game process priority.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityNormal">Auto</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityNormalTip">Auto. Standard Windows priority. The game competes with background tasks as usual. Suitable when nothing heavy runs in the background.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityAbove">Medium</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityAboveTip">Medium. Slightly above normal. The game gets more CPU time under background load while the system stays responsive. A safe choice for most games.</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityHigh">High</sys:String>
+    <sys:String x:Key="Loc.Settings.PriorityHighTip">High priority. The game pushes background tasks aside and can help during recording, browsing or antivirus scans. May reduce system responsiveness, use it when needed.</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer">Timer</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerSummary">Raises the system timer precision. Usually not required.</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerOff">Off</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerOffTip">Standard Windows timer. Recommended.</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer1">1 ms</sys:String>
+    <sys:String x:Key="Loc.Settings.Timer1Tip">Raises precision to 1 ms. Can improve frame pacing and slightly increases power usage.</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerHalf">0.5 ms</sys:String>
+    <sys:String x:Key="Loc.Settings.TimerHalfTip">Maximum precision. Use it only when frame pacing problems occur.</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQos">Disable game power saving</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQosSummary">Remove EcoQoS and power throttling from the game process.</sys:String>
+    <sys:String x:Key="Loc.Settings.DisableEcoQosTip">Windows can slow processes down through EcoQoS. This option removes that limit from the game. It slightly increases power usage.</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackground">Launcher in background</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackgroundSummary">Lower the launcher priority while a game is running.</sys:String>
+    <sys:String x:Key="Loc.Settings.LauncherBackgroundTip">While a game is running, the launcher stays in the background at low priority and does not compete for CPU. Its priority is restored after the game exits.</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuHybrid">{0} · {1}P + {2}E · {3} threads</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuCcd">{0} · {1} cores · {2} CCD · {3} threads</sys:String>
+    <sys:String x:Key="Loc.Performance.CpuBasic">{0} · {1} cores · {2} threads</sys:String>
     <sys:String x:Key="Loc.Settings.Library">LIBRARY</sys:String>
     <sys:String x:Key="Loc.Settings.Cache">Cover cache</sys:String>
     <sys:String x:Key="Loc.Settings.CacheTip">Restore the default folder</sys:String>
@@ -170,10 +220,8 @@
     <sys:String x:Key="Loc.Settings.Language">Interface language</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageTip">Switches instantly and is saved</sys:String>
     <sys:String x:Key="Loc.Settings.LanguageRu">Русский</sys:String>
-    <sys:String x:Key="Loc.Settings.LanguageEn">English</sys:String>
 
-    <sys:String x:Key="Loc.Add.Title">Add game</sys:String>
-    <sys:String x:Key="Loc.Add.Description">Choose a game folder or its .exe — the cover and genre are fetched automatically.</sys:String>
+    <sys:String x:Key="Loc.Add.Description">Choose a game folder or its .exe, the cover and genre are fetched automatically.</sys:String>
     <sys:String x:Key="Loc.Add.Folder">Game folder</sys:String>
     <sys:String x:Key="Loc.Add.FolderTip">Pick a folder, the .exe is found automatically</sys:String>
     <sys:String x:Key="Loc.Add.FolderAction">Find the .exe automatically</sys:String>
@@ -183,6 +231,9 @@
 
     <sys:String x:Key="Loc.Rename.Title">Rename game</sys:String>
     <sys:String x:Key="Loc.Rename.Placeholder">Game title</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Title">Launch arguments</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Placeholder">For example: -high -dx11</sys:String>
+    <sys:String x:Key="Loc.LaunchArgs.Tip">Passed to the executable when launched from the launcher. Not used for Steam games.</sys:String>
 
     <sys:String x:Key="Loc.Status.Ready">Preparing…</sys:String>
     <sys:String x:Key="Loc.Status.Scanning">Scanning…</sys:String>
@@ -234,10 +285,9 @@
 
     <sys:String x:Key="Loc.App.Version">Version {0}</sys:String>
 
-    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame — game running</sys:String>
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: game running</sys:String>
     <sys:String x:Key="Loc.Tray.Open">Open BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Exit</sys:String>
-    <sys:String x:Key="Loc.Tray.Launched">{0} is starting. The window returns when the game closes.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Choose a folder with games</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Choose the game folder</sys:String>
@@ -252,9 +302,8 @@
     <sys:String x:Key="Loc.Group.NoSeries">No series</sys:String>
 
     <sys:String x:Key="Loc.Game.PathUnavailable">Path unavailable</sys:String>
-    <sys:String x:Key="Loc.Game.PathUnavailableTip">The game folder or drive is currently unavailable. Connect the drive and try again — the record is kept.</sys:String>
+    <sys:String x:Key="Loc.Game.PathUnavailableTip">The game folder or drive is currently unavailable. Connect the drive and try again, the record is kept.</sys:String>
 
-    <sys:String x:Key="Loc.SingleInstance.Running">BagaGame is already running.</sys:String>
 
     <sys:String x:Key="Loc.Genre.Action">Action</sys:String>
     <sys:String x:Key="Loc.Genre.Adventure">Adventure</sys:String>
@@ -280,21 +329,81 @@
     <sys:String x:Key="Loc.Genre.Web">Web</sys:String>
     <sys:String x:Key="Loc.Genre.Accounting">Accounting</sys:String>
 
-    <sys:String x:Key="Loc.Achievements.Menu">Steam achievements</sys:String>
-    <sys:String x:Key="Loc.Achievements.Title">Steam achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.Menu">Achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.Title">Achievements</sys:String>
     <sys:String x:Key="Loc.Achievements.Progress">{0} of {1} unlocked</sys:String>
     <sys:String x:Key="Loc.Achievements.Unlocked">Unlocked</sys:String>
     <sys:String x:Key="Loc.Achievements.Locked">Locked</sys:String>
+    <sys:String x:Key="Loc.Achievements.GlobalPercent">Unlocked by {0}% of players</sys:String>
+    <sys:String x:Key="Loc.Achievements.GlobalPercentUnknown">No rarity data available</sys:String>
+    <sys:String x:Key="Loc.Achievements.PrivateNote">Steam profile is private, only local progress is shown.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteamNote">Steam was not found, only local progress is shown.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ErrorNote">Steam progress is unavailable, only local progress is shown.</sys:String>
     <sys:String x:Key="Loc.Achievements.Loading">Loading achievements…</sys:String>
-    <sys:String x:Key="Loc.Achievements.NoSteam">Steam was not found. Run Steam at least once.</sys:String>
-    <sys:String x:Key="Loc.Achievements.Private">The Steam profile is private. Make game details public in Steam privacy settings.</sys:String>
-    <sys:String x:Key="Loc.Achievements.None">This game has no Steam achievements.</sys:String>
-    <sys:String x:Key="Loc.Achievements.Error">Could not load achievements. Check the connection to Steam.</sys:String>
-    <sys:String x:Key="Loc.Achievements.NoAppId">No Steam AppID was found for this game.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoSteam">Achievements are unavailable.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Private">Achievements are unavailable: the profile is private.</sys:String>
+    <sys:String x:Key="Loc.Achievements.None">This game has no achievements.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Error">Could not load achievements. Check your connection.</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoAppId">No achievement list was found for this game.</sys:String>
     <sys:String x:Key="Loc.Achievements.ToastTitle">Achievement unlocked</sys:String>
     <sys:String x:Key="Loc.Achievements.ToastMany">{0} and {1} more</sys:String>
     <sys:String x:Key="Loc.Achievements.Refresh">Refresh</sys:String>
     <sys:String x:Key="Loc.Achievements.Close">Close</sys:String>
-    <sys:String x:Key="Loc.Achievements.LocalSource">Local: {0}</sys:String>
+    <sys:String x:Key="Loc.Achievements.LocalSource">Source: {0}</sys:String>
+    <sys:String x:Key="Loc.Achievements.Nav">Achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.PageSubtitle">Games with achievement progress.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedTitle">What works</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText">Steam and repacks: CODEX, RUNE, Goldberg/GSE, OnlineFix, FreeTP, etc.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText2">Most builds simply never report achievements, so they may not work. It is best to start the game from the beginning.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedText3">“Supported” appears after the first achievement notification.</sys:String>
+    <sys:String x:Key="Loc.Achievements.SupportedCount">{0} games in list</sys:String>
+    <sys:String x:Key="Loc.Achievements.Verified">Supported</sys:String>
+    <sys:String x:Key="Loc.Achievements.NotVerified">Not verified yet</sys:String>
+    <sys:String x:Key="Loc.Achievements.NoCatalog">This game has no achievement list, but local progress may still be tracked.</sys:String>
+    <sys:String x:Key="Loc.Achievements.EmptyTitle">Nothing to show yet</sys:String>
+    <sys:String x:Key="Loc.Achievements.EmptyText">The launcher found no games with achievement support. Run a scan or add a game.</sys:String>
+    <sys:String x:Key="Loc.Achievements.Platform.Steam">Steam</sys:String>
+    <sys:String x:Key="Loc.Settings.AchievementNotice">Achievement status on launch</sys:String>
+    <sys:String x:Key="Loc.Settings.AchievementNoticeTip">Show whether an achievement emulator was found and is active.</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanTitle">Achievements</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanNone">No achievement emulator found</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanEmpty">Emulator {0} found</sys:String>
+    <sys:String x:Key="Loc.Achievements.ScanInactive">Emulator {0} is not active</sys:String>
+    <sys:String x:Key="Loc.Emulators.Title">Emulators</sys:String>
+    <sys:String x:Key="Loc.Emulators.Menu">Emulators…</sys:String>
+    <sys:String x:Key="Loc.Emulators.OnlineTitle">Download Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadGoldberg">Download Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadNemirtingas">Download Nemirtingas</sys:String>
+    <sys:String x:Key="Loc.Emulators.DownloadUniverseLAN">Download UniverseLAN</sys:String>
+    <sys:String x:Key="Loc.Emulators.Apply">Apply</sys:String>
+    <sys:String x:Key="Loc.Emulators.Restore">Restore original</sys:String>
+    <sys:String x:Key="Loc.Emulators.Close">Close</sys:String>
+    <sys:String x:Key="Loc.Emulators.Download">Download</sys:String>
+    <sys:String x:Key="Loc.Emulators.Refresh">Refresh</sys:String>
+    <sys:String x:Key="Loc.Emulators.Loading">Loading the list…</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoReleases">No versions available.</sys:String>
+    <sys:String x:Key="Loc.Emulators.LoadError">Could not load the version list.</sys:String>
+    <sys:String x:Key="Loc.Emulators.Downloading">Downloading {0}: {1}%</sys:String>
+    <sys:String x:Key="Loc.Emulators.Extracting">Extracting {0}…</sys:String>
+    <sys:String x:Key="Loc.Emulators.Ready">Ready: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.Applied">Applied: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.Restored">Original restored</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoBackup">No backup found</sys:String>
+    <sys:String x:Key="Loc.Emulators.AlreadyDownloaded">Already downloaded</sys:String>
+    <sys:String x:Key="Loc.Emulators.RestoreHint">Available after the first swap</sys:String>
+    <sys:String x:Key="Loc.Emulators.Delete">Delete</sys:String>
+    <sys:String x:Key="Loc.Emulators.Deleted">Deleted: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.DeleteFailed">Could not delete the file</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Local">Local</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Goldberg">Goldberg</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Epic">Nemirtingas</sys:String>
+    <sys:String x:Key="Loc.Emulators.Tab.Gog">UniverseLAN</sys:String>
+    <sys:String x:Key="Loc.Emulators.LocalHint">Files already present in games: RUNE, CODEX, Goldberg.</sys:String>
+    <sys:String x:Key="Loc.Emulators.GogHint">Galaxy64.dll is missing, UniverseLAN may not load.</sys:String>
+    <sys:String x:Key="Loc.Emulators.Error">Error: {0}</sys:String>
+    <sys:String x:Key="Loc.Emulators.NoTarget">steam_api64.dll not found</sys:String>
+    <sys:String x:Key="Loc.Emulators.CurrentFile">Current file</sys:String>
+    <sys:String x:Key="Loc.Emulators.OriginalValve">Original</sys:String>
+
 
 </ResourceDictionary>
