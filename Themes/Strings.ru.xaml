@@ -286,6 +286,7 @@
     <sys:String x:Key="Loc.Update.Tip">Вышла BagaGame {0}. Откройте страницу релиза, чтобы скачать её.</sys:String>
     <sys:String x:Key="Loc.Update.Dismiss">Скрыть эту версию</sys:String>
     <sys:String x:Key="Loc.Update.Dismissed">Версия {0} скрыта</sys:String>
+    <sys:String x:Key="Loc.Update.Download">Скачать {0}</sys:String>
     <sys:String x:Key="Loc.Update.Checking">Проверяем обновления…</sys:String>
     <sys:String x:Key="Loc.Update.UpToDate">У вас последняя версия</sys:String>
     <sys:String x:Key="Loc.Update.Failed">Не удалось проверить обновления</sys:String>

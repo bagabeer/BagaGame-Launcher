@@ -394,6 +394,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private void CheckUpdates_Click(object sender, RoutedEventArgs e)
         => _ = _viewModel.CheckForUpdatesAsync(force: true);
 
+    /// <summary>Settings shortcut after the release card was hidden.</summary>
+    private void DownloadUpdate_Click(object sender, RoutedEventArgs e)
+        => _viewModel.OpenKnownUpdatePage();
+
     // ------------------------------------------------------------------
     // Launch / context menu
     // ------------------------------------------------------------------

@@ -3247,13 +3247,21 @@
                                                Text="{Binding UpdateStatusText}"
                                                TextTrimming="CharacterEllipsis" />
 
-                                    <ui:BagaButton Grid.Column="1"
-                                                   Padding="10,4"
-                                                   FontSize="11"
-                                                   CornerRadius="6"
-                                                   Content="{DynamicResource Loc.Update.CheckNow}"
-                                                   IsEnabled="{Binding CanCheckForUpdates}"
-                                                   Click="CheckUpdates_Click" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <ui:BagaButton Margin="0,0,8,0"
+                                                       Padding="10,4"
+                                                       FontSize="11"
+                                                       CornerRadius="6"
+                                                       Content="{Binding UpdateDownloadText}"
+                                                       Visibility="{Binding HasHiddenUpdate, Converter={StaticResource BoolToVisibility}}"
+                                                       Click="DownloadUpdate_Click" />
+                                        <ui:BagaButton Padding="10,4"
+                                                       FontSize="11"
+                                                       CornerRadius="6"
+                                                       Content="{DynamicResource Loc.Update.CheckNow}"
+                                                       IsEnabled="{Binding CanCheckForUpdates}"
+                                                       Click="CheckUpdates_Click" />
+                                    </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>

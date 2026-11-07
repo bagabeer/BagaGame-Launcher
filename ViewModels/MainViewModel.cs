@@ -880,6 +880,15 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         ? Loc.Format("Loc.Update.Tip", _updateVersion)
         : string.Empty;
 
+    /// <summary>A newer release is known even though the sidebar card is hidden.</summary>
+    public bool HasHiddenUpdate =>
+        !HasUpdate && UpdateService.IsNewer(_store.LatestKnownVersion);
+
+    /// <summary>Recovery action in Settings after the user hides the release card.</summary>
+    public string UpdateDownloadText => HasHiddenUpdate
+        ? Loc.Format("Loc.Update.Download", _store.LatestKnownVersion)
+        : string.Empty;
+
     /// <summary>Status shown in Settings next to the update toggle.</summary>
     public string UpdateStatusText
     {
@@ -1012,6 +1021,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         OnPropertyChanged(nameof(UpdateVersionText));
         OnPropertyChanged(nameof(UpdateTipText));
+        OnPropertyChanged(nameof(HasHiddenUpdate));
+        OnPropertyChanged(nameof(UpdateDownloadText));
     }
 
     /// <summary>Opens the release page in the default browser; never downloads.</summary>
@@ -1027,6 +1038,29 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             Process.Start(new ProcessStartInfo
             {
                 FileName = _updateUrl,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            SetStatus("Loc.Update.OpenFailed");
+        }
+    }
+
+    /// <summary>Opens the known release page even if the sidebar card was hidden.</summary>
+    public void OpenKnownUpdatePage()
+    {
+        var url = _store.LatestKnownUrl;
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            url = UpdateService.PageUrl;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
                 UseShellExecute = true,
             });
         }
@@ -1057,6 +1091,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         OnPropertyChanged(nameof(UpdateVersionText));
         OnPropertyChanged(nameof(UpdateTipText));
+        OnPropertyChanged(nameof(HasHiddenUpdate));
+        OnPropertyChanged(nameof(UpdateDownloadText));
 
         // A cached check already has an answer for Settings; leave a running
         // check's "Checking..." text alone.
@@ -2527,6 +2563,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         OnPropertyChanged(nameof(UpdateVersionText));
         OnPropertyChanged(nameof(UpdateTipText));
+        OnPropertyChanged(nameof(HasHiddenUpdate));
+        OnPropertyChanged(nameof(UpdateDownloadText));
         OnPropertyChanged(nameof(CpuSummary));
         OnPropertyChanged(nameof(CpuModeHint));
 

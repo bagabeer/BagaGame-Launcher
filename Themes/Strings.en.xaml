@@ -285,6 +285,7 @@
     <sys:String x:Key="Loc.Update.Tip">BagaGame {0} is out. Open the release page to download it.</sys:String>
     <sys:String x:Key="Loc.Update.Dismiss">Hide this version</sys:String>
     <sys:String x:Key="Loc.Update.Dismissed">Version {0} is hidden</sys:String>
+    <sys:String x:Key="Loc.Update.Download">Download {0}</sys:String>
     <sys:String x:Key="Loc.Update.Checking">Checking for updates…</sys:String>
     <sys:String x:Key="Loc.Update.UpToDate">You have the latest version</sys:String>
     <sys:String x:Key="Loc.Update.Failed">Could not check for updates</sys:String>
