@@ -298,7 +298,7 @@
     <sys:String x:Key="Loc.Update.OpenFailed">Не удалось открыть страницу релиза</sys:String>
     <sys:String x:Key="Loc.Update.CheckNow">Проверить сейчас</sys:String>
     <sys:String x:Key="Loc.Settings.CheckUpdates">Проверять обновления</sys:String>
-    <sys:String x:Key="Loc.Settings.CheckUpdatesTip">Раз в 12 часов спрашивает у GitHub о новой версии</sys:String>
+    <sys:String x:Key="Loc.Settings.CheckUpdatesTip">Проверяет новую версию на GitHub при запуске и по кнопке</sys:String>
 
     <sys:String x:Key="Loc.App.Version">Версия {0}</sys:String>
 
@@ -388,41 +388,6 @@
     <sys:String x:Key="Loc.Achievements.ScanNone">Эмулятор достижений не найден</sys:String>
     <sys:String x:Key="Loc.Achievements.ScanEmpty">Эмулятор {0} найден</sys:String>
     <sys:String x:Key="Loc.Achievements.ScanInactive">Эмулятор {0} не активирован</sys:String>
-    <sys:String x:Key="Loc.Emulators.Title">Эмуляторы</sys:String>
-    <sys:String x:Key="Loc.Emulators.Menu">Эмуляторы…</sys:String>
-    <sys:String x:Key="Loc.Emulators.OnlineTitle">Скачать Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadGoldberg">Скачать Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadNemirtingas">Скачать Nemirtingas</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadUniverseLAN">Скачать UniverseLAN</sys:String>
-    <sys:String x:Key="Loc.Emulators.Apply">Применить</sys:String>
-    <sys:String x:Key="Loc.Emulators.Restore">Вернуть оригинал</sys:String>
-    <sys:String x:Key="Loc.Emulators.Close">Закрыть</sys:String>
-    <sys:String x:Key="Loc.Emulators.Download">Скачать</sys:String>
-    <sys:String x:Key="Loc.Emulators.Refresh">Обновить</sys:String>
-    <sys:String x:Key="Loc.Emulators.Loading">Загружаю список…</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoReleases">Список версий недоступен.</sys:String>
-    <sys:String x:Key="Loc.Emulators.LoadError">Не удалось получить список версий.</sys:String>
-    <sys:String x:Key="Loc.Emulators.Downloading">Скачиваю {0}: {1}%</sys:String>
-    <sys:String x:Key="Loc.Emulators.Extracting">Распаковываю {0}…</sys:String>
-    <sys:String x:Key="Loc.Emulators.Ready">Готово: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.Applied">Применено: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.Restored">Оригинал восстановлен</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoBackup">Бэкап не найден</sys:String>
-    <sys:String x:Key="Loc.Emulators.AlreadyDownloaded">Уже скачано</sys:String>
-    <sys:String x:Key="Loc.Emulators.RestoreHint">Доступно после первой подмены</sys:String>
-    <sys:String x:Key="Loc.Emulators.Delete">Удалить</sys:String>
-    <sys:String x:Key="Loc.Emulators.Deleted">Удалено: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.DeleteFailed">Не удалось удалить файл</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Local">Локальные</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Goldberg">Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Epic">Nemirtingas</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Gog">UniverseLAN</sys:String>
-    <sys:String x:Key="Loc.Emulators.LocalHint">Файлы, которые уже лежат в играх: RUNE, CODEX, Goldberg.</sys:String>
-    <sys:String x:Key="Loc.Emulators.GogHint">Galaxy64.dll в сборке нет, UniverseLAN может не загрузиться.</sys:String>
-    <sys:String x:Key="Loc.Emulators.Error">Ошибка: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoTarget">steam_api64.dll не найден</sys:String>
-    <sys:String x:Key="Loc.Emulators.CurrentFile">Текущий файл</sys:String>
-    <sys:String x:Key="Loc.Emulators.OriginalValve">Оригинал</sys:String>
 
 
 </ResourceDictionary>

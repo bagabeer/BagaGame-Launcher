@@ -297,7 +297,7 @@
     <sys:String x:Key="Loc.Update.OpenFailed">Could not open the release page</sys:String>
     <sys:String x:Key="Loc.Update.CheckNow">Check now</sys:String>
     <sys:String x:Key="Loc.Settings.CheckUpdates">Check for updates</sys:String>
-    <sys:String x:Key="Loc.Settings.CheckUpdatesTip">Asks GitHub about a new release once every 12 hours</sys:String>
+    <sys:String x:Key="Loc.Settings.CheckUpdatesTip">Checks GitHub for a new release on launch and on demand</sys:String>
 
     <sys:String x:Key="Loc.App.Version">Version {0}</sys:String>
 
@@ -387,41 +387,6 @@
     <sys:String x:Key="Loc.Achievements.ScanNone">No achievement emulator found</sys:String>
     <sys:String x:Key="Loc.Achievements.ScanEmpty">Emulator {0} found</sys:String>
     <sys:String x:Key="Loc.Achievements.ScanInactive">Emulator {0} is not active</sys:String>
-    <sys:String x:Key="Loc.Emulators.Title">Emulators</sys:String>
-    <sys:String x:Key="Loc.Emulators.Menu">Emulators…</sys:String>
-    <sys:String x:Key="Loc.Emulators.OnlineTitle">Download Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadGoldberg">Download Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadNemirtingas">Download Nemirtingas</sys:String>
-    <sys:String x:Key="Loc.Emulators.DownloadUniverseLAN">Download UniverseLAN</sys:String>
-    <sys:String x:Key="Loc.Emulators.Apply">Apply</sys:String>
-    <sys:String x:Key="Loc.Emulators.Restore">Restore original</sys:String>
-    <sys:String x:Key="Loc.Emulators.Close">Close</sys:String>
-    <sys:String x:Key="Loc.Emulators.Download">Download</sys:String>
-    <sys:String x:Key="Loc.Emulators.Refresh">Refresh</sys:String>
-    <sys:String x:Key="Loc.Emulators.Loading">Loading the list…</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoReleases">No versions available.</sys:String>
-    <sys:String x:Key="Loc.Emulators.LoadError">Could not load the version list.</sys:String>
-    <sys:String x:Key="Loc.Emulators.Downloading">Downloading {0}: {1}%</sys:String>
-    <sys:String x:Key="Loc.Emulators.Extracting">Extracting {0}…</sys:String>
-    <sys:String x:Key="Loc.Emulators.Ready">Ready: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.Applied">Applied: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.Restored">Original restored</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoBackup">No backup found</sys:String>
-    <sys:String x:Key="Loc.Emulators.AlreadyDownloaded">Already downloaded</sys:String>
-    <sys:String x:Key="Loc.Emulators.RestoreHint">Available after the first swap</sys:String>
-    <sys:String x:Key="Loc.Emulators.Delete">Delete</sys:String>
-    <sys:String x:Key="Loc.Emulators.Deleted">Deleted: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.DeleteFailed">Could not delete the file</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Local">Local</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Goldberg">Goldberg</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Epic">Nemirtingas</sys:String>
-    <sys:String x:Key="Loc.Emulators.Tab.Gog">UniverseLAN</sys:String>
-    <sys:String x:Key="Loc.Emulators.LocalHint">Files already present in games: RUNE, CODEX, Goldberg.</sys:String>
-    <sys:String x:Key="Loc.Emulators.GogHint">Galaxy64.dll is missing, UniverseLAN may not load.</sys:String>
-    <sys:String x:Key="Loc.Emulators.Error">Error: {0}</sys:String>
-    <sys:String x:Key="Loc.Emulators.NoTarget">steam_api64.dll not found</sys:String>
-    <sys:String x:Key="Loc.Emulators.CurrentFile">Current file</sys:String>
-    <sys:String x:Key="Loc.Emulators.OriginalValve">Original</sys:String>
 
 
 </ResourceDictionary>

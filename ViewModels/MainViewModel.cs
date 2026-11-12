@@ -940,7 +940,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     /// Asks GitHub for the newest release. A success is cached for twelve
     /// hours; a failure is not, so the next launch simply tries again.
     /// </summary>
-    public async Task CheckForUpdatesAsync(bool force = false)
+    public async Task CheckForUpdatesAsync(bool force = false, bool revealDismissed = false)
     {
         if (!_store.CheckForUpdates || IsCheckingUpdate)
         {
@@ -952,7 +952,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
         if (!force && last > 0 && now - last < UpdateCacheSeconds)
         {
-            RestoreKnownUpdate();
+            RestoreKnownUpdate(revealDismissed);
             return;
         }
 
@@ -974,7 +974,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
                 result.Update?.Url ?? string.Empty,
                 now);
 
-            RestoreKnownUpdate();
+            RestoreKnownUpdate(revealDismissed);
 
             if (result.Update is null)
             {
@@ -1070,14 +1070,15 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private void RestoreKnownUpdate()
+    private void RestoreKnownUpdate(bool ignoreDismissed = false)
     {
         var known = _store.LatestKnownVersion;
         var visible = UpdateService.IsNewer(known) &&
-                      !string.Equals(
-                          known,
-                          _store.DismissedUpdateVersion,
-                          StringComparison.OrdinalIgnoreCase);
+                      (ignoreDismissed ||
+                       !string.Equals(
+                           known,
+                           _store.DismissedUpdateVersion,
+                           StringComparison.OrdinalIgnoreCase));
 
         _updateVersion = visible ? known : string.Empty;
         _updateUrl = visible ? _store.LatestKnownUrl : string.Empty;
@@ -1329,15 +1330,16 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
 
     /// <summary>
     /// Deletes the game's record (rename, genre, played time, cached AppID and
-    /// poster), hides the id and takes the card out of the library. Hiding is
-    /// what keeps a scanned game from reappearing after the next scan: Pikabu
-    /// users reported that a plain delete brought the card straight back.
+    /// poster) and takes the card out of the library. Nothing is hidden: the
+    /// full uninstall has already removed the install folder, so the next scan
+    /// cannot bring the card back, and a deleted game must not linger in the
+    /// "hidden" list.
     /// </summary>
     public void DeleteGame(Game game)
     {
         var title = game.Title;
 
-        _store.Hide(game.Id, title);
+        _store.Unhide(game.Id);
         _store.RemoveManualGame(game.Id);
         _store.ForgetGame(game.Id);
 
@@ -1351,6 +1353,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
         }
 
         Games.Remove(game);
+        NotifyHiddenChanged();
         SetStatus("Loc.Status.Deleted", title);
     }
 

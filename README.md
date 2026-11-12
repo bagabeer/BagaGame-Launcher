@@ -162,10 +162,6 @@ Compat/                             — polyfills for modern C# on net472
 * Recent achievements of the selected game in the Big Picture sidebar, up to five.
 * Unlock date and time in achievement cards and Big Picture.
 
-**Emulator manager**
-* A separate window per game: local files, Goldberg, Nemirtingas and UniverseLAN.
-* Downloads from GitHub and GitLab, version cache, backup and restoration of the original `steam_api64`.
-
 **Performance**
 * Universal launch optimisation with detailed settings.
 * CPU topology detection with Auto, P-core and E-core modes for hybrid Intel.

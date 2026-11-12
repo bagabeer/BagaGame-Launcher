@@ -156,8 +156,10 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         // on every machine.
         SyncPerformanceControls();
 
-        // The release check runs next to the scan and never blocks it.
-        _ = _viewModel.CheckForUpdatesAsync();
+        // The release check runs next to the scan and never blocks it. It
+        // ignores the 12-hour cache once per launch, so a release published
+        // since the previous start shows up in the sidebar right away.
+        _ = _viewModel.CheckForUpdatesAsync(force: true);
 
         // Covers stream in after the window is already visible.
         await _viewModel.InitializeAsync();
@@ -437,7 +439,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         => _viewModel.DismissUpdate();
 
     private void CheckUpdates_Click(object sender, RoutedEventArgs e)
-        => _ = _viewModel.CheckForUpdatesAsync(force: true);
+        => _ = _viewModel.CheckForUpdatesAsync(force: true, revealDismissed: true);
 
     private void OpenPluginsFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -669,20 +671,6 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         PlatformAchievementService.PrepareGame(game);
 
         new SteamAchievementsWindow(game, appId, _store) { Owner = this }.ShowDialog();
-    }
-
-    private void EmulatorsButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel.SelectedAchievementGame?.Game is Game game)
-        {
-            OpenEmulators(game);
-        }
-    }
-
-    private void OpenEmulators(Game game)
-    {
-        var appId = _viewModel.GetSteamAppId(game);
-        new EmulatorsWindow(game, appId, _viewModel.Games) { Owner = this }.ShowDialog();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)

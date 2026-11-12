@@ -995,7 +995,38 @@ public sealed class LibraryStore
             id => id.StartsWith("manual:", StringComparison.OrdinalIgnoreCase) &&
                   !incoming.Any(game => string.Equals(game.Id, id, StringComparison.OrdinalIgnoreCase)));
 
-        if (pruned > 0)
+        // Builds before 1.1.0 hid every deleted game to keep the scanner from
+        // bringing it back. A full uninstall removes the folder, so such a
+        // leftover is dead weight in the "hidden" list and is dropped once its
+        // folder is gone. Games on a disconnected drive keep their entry.
+        var deletedFolders = _data.Hidden.RemoveAll(id =>
+        {
+            if (!id.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) ||
+                incoming.Any(game => string.Equals(game.Id, id, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            try
+            {
+                var path = id.Substring("folder:".Length);
+                var root = Path.GetPathRoot(path);
+
+                // Only local drive letters: a missing network share or an
+                // unplugged drive must not erase the hidden state.
+                return root is { Length: >= 2 } &&
+                       char.IsLetter(root[0]) &&
+                       root[1] == ':' &&
+                       Directory.Exists(root) &&
+                       !Directory.Exists(path);
+            }
+            catch
+            {
+                return false;
+            }
+        });
+
+        if (pruned + deletedFolders > 0)
         {
             Save();
         }

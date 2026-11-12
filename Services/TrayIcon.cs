@@ -35,6 +35,16 @@ public sealed class TrayIcon : IDisposable
 
         _icon.DoubleClick += (_, _) => openWindow();
 
+        // A single left click is what most people try first; without it the
+        // icon looks dead even though the double-click handler works.
+        _icon.MouseClick += (_, args) =>
+        {
+            if (args.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                openWindow();
+            }
+        };
+
         RefreshTexts();
     }
 

@@ -1626,12 +1626,6 @@
                                 VerticalAlignment="Center">
                         <Button Height="36"
                                 Padding="14,0"
-                                Margin="0,0,8,0"
-                                Click="EmulatorsButton_Click"
-                                Content="{DynamicResource Loc.Emulators.Menu}"
-                                Style="{StaticResource HeaderChipButtonStyle}" />
-                        <Button Height="36"
-                                Padding="14,0"
                                 Click="RefreshAchievements_Click"
                                 Content="{DynamicResource Loc.Achievements.Refresh}"
                                 Style="{StaticResource HeaderChipButtonStyle}" />

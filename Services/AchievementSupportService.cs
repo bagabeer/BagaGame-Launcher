@@ -289,13 +289,13 @@ public static class AchievementSupportService
     {
         try
         {
-            var target = EmulatorSwapService.FindTarget(game, EmulatorFamily.Steam);
-            if (target is null || !File.Exists(target.FilePath))
+            var loader = FindSteamLoaderPath(game);
+            if (loader is null)
             {
                 return;
             }
 
-            var info = FileVersionInfo.GetVersionInfo(target.FilePath);
+            var info = FileVersionInfo.GetVersionInfo(loader);
             var company = info.CompanyName ?? string.Empty;
             var version = info.FileVersion ?? string.Empty;
 
@@ -305,7 +305,7 @@ public static class AchievementSupportService
             {
                 name = "Goldberg";
             }
-            else if (HasRuneMarker(target.FilePath) ||
+            else if (HasRuneMarker(loader) ||
                      version.StartsWith("06.", StringComparison.OrdinalIgnoreCase) ||
                      version.StartsWith("07.", StringComparison.OrdinalIgnoreCase) ||
                      version.StartsWith("08.", StringComparison.OrdinalIgnoreCase))
@@ -323,6 +323,115 @@ public static class AchievementSupportService
         {
             // A locked loader only loses its name.
         }
+    }
+
+    /// <summary>
+    /// Locates the Steam loader inside the game, including Unreal's nested
+    /// Steamworks folders. Only the version resource is read; nothing is
+    /// replaced.
+    /// </summary>
+    private static string? FindSteamLoaderPath(Game game)
+    {
+        var directories = new List<string>();
+        string? exeDirectory = null;
+
+        try
+        {
+            exeDirectory = Path.GetDirectoryName(game.ExecutablePath);
+            var stem = Path.GetFileNameWithoutExtension(game.ExecutablePath);
+            if (!string.IsNullOrWhiteSpace(exeDirectory))
+            {
+                directories.Add(exeDirectory!);
+
+                if (!string.IsNullOrWhiteSpace(stem))
+                {
+                    directories.Add(Path.Combine(exeDirectory!, stem + "_Data", "Plugins", "x86_64"));
+                    directories.Add(Path.Combine(exeDirectory!, stem + "_Data", "Plugins"));
+                }
+            }
+        }
+        catch
+        {
+            // A malformed path only loses the exe candidates.
+        }
+
+        var install = game.InstallPath;
+        if (!string.IsNullOrWhiteSpace(install))
+        {
+            directories.Add(install!);
+
+            var steamworks = Path.Combine(
+                install!,
+                "Engine",
+                "Binaries",
+                "ThirdParty",
+                "Steamworks");
+            try
+            {
+                foreach (var version in Directory.GetDirectories(steamworks))
+                {
+                    directories.Add(Path.Combine(version, "Win64"));
+                    directories.Add(version);
+                }
+            }
+            catch
+            {
+                // No nested Steamworks folder.
+            }
+        }
+
+        foreach (var directory in directories)
+        {
+            var loader = FindSteamLoader(directory);
+            if (loader is not null)
+            {
+                return loader;
+            }
+        }
+
+        var current = !string.IsNullOrWhiteSpace(exeDirectory) ? exeDirectory : install;
+        for (var level = 0; level < 3 && !string.IsNullOrWhiteSpace(current); level++)
+        {
+            var parent = Path.GetDirectoryName(current!);
+            if (string.IsNullOrWhiteSpace(parent))
+            {
+                break;
+            }
+
+            var loader = FindSteamLoader(parent!);
+            if (loader is not null)
+            {
+                return loader;
+            }
+
+            current = parent;
+        }
+
+        return null;
+    }
+
+    private static string? FindSteamLoader(string directory)
+    {
+        try
+        {
+            var dll64 = Path.Combine(directory, "steam_api64.dll");
+            if (File.Exists(dll64))
+            {
+                return dll64;
+            }
+
+            var dll32 = Path.Combine(directory, "steam_api.dll");
+            if (File.Exists(dll32))
+            {
+                return dll32;
+            }
+        }
+        catch
+        {
+            // A locked or missing folder is skipped.
+        }
+
+        return null;
     }
 
     private static bool HasRuneMarker(string path)
