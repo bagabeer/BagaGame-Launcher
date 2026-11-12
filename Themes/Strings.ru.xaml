@@ -7,6 +7,11 @@
          dictionary with Strings.en.xaml; every DynamicResource follows. -->
 
     <sys:String x:Key="Loc.Nav.Header">НАВИГАЦИЯ</sys:String>
+    <sys:String x:Key="Loc.Plugins.Header">ПЛАГИНЫ</sys:String>
+    <sys:String x:Key="Loc.Plugins.SettingsHeader">ПЛАГИНЫ</sys:String>
+    <sys:String x:Key="Loc.Plugins.FolderTitle">Папка плагинов</sys:String>
+    <sys:String x:Key="Loc.Plugins.OpenFolder">Открыть папку</sys:String>
+    <sys:String x:Key="Loc.Plugins.FolderTip">Закиньте сюда DLL плагина или папку с плагином и перезапустите лаунчер. Вкладки появятся в навигации.</sys:String>
     <sys:String x:Key="Loc.Nav.Library">Библиотека</sys:String>
     <sys:String x:Key="Loc.Nav.Scan">Сканирование</sys:String>
     <sys:String x:Key="Loc.Nav.Settings">Настройки</sys:String>
@@ -297,9 +302,11 @@
 
     <sys:String x:Key="Loc.App.Version">Версия {0}</sys:String>
 
-    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: игра запущена</sys:String>
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: лаунчер работает</sys:String>
     <sys:String x:Key="Loc.Tray.Open">Открыть BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Выйти</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedTitle">BagaGame свёрнут в трей</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedText">Лаунчер продолжает работать. Двойной клик по иконке вернёт окно, «Выйти» — закроет программу.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Выберите папку с играми</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Выберите папку с игрой</sys:String>

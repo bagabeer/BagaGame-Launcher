@@ -23,7 +23,7 @@
     <RootNamespace>BagaGame</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\bagagame.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>BagaGame</Authors>
     <Product>BagaGame</Product>
 
@@ -42,6 +42,19 @@
   <ItemGroup>
     <!-- Not referenced implicitly on .NET Framework. -->
     <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Stable plugin contract; the host redirects every version request to
+         this assembly so plugins survive launcher updates. -->
+    <ProjectReference Include="BagaGame.PluginApi\BagaGame.PluginApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The SDK default **\*.cs glob would otherwise compile the API project
+         and the sample plugin into the launcher. -->
+    <Compile Remove="BagaGame.PluginApi\**\*.cs" />
+    <Compile Remove="docs\plugins\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>BagaGame.PluginApi</AssemblyName>
+    <RootNamespace>BagaGame.PluginApi</RootNamespace>
+    <!-- The assembly version is fixed on purpose: plugins built against API 1
+         keep working after the launcher updates. The host redirects every
+         request for this assembly to its own loaded copy. -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+</Project>

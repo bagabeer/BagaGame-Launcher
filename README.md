@@ -10,7 +10,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 
 ## 📥 Installation
 
-1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v1.0.0`).
+1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v1.1.0`).
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
@@ -56,6 +56,7 @@ There is no installer — the app works right after unpacking. The build is a **
 * **Gamepad and keyboard.** D-pad, stick, Q/E and LB/RB switch sections; A plays, X opens details, Y toggles a favorite and B exits. A controller can open Big Picture automatically.
 * **Favorites.** Star games in the library or from Big Picture and filter the collection to them.
 * **Achievements.** A dedicated tab with Steam and local emulator progress (CODEX, RUNE, Goldberg, GSE, OnlineFix, FreeTP), localized names, icons, rarity and toasts. Recent achievements of the selected game appear in Big Picture.
+* **Plugins.** External tabs: drop a DLL into `%LOCALAPPDATA%\BagaGame\Plugins` and restart the launcher. Developer guide: [docs/plugins.md](docs/plugins.md).
 * **Performance.** Launch settings: CPU modes (Auto, P-cores, E-cores, single CCD), process priority, EcoQoS removal, launcher background and a 1 ms or 0.5 ms timer.
 * **Updates.** The launcher checks for new releases, shows a dismissible card in the sidebar and can be turned off in Settings.
 * **Deep scanning.** Finds games in the selected folders, including non-standard layouts and nested directories, while filtering out service executables (`unins`, `vcredist`, `crashhandler` and similar).
@@ -141,6 +142,14 @@ Compat/                             — polyfills for modern C# on net472
 ---
 
 ## 📝 Changelog
+
+### Version 1.1.0 — plugins
+
+**Plugins**
+* External tabs: drop a plugin into `%LOCALAPPDATA%\BagaGame\Plugins` and restart the launcher.
+* A stable `BagaGame.PluginApi` contract in its own assembly, so plugins survive launcher updates.
+* A theme-aware UI kit for plugin pages: headings, cards, text and buttons.
+* Developer guide and a working sample in [docs/plugins.md](docs/plugins.md).
 
 ### Version 1.0.0
 

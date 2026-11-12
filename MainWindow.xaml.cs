@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -29,6 +30,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private Game? _deleteGameTarget;
     private GameUninstallPlan? _deletePlan;
     private TrayIcon? _tray;
+    private bool _allowClose;
+    private bool _trayHintShown;
     private BigPictureWindow? _bigPicture;
     private DispatcherTimer? _bigPictureLaunchWatch;
     private Process? _bigPictureLaunchedProcess;
@@ -42,6 +45,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private SteamAchievementNotifier? _achievementNotifier;
     private bool _syncingGrouping;
     private Game? _coverTarget;
+    private Game? _cardPressGame;
+    private Point _cardPressPoint;
+    private Game? _notificationGame;
+    private System.Drawing.Rectangle? _notificationWorkArea;
+    private PluginHost? _pluginHost;
+    private readonly Dictionary<string, RadioButton> _pluginNavButtons = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, FrameworkElement> _pluginPages = new(StringComparer.OrdinalIgnoreCase);
+    private string? _activePluginTabId;
     private bool _heroMode;
     private BitmapSource? _cropSource;
     private bool _cropDragging;
@@ -81,6 +92,20 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _viewModel.GameStopped += ViewModel_GameStopped;
         DataContext = _viewModel;
 
+        _pluginHost = new PluginHost(
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BagaGame"),
+            Dispatcher);
+        _pluginHost.TabAdded += PluginHost_TabAdded;
+        _pluginHost.TabRemoved += PluginHost_TabRemoved;
+        _pluginHost.TabUpdated += PluginHost_TabUpdated;
+        PluginsFolderText.Text = _pluginHost.PluginsDirectory;
+
+        // Windows logoff/shutdown must close the app for real; the cross in
+        // the title bar only hides it.
+        Application.Current.SessionEnding += App_SessionEnding;
+
         // Setting IsChecked before Loaded does not trigger a theme swap; the
         // startup theme was already applied by App.OnStartup.
         ThemeToggle.IsChecked = store.IsLightTheme;
@@ -92,10 +117,24 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         Activated += (_, _) => UpdateGamepadWatcher();
         Deactivated += (_, _) => _gamepadWatcher.Stop();
-        StateChanged += (_, _) => UpdateGamepadWatcher();
+        StateChanged += (_, _) =>
+        {
+            // A double-click on the title bar toggles the window state on the
+            // second mouse-down; the trailing mouse-up can land on a card that
+            // moved under the pointer. Never treat that up as a launch.
+            _cardPressGame = null;
+            UpdateGamepadWatcher();
+        };
 
         Loaded += MainWindow_Loaded;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
+
+        // Clear a stale card press after any mouse release, including releases
+        // outside the card that never reach GameCard_MouseLeftButtonUp.
+        AddHandler(
+            Mouse.MouseUpEvent,
+            new MouseButtonEventHandler((_, _) => _cardPressGame = null),
+            handledEventsToo: true);
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -122,6 +161,12 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         // Covers stream in after the window is already visible.
         await _viewModel.InitializeAsync();
+
+        // Plugins load after the first frame, so a slow plugin cannot delay
+        // the launcher window. Tabs appear in the sidebar as they are added.
+        _ = Dispatcher.BeginInvoke(
+            new Action(() => _pluginHost?.LoadAll()),
+            DispatcherPriority.ApplicationIdle);
 
         ScheduleCleanup();
     }
@@ -394,6 +439,30 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private void CheckUpdates_Click(object sender, RoutedEventArgs e)
         => _ = _viewModel.CheckForUpdatesAsync(force: true);
 
+    private void OpenPluginsFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = _pluginHost?.PluginsDirectory;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"\"{path}\"",
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // Opening Explorer is optional.
+        }
+    }
+
     /// <summary>Settings shortcut after the release card was hidden.</summary>
     private void DownloadUpdate_Click(object sender, RoutedEventArgs e)
         => _viewModel.OpenKnownUpdatePage();
@@ -402,12 +471,43 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     // Launch / context menu
     // ------------------------------------------------------------------
 
+    private void GameCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left)
+        {
+            return;
+        }
+
+        _cardPressGame = (sender as FrameworkElement)?.DataContext as Game;
+        _cardPressPoint = e.GetPosition(this);
+    }
+
     private void GameCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is Game game)
+        if ((sender as FrameworkElement)?.DataContext is not Game game)
         {
-            LaunchGameFromLibrary(game);
+            return;
         }
+
+        // Launch only when this exact card received the matching mouse-down.
+        // Maximizing the window can move a card under the pointer between the
+        // down and the up, and the trailing up must not start a game.
+        var pressedGame = _cardPressGame;
+        _cardPressGame = null;
+
+        if (!ReferenceEquals(pressedGame, game))
+        {
+            return;
+        }
+
+        var point = e.GetPosition(this);
+        if (Math.Abs(point.X - _cardPressPoint.X) > 6 ||
+            Math.Abs(point.Y - _cardPressPoint.Y) > 6)
+        {
+            return;
+        }
+
+        LaunchGameFromLibrary(game);
     }
 
     private void LaunchGame_Click(object sender, RoutedEventArgs e)
@@ -425,6 +525,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private void LaunchGameFromLibrary(Game game)
     {
         var monitor = GetMonitorBounds(this);
+        _notificationWorkArea = GetMonitorWorkArea(this);
         StopGamePlacementWatch();
 
         if (!_viewModel.LaunchGame(game))
@@ -449,6 +550,12 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             return;
         }
 
+        _notificationGame = game;
+        if (_notificationWorkArea is null)
+        {
+            _notificationWorkArea = GetMonitorWorkArea(this);
+        }
+
         RepackSupportService.EnsureProvisioned(game, appId);
         PlatformAchievementService.PrepareGame(game);
 
@@ -464,7 +571,11 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
                 _localAchievements,
                 (title, text, icon) => Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var toast = new AchievementToastWindow(title, text, icon);
+                    var toast = new AchievementToastWindow(
+                        title,
+                        text,
+                        icon,
+                        workArea: GetToastWorkArea());
                     toast.Show();
                 })));
             _achievementNotifier.AchievementShown += OnAchievementShown;
@@ -500,7 +611,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
                 Loc.T("Loc.Achievements.ScanTitle"),
                 text,
                 null,
-                compact: true);
+                compact: true,
+                workArea: _notificationWorkArea ?? GetToastWorkArea());
             toast.Show();
         }
         catch
@@ -509,7 +621,11 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
     }
 
-    private void StopAchievementNotifications() => _achievementNotifier?.Stop();
+    private void StopAchievementNotifications()
+    {
+        _achievementNotifier?.Stop();
+        _notificationGame = null;
+    }
 
     private void RefreshAchievements_Click(object sender, RoutedEventArgs e)
         => _viewModel.RefreshAchievementGames();
@@ -675,6 +791,9 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         // Remember the Big Picture monitor before the game starts: its window
         // must land there, not on the primary display.
         var monitor = _bigPicture is { } window ? GetMonitorBounds(window) : null;
+        _notificationWorkArea = _bigPicture is { } toastSource
+            ? GetMonitorWorkArea(toastSource)
+            : null;
         StopGamePlacementWatch();
 
         if (!_viewModel.LaunchGame(game))
@@ -718,6 +837,53 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         {
             return null;
         }
+    }
+
+    /// <summary>Physical work area of the monitor that hosts the window.</summary>
+    private static System.Drawing.Rectangle? GetMonitorWorkArea(Window window)
+    {
+        try
+        {
+            var handle = new WindowInteropHelper(window).Handle;
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            return System.Windows.Forms.Screen.FromHandle(handle).WorkingArea;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Monitor of the running game, with the launch monitor as fallback.</summary>
+    private System.Drawing.Rectangle? GetToastWorkArea()
+    {
+        var process = FindGameProcessWindow(_notificationGame);
+        if (process is not null)
+        {
+            try
+            {
+                if (process.MainWindowHandle != IntPtr.Zero)
+                {
+                    return System.Windows.Forms.Screen
+                        .FromHandle(process.MainWindowHandle)
+                        .WorkingArea;
+                }
+            }
+            catch
+            {
+                // The process may exit while we inspect it.
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        }
+
+        return _notificationWorkArea;
     }
 
     /// <summary>
@@ -1054,15 +1220,25 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     /// process, so quitting would stop the counter. The tray icon brings the
     /// window back or exits for real.
     /// </summary>
-    private void HideInTray()
+    private void HideInTray(bool notify = false)
     {
-        // A running game does not need controller polling in the background.
+        // A hidden window does not need controller polling in the background.
         _gamepadWatcher.Stop();
 
         _tray ??= new TrayIcon(RestoreFromTray, ExitFromTray);
         _tray.RefreshTexts();
         _tray.Visible = true;
         Hide();
+
+        // Tell the user once where the window went, so the cross does not look
+        // like "the app closed but is still in the task manager".
+        if (notify && !_trayHintShown)
+        {
+            _trayHintShown = true;
+            _tray.ShowBalloon(
+                Loc.T("Loc.Tray.MinimizedTitle"),
+                Loc.T("Loc.Tray.MinimizedText"));
+        }
     }
 
     /// <summary>
@@ -1073,6 +1249,15 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
     private async void ViewModel_GameStopped(string gameId)
     {
         StopBigPictureLaunchWatch();
+
+        // Bring the window back first. The final achievement read and the list
+        // refresh can run while the launcher is already visible.
+        if (_tray is { Visible: true })
+        {
+            RestoreFromTray();
+        }
+
+        _viewModel.RestoreLauncherBackground();
 
         // The emulator or the game save often writes its last achievement when
         // the process exits, after the previous poll.
@@ -1089,18 +1274,13 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         }
 
         StopAchievementNotifications();
-        _viewModel.RestoreLauncherBackground();
 
         // Progress, unlocked tiles and the verified badge may all have changed
-        // while the launcher was hidden, so rebuild the list on return.
-        _viewModel.RefreshAchievementGames();
-
-        if (_tray is null || !_tray.Visible)
-        {
-            return;
-        }
-
-        RestoreFromTray();
+        // while the launcher was hidden. Rebuild after the first paint so the
+        // restored window stays responsive.
+        _ = Dispatcher.BeginInvoke(
+            new Action(() => _viewModel.RefreshAchievementGames()),
+            DispatcherPriority.Background);
     }
 
     /// <summary>Second launch of the .exe: the running window comes to the front.</summary>
@@ -1178,10 +1358,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
     private void ExitFromTray()
     {
+        _allowClose = true;
         _tray?.Dispose();
         _tray = null;
         Close();
     }
+
+    private void App_SessionEnding(object sender, SessionEndingCancelEventArgs e)
+        => _allowClose = true;
 
     private void OpenSteamGridDbKey_Click(object sender, RoutedEventArgs e)
     {
@@ -2000,6 +2184,14 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         var page = (sender as FrameworkElement)?.Tag as string;
 
+        PluginPageHost.Visibility = Visibility.Collapsed;
+        _activePluginTabId = null;
+
+        foreach (var pluginButton in _pluginNavButtons.Values)
+        {
+            pluginButton.IsChecked = false;
+        }
+
         LibraryPage.Visibility = page == "Library" ? Visibility.Visible : Visibility.Collapsed;
         AchievementsPage.Visibility = page == "Achievements" ? Visibility.Visible : Visibility.Collapsed;
         ScanPage.Visibility = page == "Scan" ? Visibility.Visible : Visibility.Collapsed;
@@ -2021,6 +2213,191 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
                 FadeIn(SettingsPage);
                 break;
         }
+    }
+
+    private void PluginHost_TabAdded(PluginHost.HostedTab tab)
+    {
+        if (PluginNavPanel is null)
+        {
+            return;
+        }
+
+        var button = BuildPluginNavButton(tab);
+        _pluginNavButtons[tab.Id] = button;
+        PluginNavItems.Children.Add(button);
+        SortPluginNavButtons();
+        PluginNavPanel.Visibility = Visibility.Visible;
+
+        // Adding a tab must not steal the current page. Keep the library on
+        // screen until the user actually opens the new tab.
+        if (_activePluginTabId is null && LibraryNav.IsChecked != true)
+        {
+            LibraryNav.IsChecked = true;
+        }
+    }
+
+    private void PluginHost_TabRemoved(string id)
+    {
+        if (_pluginNavButtons.TryGetValue(id, out var button))
+        {
+            _pluginNavButtons.Remove(id);
+            button.Checked -= PluginNav_Checked;
+            PluginNavItems.Children.Remove(button);
+        }
+
+        _pluginPages.Remove(id);
+
+        if (string.Equals(_activePluginTabId, id, StringComparison.OrdinalIgnoreCase))
+        {
+            _activePluginTabId = null;
+            PluginPageHost.Content = null;
+            PluginPageHost.Visibility = Visibility.Collapsed;
+            LibraryNav.IsChecked = true;
+        }
+
+        if (PluginNavItems.Children.Count == 0)
+        {
+            PluginNavPanel.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void PluginHost_TabUpdated(PluginHost.HostedTab tab)
+    {
+        if (!_pluginNavButtons.TryGetValue(tab.Id, out var button))
+        {
+            return;
+        }
+
+        button.Content = BuildPluginTabContent(tab);
+        button.ToolTip = tab.Title;
+        System.Windows.Automation.AutomationProperties.SetName(button, tab.Title);
+    }
+
+    private RadioButton BuildPluginNavButton(PluginHost.HostedTab tab)
+    {
+        var button = new RadioButton
+        {
+            IsChecked = false,
+            Style = (Style)FindResource("NavItemStyle"),
+            Tag = tab.Id,
+            Content = BuildPluginTabContent(tab),
+            ToolTip = tab.Title,
+        };
+
+        System.Windows.Automation.AutomationProperties.SetName(button, tab.Title);
+        button.Checked += PluginNav_Checked;
+        return button;
+    }
+
+    private static FrameworkElement BuildPluginTabContent(PluginHost.HostedTab tab)
+    {
+        var panel = new StackPanel { Orientation = Orientation.Horizontal };
+
+        if (tab.Icon is { } icon)
+        {
+            panel.Children.Add(new Image
+            {
+                Source = icon,
+                Width = 18,
+                Height = 18,
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+        }
+        else
+        {
+            var glyph = new BagaGame.Controls.SymbolIcon
+            {
+                Symbol = "Grid24",
+                FontSize = 18,
+            };
+
+            glyph.SetBinding(
+                TextBlock.ForegroundProperty,
+                new Binding("Foreground")
+                {
+                    RelativeSource = new RelativeSource(
+                        RelativeSourceMode.FindAncestor,
+                        typeof(RadioButton),
+                        1),
+                });
+
+            panel.Children.Add(glyph);
+        }
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = tab.Title,
+            Margin = new Thickness(12, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            FontSize = 13.5,
+        });
+
+        return panel;
+    }
+
+    private void SortPluginNavButtons()
+    {
+        if (_pluginHost is null)
+        {
+            return;
+        }
+
+        PluginNavItems.Children.Clear();
+
+        foreach (var tab in _pluginHost.Tabs)
+        {
+            if (_pluginNavButtons.TryGetValue(tab.Id, out var button))
+            {
+                PluginNavItems.Children.Add(button);
+            }
+        }
+    }
+
+    private void PluginNav_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded ||
+            sender is not RadioButton { Tag: string id } ||
+            _pluginHost is null)
+        {
+            return;
+        }
+
+        var tab = _pluginHost.Tabs.FirstOrDefault(candidate =>
+            string.Equals(candidate.Id, id, StringComparison.OrdinalIgnoreCase));
+
+        if (tab is null)
+        {
+            return;
+        }
+
+        if (!_pluginPages.TryGetValue(id, out var page))
+        {
+            page = tab.GetContent();
+            _pluginPages[id] = page;
+        }
+
+        foreach (var pair in _pluginNavButtons)
+        {
+            if (!string.Equals(pair.Key, id, StringComparison.OrdinalIgnoreCase))
+            {
+                pair.Value.IsChecked = false;
+            }
+        }
+
+        LibraryNav.IsChecked = false;
+        AchievementsNav.IsChecked = false;
+        ScanNav.IsChecked = false;
+        SettingsNav.IsChecked = false;
+
+        _activePluginTabId = id;
+        LibraryPage.Visibility = Visibility.Collapsed;
+        AchievementsPage.Visibility = Visibility.Collapsed;
+        ScanPage.Visibility = Visibility.Collapsed;
+        SettingsPage.Visibility = Visibility.Collapsed;
+        PluginPageHost.Content = page;
+        PluginPageHost.Visibility = Visibility.Visible;
+        FadeIn(PluginPageHost);
     }
 
     private void ViewMode_Checked(object sender, RoutedEventArgs e)
@@ -2140,8 +2517,28 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
             });
     }
 
+    /// <summary>
+    /// The cross in the title bar (and Alt+F4) hides the launcher into the
+    /// notification area instead of quitting. The playtime tracker and the
+    /// background work live in this process, so closing would cut them off.
+    /// The tray menu restores the window or exits for real.
+    /// </summary>
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (_allowClose)
+        {
+            base.OnClosing(e);
+            return;
+        }
+
+        e.Cancel = true;
+        HideInTray(notify: true);
+    }
+
     protected override void OnClosed(EventArgs e)
     {
+        Application.Current.SessionEnding -= App_SessionEnding;
+
         StopBigPictureLaunchWatch();
         StopGamePlacementWatch();
         StopAchievementNotifications();
@@ -2153,6 +2550,8 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
 
         _tray?.Dispose();
         _tray = null;
+        _pluginHost?.Dispose();
+        _pluginHost = null;
         _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         _viewModel.GameStopped -= ViewModel_GameStopped;
         _viewModel.Dispose();

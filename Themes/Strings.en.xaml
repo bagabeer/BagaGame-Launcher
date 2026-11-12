@@ -6,6 +6,11 @@
     <!-- English interface strings. Keep the key list identical to Strings.ru.xaml. -->
 
     <sys:String x:Key="Loc.Nav.Header">NAVIGATION</sys:String>
+    <sys:String x:Key="Loc.Plugins.Header">PLUGINS</sys:String>
+    <sys:String x:Key="Loc.Plugins.SettingsHeader">PLUGINS</sys:String>
+    <sys:String x:Key="Loc.Plugins.FolderTitle">Plugin folder</sys:String>
+    <sys:String x:Key="Loc.Plugins.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="Loc.Plugins.FolderTip">Drop a plugin DLL or a plugin folder here and restart the launcher. Its tabs appear in the navigation.</sys:String>
     <sys:String x:Key="Loc.Nav.Library">Library</sys:String>
     <sys:String x:Key="Loc.Nav.Scan">Scan</sys:String>
     <sys:String x:Key="Loc.Nav.Settings">Settings</sys:String>
@@ -296,9 +301,11 @@
 
     <sys:String x:Key="Loc.App.Version">Version {0}</sys:String>
 
-    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: game running</sys:String>
+    <sys:String x:Key="Loc.Tray.Tooltip">BagaGame: launcher running</sys:String>
     <sys:String x:Key="Loc.Tray.Open">Open BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Exit</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedTitle">BagaGame is in the tray</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedText">The launcher keeps running. Double-click the icon to restore the window, or choose Exit to quit.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Choose a folder with games</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Choose the game folder</sys:String>

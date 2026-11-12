@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>HelloPlugin</AssemblyName>
+    <RootNamespace>HelloPlugin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The launcher owns the contract assembly at runtime, so it is not
+         copied into the plugin output. -->
+    <ProjectReference Include="..\..\..\BagaGame.PluginApi\BagaGame.PluginApi.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

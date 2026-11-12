@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -17,14 +19,25 @@ namespace BagaGame.Views;
 /// </summary>
 public partial class AchievementToastWindow : Window
 {
+    private const uint SwpNoSize = 0x0001;
+    private const uint SwpNoZOrder = 0x0004;
+    private const uint SwpNoActivate = 0x0010;
+
     private readonly DispatcherTimer _closeTimer;
     private readonly bool _compact;
+    private readonly System.Drawing.Rectangle? _workArea;
 
-    public AchievementToastWindow(string title, string text, string? iconPath, bool compact = false)
+    public AchievementToastWindow(
+        string title,
+        string text,
+        string? iconPath,
+        bool compact = false,
+        System.Drawing.Rectangle? workArea = null)
     {
         InitializeComponent();
 
         _compact = compact;
+        _workArea = workArea;
 
         TitleText.Text = title;
         BodyText.Text = text;
@@ -100,9 +113,7 @@ public partial class AchievementToastWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        var area = SystemParameters.WorkArea;
-        Left = area.Right - Width - 8;
-        Top = area.Bottom - Height - 8;
+        PositionOnWorkArea();
 
         if (!_compact)
         {
@@ -123,5 +134,62 @@ public partial class AchievementToastWindow : Window
         BeginAnimation(OpacityProperty, fade);
     }
 
+    /// <summary>
+    /// Places the toast in the bottom-right corner of the game monitor. The
+    /// work area is in physical pixels, so the window is positioned with
+    /// SetWindowPos instead of WPF's device-independent Left/Top.
+    /// </summary>
+    private void PositionOnWorkArea()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero || !GetWindowRect(handle, out var rect))
+        {
+            var fallback = SystemParameters.WorkArea;
+            Left = fallback.Right - Width - 8;
+            Top = fallback.Bottom - Height - 8;
+            return;
+        }
+
+        var area = _workArea ?? System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea;
+        if (area is null)
+        {
+            return;
+        }
+
+        var width = rect.Right - rect.Left;
+        var height = rect.Bottom - rect.Top;
+
+        SetWindowPos(
+            handle,
+            IntPtr.Zero,
+            area.Value.Right - width - 8,
+            area.Value.Bottom - height - 8,
+            0,
+            0,
+            SwpNoSize | SwpNoZOrder | SwpNoActivate);
+    }
+
     private void Window_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => Close();
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(
+        IntPtr hWnd,
+        IntPtr hWndInsertAfter,
+        int x,
+        int y,
+        int cx,
+        int cy,
+        uint flags);
 }

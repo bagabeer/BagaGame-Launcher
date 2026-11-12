@@ -15,7 +15,7 @@ public sealed class PlaytimeTracker : IDisposable
     // Fast enough to notice that the game closed and to bring the launcher
     // back from the tray, but the settings file is still written only every
     // ReportInterval seconds.
-    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
 
     private static readonly TimeSpan ReportInterval = TimeSpan.FromSeconds(15);
 
@@ -25,7 +25,7 @@ public sealed class PlaytimeTracker : IDisposable
 
     // Once seen, the process must be gone for this long before tracking stops;
     // this tolerates a game that briefly restarts itself.
-    private static readonly TimeSpan StopGrace = TimeSpan.FromSeconds(6);
+    private static readonly TimeSpan StopGrace = TimeSpan.FromSeconds(2);
 
     private readonly LibraryStore _store;
     private readonly GameLibraryService _library;

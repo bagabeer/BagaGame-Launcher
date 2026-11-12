@@ -28,3 +28,9 @@ crash.log
 Thumbs.db
 desktop.ini
 .DS_Store
+
+## Plugins
+# Local plugin installs and nested sample builds
+/Plugins/
+docs/plugins/**/bin/
+docs/plugins/**/obj/
