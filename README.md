@@ -10,7 +10,7 @@ The launcher is written in **C# / WPF** on **.NET Framework 4.7.2** and uses no 
 
 ## 📥 Installation
 
-1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v1.1.0`).
+1. Open the **[Releases](https://github.com/bagabeer/BagaGame-Launcher/releases)** page and download the latest archive (`v1.1.1`).
 2. Extract it to any writable folder (for example, `D:\BagaGame`).
 3. Run **`BagaGame.exe`**.
 
@@ -142,6 +142,22 @@ Compat/                             — polyfills for modern C# on net472
 ---
 
 ## 📝 Changelog
+
+### Version 1.1.1
+
+**Window**
+* Dragging the title bar moves the window without edge snapping or resizing between monitors.
+* The launcher keeps its default size; window edges no longer resize it.
+
+**Tray**
+* A dark/light tray menu in the launcher style: smaller, rounded, no shadow.
+* A single click restores the window; Exit really terminates the process instead of leaving it in the task manager.
+
+**Achievements**
+* Icons for newer Steam games load from the current Steam asset host; old broken icon URLs are refreshed automatically.
+
+**Plugins**
+* `plugin.log` is rotated at 5 MB and keeps one previous file.
 
 ### Version 1.1.0 — plugins
 
