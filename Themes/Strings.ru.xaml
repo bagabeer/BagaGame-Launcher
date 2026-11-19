@@ -306,7 +306,7 @@
     <sys:String x:Key="Loc.Tray.Open">Открыть BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Выйти</sys:String>
     <sys:String x:Key="Loc.Tray.MinimizedTitle">BagaGame свёрнут в трей</sys:String>
-    <sys:String x:Key="Loc.Tray.MinimizedText">Лаунчер продолжает работать. Двойной клик по иконке вернёт окно, «Выйти» — закроет программу.</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedText">Лаунчер продолжает работать. Клик по иконке вернёт окно, «Выйти» — закроет программу.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Выберите папку с играми</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Выберите папку с игрой</sys:String>

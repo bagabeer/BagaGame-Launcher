@@ -362,12 +362,67 @@ public sealed class PluginHost : IDisposable
     {
         try
         {
+            var path = Path.Combine(_dataDirectory, "plugin.log");
+            RotateLogIfNeeded(path);
             var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}";
-            File.AppendAllText(Path.Combine(_dataDirectory, "plugin.log"), line);
+            File.AppendAllText(path, line);
         }
         catch
         {
             // Never let diagnostics break a plugin or the launcher.
+        }
+    }
+
+    private const long MaxLogBytes = 5 * 1024 * 1024;
+    private static DateTime _nextLogCheck = DateTime.MinValue;
+
+    /// <summary>
+    /// Keeps plugin.log bounded: once it grows past 5 MB it is replaced by a new
+    /// file, and the previous one is kept as plugin.log.old. The check itself is
+    /// throttled, so logging stays cheap.
+    /// </summary>
+    private static void RotateLogIfNeeded(string path)
+    {
+        if (DateTime.UtcNow < _nextLogCheck)
+        {
+            return;
+        }
+
+        _nextLogCheck = DateTime.UtcNow.AddSeconds(30);
+
+        try
+        {
+            var info = new FileInfo(path);
+            if (!info.Exists || info.Length <= MaxLogBytes)
+            {
+                return;
+            }
+
+            var old = path + ".old";
+            try
+            {
+                if (File.Exists(old))
+                {
+                    File.Delete(old);
+                }
+            }
+            catch
+            {
+                // An undeletable old file must not stop the rotation attempt.
+            }
+
+            try
+            {
+                File.Move(path, old);
+            }
+            catch
+            {
+                // Someone is writing right now: try again on the next check.
+            }
+        }
+        catch
+        {
+            // Rotation is best effort.
         }
     }
 

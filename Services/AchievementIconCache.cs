@@ -23,6 +23,12 @@ public static class AchievementIconCache
     private static readonly ConcurrentDictionary<string, Task<string>> InFlight =
         new(StringComparer.OrdinalIgnoreCase);
 
+    private const string IconHost =
+        "https://shared.fastly.steamstatic.com/community_assets/images/apps/";
+
+    private const string LegacyIconHost =
+        "https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/";
+
     public static Task<string> GetLocalAsync(string? url, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(url) ||
@@ -94,15 +100,14 @@ public static class AchievementIconCache
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var temporary = path + ".part";
 
-            using (var response = await Http
-                       .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-                       .ConfigureAwait(false))
+            if (!await TryDownloadAsync(url, temporary, cancellationToken).ConfigureAwait(false))
             {
-                response.EnsureSuccessStatusCode();
-
-                using var input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                using var output = File.Create(temporary);
-                await input.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(false);
+                var fallback = FallbackUrl(url);
+                if (fallback is null ||
+                    !await TryDownloadAsync(fallback, temporary, cancellationToken).ConfigureAwait(false))
+                {
+                    return url;
+                }
             }
 
             if (File.Exists(path))
@@ -126,6 +131,42 @@ public static class AchievementIconCache
             Gate.Release();
             InFlight.TryRemove(url, out _);
         }
+    }
+
+    private static async Task<bool> TryDownloadAsync(
+        string url,
+        string path,
+        CancellationToken cancellationToken)
+    {
+        using var response = await Http
+            .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        using var input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var output = File.Create(path);
+        await input.CopyToAsync(output, 81920, cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>Steam moved achievement art to community_assets; the old host stays as a fallback.</summary>
+    private static string? FallbackUrl(string url)
+    {
+        if (url.StartsWith(IconHost, StringComparison.OrdinalIgnoreCase))
+        {
+            return LegacyIconHost + url.Substring(IconHost.Length);
+        }
+
+        if (url.StartsWith(LegacyIconHost, StringComparison.OrdinalIgnoreCase))
+        {
+            return IconHost + url.Substring(LegacyIconHost.Length);
+        }
+
+        return null;
     }
 
     private static string LocalPath(string url)

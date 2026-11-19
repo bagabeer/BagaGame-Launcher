@@ -305,7 +305,7 @@
     <sys:String x:Key="Loc.Tray.Open">Open BagaGame</sys:String>
     <sys:String x:Key="Loc.Tray.Exit">Exit</sys:String>
     <sys:String x:Key="Loc.Tray.MinimizedTitle">BagaGame is in the tray</sys:String>
-    <sys:String x:Key="Loc.Tray.MinimizedText">The launcher keeps running. Double-click the icon to restore the window, or choose Exit to quit.</sys:String>
+    <sys:String x:Key="Loc.Tray.MinimizedText">The launcher keeps running. Click the icon to restore the window, or choose Exit to quit.</sys:String>
 
     <sys:String x:Key="Loc.Dialog.GamesFolder">Choose a folder with games</sys:String>
     <sys:String x:Key="Loc.Dialog.GameFolder">Choose the game folder</sys:String>

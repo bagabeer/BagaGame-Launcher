@@ -17,6 +17,9 @@ public class BagaWindow : Window
     private const int WmGetMinMaxInfo = 0x0024;
     private const int MonitorDefaultToNearest = 0x00000002;
 
+    /// <summary>Main window keeps its designed size; dialogs may still resize.</summary>
+    protected virtual bool AllowEdgeResize => true;
+
     public BagaWindow()
     {
         WindowStyle = WindowStyle.None;
@@ -28,7 +31,7 @@ public class BagaWindow : Window
             new WindowChrome
             {
                 CaptionHeight = 0,
-                ResizeBorderThickness = new Thickness(6),
+                ResizeBorderThickness = AllowEdgeResize ? new Thickness(6) : new Thickness(0),
                 GlassFrameThickness = new Thickness(0, 0, 0, 1),
                 CornerRadius = new CornerRadius(0),
                 UseAeroCaptionButtons = false,

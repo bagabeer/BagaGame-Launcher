@@ -24,6 +24,15 @@ public sealed class SteamAchievementCatalogService
     private static readonly Dictionary<string, CacheEntry> Memory = new(StringComparer.OrdinalIgnoreCase);
     private static readonly TimeSpan Lifetime = TimeSpan.FromHours(12);
 
+    // Newer Steam apps store achievement art on community_assets. The old
+    // cdn.akamai path still works for old games but returns 404 for new ones,
+    // so the catalogue always builds the current host.
+    private const string IconHost =
+        "https://shared.fastly.steamstatic.com/community_assets/images/apps/";
+
+    private const string RetiredIconHost =
+        "https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/";
+
     private sealed record CacheEntry(DateTime SavedUtc, IReadOnlyList<SteamAchievement> Items);
 
     public static SteamAchievementCatalogService Shared { get; } = new();
@@ -327,9 +336,12 @@ public sealed class SteamAchievementCatalogService
             return string.Empty;
         }
 
-        return "https://cdn.akamai.steamstatic.com/steamcommunity/public/images/apps/" +
-               appId + "/" + icon;
+        return IconHost + appId + "/" + icon;
     }
+
+    private static bool IsRetiredIconUrl(string? url)
+        => !string.IsNullOrEmpty(url) &&
+           url!.StartsWith(RetiredIconHost, StringComparison.OrdinalIgnoreCase);
 
     private static string? GetString(JsonElement element, string property)
         => element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
@@ -361,9 +373,23 @@ public sealed class SteamAchievementCatalogService
             }
 
             var items = JsonSerializer.Deserialize<List<SteamAchievement>>(File.ReadAllText(path));
-            return items is { Count: > 0 }
-                ? new CacheEntry(File.GetLastWriteTimeUtc(path), items)
-                : null;
+            if (items is not { Count: > 0 })
+            {
+                return null;
+            }
+
+            // A cache written by an older build points at the retired CDN.
+            // Newer apps answer 404 there, so drop the cached copy and parse
+            // the page again with the community_assets URLs.
+            if (items.Any(item =>
+                    IsRetiredIconUrl(item.IconUrl) ||
+                    IsRetiredIconUrl(item.IconOpen) ||
+                    IsRetiredIconUrl(item.IconLocked)))
+            {
+                return null;
+            }
+
+            return new CacheEntry(File.GetLastWriteTimeUtc(path), items);
         }
         catch
         {

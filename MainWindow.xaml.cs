@@ -23,6 +23,8 @@ namespace BagaGame;
 
 public partial class MainWindow : BagaGame.Controls.BagaWindow
 {
+    /// <summary>The launcher does not resize by dragging its edges.</summary>
+    protected override bool AllowEdgeResize => false;
     private readonly MainViewModel _viewModel;
     private readonly LibraryStore _store;
     private Game? _renameTarget;
@@ -1349,7 +1351,23 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         _allowClose = true;
         _tray?.Dispose();
         _tray = null;
+
+        // Give the normal shutdown a moment to save state and stop plugins.
+        // A plugin thread can keep the process alive and hold the
+        // single-instance mutex, so leave for real afterwards.
+        var watchdog = new Thread(() =>
+        {
+            Thread.Sleep(3000);
+            Environment.Exit(0);
+        })
+        {
+            IsBackground = true,
+            Name = "BagaGame exit watchdog",
+        };
+        watchdog.Start();
+
         Close();
+        Application.Current.Shutdown();
     }
 
     private void App_SessionEnding(object sender, SessionEndingCancelEventArgs e)
@@ -1381,6 +1399,7 @@ public partial class MainWindow : BagaGame.Controls.BagaWindow
         var light = ThemeToggle.IsChecked == true;
         ThemeService.Apply(light ? AppTheme.Light : AppTheme.Dark);
         _store.IsLightTheme = light;
+        _tray?.RefreshTheme();
     }
 
     private void Language_Checked(object sender, RoutedEventArgs e)

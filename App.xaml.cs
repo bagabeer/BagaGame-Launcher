@@ -207,5 +207,9 @@ public partial class App : Application
         _singleInstanceMutex = null;
 
         base.OnExit(e);
+
+        // Plugins may leave foreground threads behind. Without this a closed
+        // launcher stays in the task manager and blocks the next launch.
+        Environment.Exit(0);
     }
 }
